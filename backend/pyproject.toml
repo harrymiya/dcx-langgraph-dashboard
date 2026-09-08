@@ -1,0 +1,10 @@
+[project]
+name = "dcx-refactor-dag-service"
+version = "0.1.0"
+requires-python = ">=3.10"
+dependencies = [
+  "langgraph>=1.2,<2",
+  "langgraph-checkpoint-sqlite>=2,<4",
+]
+
+[tool.langgraph]

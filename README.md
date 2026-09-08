@@ -1,36 +1,59 @@
 # Refactor Control Room
 
-独立的 React + Vite 重构 DAG 控制台。页面不内置节点数量或依赖数据，以当前
-LangGraph API 为唯一图结构来源：
+独立的 React + Vite + LangGraph 重构 DAG 控制台。LangGraph 服务已经随项目放在
+`backend/` 下，前端通过本地代理访问它：
 
 - POST /assistants/search 动态发现 refactor_dag
 - GET /assistants/{assistant_id}/graph 动态读取节点和依赖边
 - POST /threads/{thread_id}/runs/wait 同步节点运行状态
-- 开发环境通过 Vite /langgraph 代理访问 http://127.0.0.1:8123
+- 开发环境通过 Vite /langgraph 代理访问项目内的 http://127.0.0.1:8123
 - 开发/预览环境通过 Vite /api/agents/launch 在本机打开 Konsole，并在 APP18 仓库启动 Agent CLI
 
-当前后端接口返回 133 个图节点：131 个业务节点，以及 __start__、__end__
-两个控制节点。页面会根据接口响应实时计算数量，不依赖固定数字。
+当前项目内置 131 个业务节点；LangGraph API 会额外返回 `__start__`、`__end__`
+两个控制节点。页面会根据接口响应实时计算数量。
 
 ## 启动
 
-先启动现有 LangGraph 后端：
+环境要求：Node.js 20.19+、npm，以及 Python 3.10+。首次启动会自动在
+`backend/.venv` 创建 Python 虚拟环境并安装 LangGraph 依赖。
 
-    /mnt/data/code/.venvs/dcx-web-langgraph/bin/langgraph dev \
-      --config /mnt/data/code/dcx-web/dcx-web/langgraph.json \
-      --host 127.0.0.1 --port 8123 --no-browser
-
-再启动本项目：
+安装前端依赖后，一条命令启动前后端：
 
     cd /mnt/data/code/dcx-langgraph-dashboard
-    pnpm install
-    pnpm dev
+    npm install
+    npm run dev:all
 
-打开 http://127.0.0.1:5175/。
+打开 http://127.0.0.1:5175/。按 `Ctrl+C` 会同时停止前端和 LangGraph 服务。
+
+也可以使用别名：
+
+    npm run start
+
+只启动前端（需要自行保证 8123 端口已有 LangGraph 服务）仍可使用：
+
+    npm run dev
+
+`npm run dev:all` 支持以下可选环境变量：
+
+- `LANGGRAPH_PYTHON`：指定 Python 可执行文件
+- `LANGGRAPH_BIN`：直接指定 `langgraph` 可执行文件，适合已有虚拟环境
+- `LANGGRAPH_PORT`：修改 LangGraph 端口，默认 `8123`
+- `FRONTEND_PORT`：修改 Vite 端口，默认 `5175`
 
 如需连接其他 LangGraph 服务：
 
-    LANGGRAPH_API_URL=http://127.0.0.1:8123 pnpm dev
+    LANGGRAPH_API_URL=http://127.0.0.1:8123 npm run dev
+
+## 项目内 LangGraph 服务
+
+- `backend/langgraph.json`：注册 `refactor_dag`
+- `backend/graph.py`：构建并编译 DAG
+- `backend/tasks.json`：当前任务、依赖、状态和执行属性快照
+- `backend/requirements.txt`：LangGraph 服务依赖
+
+手动校验服务配置：
+
+    langgraph validate --config backend/langgraph.json
 
 ## 操作
 

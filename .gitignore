@@ -3,3 +3,11 @@ dist
 .env
 .env.*
 !.env.example
+.langgraph_api/
+langgraph.log
+langgraph.pid
+backend/.venv/
+backend/.langgraph_api/
+backend/.test-local/
+__pycache__/
+*.pyc

@@ -6,6 +6,7 @@ import type { Plugin } from "vite";
 import react from "@vitejs/plugin-react";
 
 const langGraphApi = process.env.LANGGRAPH_API_URL ?? "http://127.0.0.1:8123";
+const frontendPort = Number(process.env.FRONTEND_PORT ?? 5175);
 const agentWorkspace = "/mnt/data/code/dcx-web/dcx-web";
 const terminalPath = "/usr/bin/konsole";
 const maxPromptBytes = 64 * 1024;
@@ -138,7 +139,7 @@ export default defineConfig({
   plugins: [react(), agentLauncherPlugin()],
   server: {
     host: "127.0.0.1",
-    port: 5175,
+    port: frontendPort,
     strictPort: true,
     proxy: {
       "/langgraph": {

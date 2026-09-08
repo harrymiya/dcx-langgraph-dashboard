@@ -38,6 +38,10 @@ export interface DagTask {
   status: DagStatus;
   statusSource: string;
   ingestionStatus: IngestionStatus;
+  description?: string;
+  goal?: string;
+  acceptance?: string;
+  implementation?: string;
   section?: string;
   project?: string;
   output?: string;
@@ -66,6 +70,17 @@ export interface LiveTaskRecord {
   status?: DagStatus;
   status_source?: string;
   ingestion_status?: IngestionStatus;
+  description?: unknown;
+  summary?: unknown;
+  goal?: unknown;
+  objective?: unknown;
+  target?: unknown;
+  acceptance?: unknown;
+  acceptance_criteria?: unknown;
+  criteria?: unknown;
+  implementation?: unknown;
+  implementation_plan?: unknown;
+  plan?: unknown;
   section?: string;
   project?: string;
   output?: string;

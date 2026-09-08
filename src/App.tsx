@@ -62,6 +62,37 @@ const AGENT_META: Record<AgentKind, { label: string; hint: string }> = {
 
 const clampScale = (value: number) => Math.min(1.2, Math.max(0.58, value));
 
+function textValue(value: unknown): string | undefined {
+  if (typeof value === "string") return value.trim() || undefined;
+  if (typeof value === "number" || typeof value === "boolean") return String(value);
+  if (Array.isArray(value)) {
+    const values = value.map(textValue).filter((item): item is string => Boolean(item));
+    return values.length ? values.join("；") : undefined;
+  }
+  if (value && typeof value === "object") {
+    const values = Object.entries(value)
+      .map(([key, item]) => {
+        const itemText = textValue(item);
+        return itemText ? key + "：" + itemText : undefined;
+      })
+      .filter((item): item is string => Boolean(item));
+    return values.length ? values.join("；") : undefined;
+  }
+  return undefined;
+}
+
+function firstText(...values: unknown[]): string | undefined {
+  for (const value of values) {
+    const result = textValue(value);
+    if (result) return result;
+  }
+  return undefined;
+}
+
+function recordText(record: Record<string, unknown>, keys: string[]) {
+  return firstText(...keys.map((key) => record[key]));
+}
+
 function materializeTasks(
   definition: GraphDefinition,
   liveRecords: LiveTaskRecord[] = [],
@@ -90,11 +121,34 @@ function materializeTasks(
       status: isControl ? "control" : live?.status ?? "unknown",
       statusSource: isControl ? "graph-definition" : live?.status_source ?? "LangGraph run",
       ingestionStatus: isControl ? "ingested" : live?.ingestion_status ?? "unknown",
-      section: live?.section,
-      project: live?.project,
-      output: live?.output,
-      scope: live?.scope,
-      verify: live?.verify,
+      description: firstText(
+        live?.description,
+        live?.summary,
+        recordText(data, ["description", "summary", "detail", "说明"]),
+      ),
+      goal: firstText(
+        live?.goal,
+        live?.objective,
+        live?.target,
+        recordText(data, ["goal", "objective", "target", "目标"]),
+      ),
+      acceptance: firstText(
+        live?.acceptance,
+        live?.acceptance_criteria,
+        live?.criteria,
+        recordText(data, ["acceptance", "acceptance_criteria", "criteria", "done_when", "达成条件"]),
+      ),
+      implementation: firstText(
+        live?.implementation,
+        live?.implementation_plan,
+        live?.plan,
+        recordText(data, ["implementation", "implementation_plan", "plan", "solution", "实施方案"]),
+      ),
+      section: firstText(live?.section, recordText(data, ["section", "章节"])),
+      project: firstText(live?.project, recordText(data, ["project", "项目", "工作项目"])),
+      output: firstText(live?.output, recordText(data, ["output", "deliverable", "唯一产出"])),
+      scope: firstText(live?.scope, recordText(data, ["scope", "范围", "修改范围"])),
+      verify: firstText(live?.verify, recordText(data, ["verify", "verification", "验证", "计划验证"])),
       evidence: live?.evidence,
       data,
     };
@@ -275,6 +329,107 @@ function StatusPill({ status, compact = false }: StatusPillProps) {
   );
 }
 
+const PROGRESS_STATUSES: DagStatus[] = [
+  "release-ready",
+  "contract-ready",
+  "code-ready",
+  "in-progress",
+  "blocked",
+  "planned",
+  "unknown",
+];
+
+interface StatusProgressProps {
+  tasks: DagTask[];
+  counts: Record<string, number>;
+}
+
+function StatusProgress({ tasks, counts }: StatusProgressProps) {
+  const total = tasks.filter((task) => !task.isControl).length;
+  const releaseReady = counts["release-ready"] ?? 0;
+  const releasePercent = total ? Math.round((releaseReady / total) * 100) : 0;
+  const progressLabel = PROGRESS_STATUSES.filter((status) => (counts[status] ?? 0) > 0)
+    .map((status) => STATUS_META[status].label + " " + (counts[status] ?? 0))
+    .join("，");
+
+  return (
+    <section className="status-overview" aria-labelledby="status-overview-title">
+      <div className="status-overview-header">
+        <div>
+          <span className="status-overview-kicker">WORKFLOW PROGRESS</span>
+          <h2 id="status-overview-title">任务状态总览</h2>
+        </div>
+        <div className="status-overview-summary">
+          <strong>{releaseReady}/{total}</strong>
+          <span>可发布 · {releasePercent}%</span>
+        </div>
+      </div>
+
+      <div className="status-progress-track" role="img" aria-label={progressLabel || "暂无业务节点状态"}>
+        {PROGRESS_STATUSES.map((status) => {
+          const count = counts[status] ?? 0;
+          if (!count || !total) return null;
+          return (
+            <span
+              className="status-progress-segment"
+              key={status}
+              style={{
+                width: (count / total) * 100 + "%",
+                backgroundColor: STATUS_META[status].color,
+              }}
+              title={STATUS_META[status].label + "：" + count + "（" + Math.round((count / total) * 100) + "%）"}
+            />
+          );
+        })}
+      </div>
+
+      <div className="status-progress-legend">
+        {PROGRESS_STATUSES.map((status) => {
+          const count = counts[status] ?? 0;
+          const percent = total ? Math.round((count / total) * 100) : 0;
+          return (
+            <span className="status-progress-item" key={status}>
+              <i
+                style={{
+                  backgroundColor: STATUS_META[status].color,
+                  color: STATUS_META[status].color,
+                }}
+              />
+              <span>{STATUS_META[status].label}</span>
+              <strong>{count}</strong>
+              <em>{percent}%</em>
+            </span>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
+interface TaskBrief {
+  description: string;
+  goal: string;
+  acceptance: string;
+  implementation: string;
+}
+
+function getTaskBrief(task: DagTask): TaskBrief {
+  return {
+    description:
+      task.description ??
+      "该节点负责「" + task.label + "」，接口未返回更详细的节点说明。",
+    goal:
+      task.goal ??
+      (task.output ? "交付：" + task.output : "完成「" + task.label + "」对应的工作目标。"),
+    acceptance:
+      task.acceptance ??
+      (task.verify ? "验证：" + task.verify : "接口未返回明确的达成条件，请结合状态和验证记录确认。"),
+    implementation:
+      task.implementation ??
+      (task.scope ? "按以下修改范围实施：" + task.scope : "接口未返回实施方案，请先检查前置依赖和修改范围。"),
+  };
+}
+
 interface DagCanvasProps {
   tasks: DagTask[];
   edges: GraphEdge[];
@@ -408,6 +563,7 @@ function DagCanvas({
       onPointerMove={handlePointerMove}
       onPointerUp={finishPointerDrag}
       onPointerCancel={finishPointerDrag}
+      onDragStart={(event) => event.preventDefault()}
       title="按住鼠标左键拖拽画布；按住 Ctrl 滚动鼠标滚轮缩放"
     >
       <div className="canvas-stage" style={stageStyle}>
@@ -434,9 +590,8 @@ function DagCanvas({
               const target = layout.positions.get(edge.target);
               if (!source || !target) return null;
               const highlighted =
-                Boolean(selectedId) && related.has(edge.source) && related.has(edge.target);
-              const dimmed =
-                Boolean(selectedId) && !highlighted && edge.source !== selectedId && edge.target !== selectedId;
+                Boolean(selectedId) && (edge.source === selectedId || edge.target === selectedId);
+              const dimmed = Boolean(selectedId) && !highlighted;
               return (
                 <path
                   key={edge.source + ">" + edge.target}
@@ -610,6 +765,7 @@ export default function App() {
     [filter, query, tasks],
   );
   const selectedTask = tasks.find((task) => task.id === selectedId) ?? null;
+  const selectedBrief = selectedTask ? getTaskBrief(selectedTask) : null;
   const selectedDependents = selectedTask
     ? tasks.filter((task) => task.deps.includes(selectedTask.id))
     : [];
@@ -716,15 +872,53 @@ export default function App() {
         </div>
       ) : null}
 
+      <StatusProgress tasks={tasks} counts={counts} />
+
       <section className="workspace">
         <div className="graph-panel">
           <div className="panel-header">
-            <div>
+            <div className="panel-heading">
               <div className="panel-title-row">
                 <h2>完整 DAG</h2>
                 <span className="api-badge">来自 /graph</span>
               </div>
-              <p>按住鼠标左键拖拽查看画布；点击节点突出显示直接上下游，点击空白处取消选中。</p>
+            </div>
+            <div className="graph-toolbar">
+              <label className="search-box">
+                <Search size={16} />
+                <input
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                  placeholder="搜索任务 ID、分组或节点类型…"
+                  aria-label="搜索任务"
+                />
+                {query ? (
+                  <button type="button" onClick={() => setQuery("")} aria-label="清除搜索">
+                    <X size={14} />
+                  </button>
+                ) : null}
+              </label>
+              <div className="filter-tabs" role="tablist" aria-label="状态筛选">
+                {filterItems.map((item) => (
+                  <button
+                    className={filter === item.id ? "active" : ""}
+                    key={item.id}
+                    type="button"
+                    onClick={() => setFilter(item.id)}
+                    role="tab"
+                    aria-selected={filter === item.id}
+                  >
+                    {item.label}
+                    <span>{item.count}</span>
+                  </button>
+                ))}
+              </div>
+              <div className="legend" aria-label="节点状态图例">
+                <span><i className="legend-dot" style={{ background: STATUS_META.planned.color }} />计划</span>
+                <span><i className="legend-dot" style={{ background: STATUS_META["in-progress"].color }} />进行</span>
+                <span><i className="legend-dot" style={{ background: STATUS_META.blocked.color }} />阻塞</span>
+                <span><i className="legend-dot" style={{ background: STATUS_META["release-ready"].color }} />代码/合同就绪</span>
+              </div>
             </div>
             <div className="graph-tools">
               <button type="button" onClick={() => setScale((value) => clampScale(value - 0.1))} title="缩小">
@@ -738,44 +932,6 @@ export default function App() {
                 <LocateFixed size={16} />
               </button>
               <span className="zoom-hint">拖拽移动 · Ctrl + 滚轮</span>
-            </div>
-          </div>
-
-          <div className="graph-toolbar">
-            <label className="search-box">
-              <Search size={16} />
-              <input
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                placeholder="搜索任务 ID、分组或节点类型…"
-                aria-label="搜索任务"
-              />
-              {query ? (
-                <button type="button" onClick={() => setQuery("")} aria-label="清除搜索">
-                  <X size={14} />
-                </button>
-                ) : null}
-            </label>
-            <div className="filter-tabs" role="tablist" aria-label="状态筛选">
-              {filterItems.map((item) => (
-                <button
-                  className={filter === item.id ? "active" : ""}
-                  key={item.id}
-                  type="button"
-                  onClick={() => setFilter(item.id)}
-                  role="tab"
-                  aria-selected={filter === item.id}
-                >
-                  {item.label}
-                  <span>{item.count}</span>
-                </button>
-                ))}
-            </div>
-            <div className="legend" aria-label="节点状态图例">
-              <span><i className="legend-dot" style={{ background: STATUS_META.planned.color }} />计划</span>
-              <span><i className="legend-dot" style={{ background: STATUS_META["in-progress"].color }} />进行</span>
-              <span><i className="legend-dot" style={{ background: STATUS_META.blocked.color }} />阻塞</span>
-              <span><i className="legend-dot" style={{ background: STATUS_META["release-ready"].color }} />代码/合同就绪</span>
             </div>
           </div>
 
@@ -814,10 +970,31 @@ export default function App() {
                 </span>
               </div>
               <h3 className="task-name">{selectedTask.label}</h3>
+              <div className="task-brief" aria-label="节点说明">
+                <div className="task-brief-item">
+                  <span>节点说明</span>
+                  <p>{selectedBrief?.description}</p>
+                </div>
+                <div className="task-brief-item">
+                  <span>目标</span>
+                  <p>{selectedBrief?.goal}</p>
+                </div>
+                <div className="task-brief-item">
+                  <span>达成条件</span>
+                  <p>{selectedBrief?.acceptance}</p>
+                </div>
+                <div className="task-brief-item">
+                  <span>实施方案</span>
+                  <p>{selectedBrief?.implementation}</p>
+                </div>
+              </div>
               <div className="detail-list">
                 <div><span>节点类型</span><strong>{selectedTask.type}</strong></div>
                 <div><span>分组</span><strong>{selectedTask.group}</strong></div>
                 <div><span>工作项目</span><strong>{selectedTask.project ?? "未返回"}</strong></div>
+                <div><span>唯一产出</span><strong>{selectedTask.output ?? "未返回"}</strong></div>
+                <div><span>修改范围</span><strong>{selectedTask.scope ?? "未返回"}</strong></div>
+                <div><span>计划验证</span><strong>{selectedTask.verify ?? "未返回"}</strong></div>
                 <div><span>状态来源</span><strong>{selectedTask.statusSource}</strong></div>
                 <div><span>数据来源</span><strong>LangGraph graph + run API</strong></div>
               </div>

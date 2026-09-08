@@ -55,6 +55,125 @@ button {
   border-bottom: 0;
 }
 
+.status-overview {
+  flex: 0 0 auto;
+  display: grid;
+  grid-template-columns: minmax(210px, auto) minmax(220px, 1fr) minmax(390px, 1.45fr);
+  align-items: center;
+  gap: 18px;
+  margin: 1px 0 18px;
+  padding: 14px 18px 13px;
+  background: linear-gradient(145deg, rgba(17, 35, 55, 0.8), rgba(15, 23, 42, 0.72));
+  border: 1px solid rgba(56, 189, 248, 0.15);
+  border-radius: 11px;
+  box-shadow: 0 16px 42px rgba(2, 6, 23, 0.18);
+}
+
+.status-overview-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.status-overview-header > div:first-child {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: max-content;
+}
+
+.status-overview-kicker {
+  color: #67e8f9;
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: 0.14em;
+}
+
+.status-overview h2 {
+  margin: 0;
+  color: #f8fafc;
+  font-size: 15px;
+  letter-spacing: -0.01em;
+}
+
+.status-overview-summary {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  color: #64748b;
+  font-size: 11px;
+}
+
+.status-overview-summary strong {
+  color: #a7f3d0;
+  font: 700 18px ui-monospace, SFMono-Regular, Consolas, monospace;
+}
+
+.status-progress-track {
+  display: flex;
+  width: 100%;
+  height: 10px;
+  margin-top: 0;
+  overflow: hidden;
+  background: rgba(2, 6, 23, 0.58);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  border-radius: 99px;
+}
+
+.status-progress-segment {
+  min-width: 2px;
+  height: 100%;
+  box-shadow: inset -1px 0 rgba(8, 13, 24, 0.32);
+  transition: width 260ms ease;
+}
+
+.status-progress-segment:first-child {
+  border-radius: 99px 0 0 99px;
+}
+
+.status-progress-segment:last-child {
+  border-radius: 0 99px 99px 0;
+  box-shadow: none;
+}
+
+.status-progress-legend {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px 13px;
+  margin-top: 0;
+}
+
+.status-progress-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #94a3b8;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.status-progress-item i {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  box-shadow: 0 0 7px color-mix(in srgb, currentColor, transparent 45%);
+}
+
+.status-progress-item strong {
+  color: #e2e8f0;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.status-progress-item em {
+  color: #64748b;
+  font-size: 10px;
+  font-style: normal;
+}
+
 .brand,
 .topbar-actions,
 .connection-badge,
@@ -361,11 +480,16 @@ button {
 }
 
 .panel-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 20px;
-  padding: 19px 20px 15px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  padding: 12px 20px;
+}
+
+.panel-heading {
+  min-width: max-content;
 }
 
 .panel-title-row {
@@ -440,7 +564,8 @@ button {
   align-items: center;
   gap: 10px;
   min-width: 0;
-  padding: 5px 20px 10px;
+  width: 100%;
+  padding: 0;
   overflow-x: auto;
   scrollbar-width: none;
   white-space: nowrap;
@@ -826,6 +951,37 @@ button {
   line-height: 1.45;
 }
 
+.task-brief {
+  display: grid;
+  gap: 7px;
+  margin-bottom: 15px;
+}
+
+.task-brief-item {
+  padding: 9px 10px 10px;
+  background: rgba(2, 6, 23, 0.3);
+  border: 1px solid rgba(148, 163, 184, 0.1);
+  border-left: 2px solid rgba(103, 232, 249, 0.52);
+  border-radius: 6px;
+}
+
+.task-brief-item > span {
+  display: block;
+  color: #67e8f9;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.task-brief-item p {
+  margin: 5px 0 0;
+  color: #cbd5e1;
+  font-size: 11px;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+}
+
 .detail-list {
   padding: 10px 12px;
   background: rgba(2, 6, 23, 0.35);
@@ -1178,6 +1334,52 @@ body[data-theme="light"] .details-panel {
   background: rgba(255, 255, 255, 0.78);
   border-color: rgba(100, 116, 139, 0.18);
   box-shadow: 0 22px 60px rgba(71, 85, 105, 0.1);
+}
+
+body[data-theme="light"] .status-overview {
+  background: linear-gradient(145deg, rgba(224, 242, 254, 0.9), rgba(255, 255, 255, 0.84));
+  border-color: rgba(14, 165, 233, 0.2);
+  box-shadow: 0 16px 42px rgba(71, 85, 105, 0.08);
+}
+
+body[data-theme="light"] .status-overview-kicker,
+body[data-theme="light"] .task-brief-item > span {
+  color: #0e7490;
+}
+
+body[data-theme="light"] .status-overview h2 {
+  color: #0f172a;
+}
+
+body[data-theme="light"] .status-overview-summary strong {
+  color: #047857;
+}
+
+body[data-theme="light"] .status-progress-track {
+  background: rgba(148, 163, 184, 0.2);
+  border-color: rgba(100, 116, 139, 0.16);
+}
+
+body[data-theme="light"] .status-progress-segment {
+  box-shadow: inset -1px 0 rgba(255, 255, 255, 0.45);
+}
+
+body[data-theme="light"] .status-progress-item {
+  color: #475569;
+}
+
+body[data-theme="light"] .status-progress-item strong {
+  color: #1e293b;
+}
+
+body[data-theme="light"] .task-brief-item {
+  background: rgba(241, 245, 249, 0.78);
+  border-color: rgba(100, 116, 139, 0.16);
+  border-left-color: rgba(14, 165, 233, 0.58);
+}
+
+body[data-theme="light"] .task-brief-item p {
+  color: #334155;
 }
 
 body[data-theme="light"] .sync-card-foot {

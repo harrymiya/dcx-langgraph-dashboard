@@ -1,0 +1,6 @@
+{
+  "dependencies": ["."],
+  "graphs": {
+    "refactor_dag": "./graph.py:graph"
+  }
+}
