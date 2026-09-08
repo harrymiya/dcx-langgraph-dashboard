@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { CSSProperties } from "react";
+import type { CSSProperties, MouseEvent as ReactMouseEvent } from "react";
 import {
   Activity,
   AlertCircle,
@@ -278,7 +278,7 @@ interface DagCanvasProps {
   edges: GraphEdge[];
   selectedId: string | null;
   matchedIds: Set<string>;
-  onSelect: (id: string) => void;
+  onSelect: (id: string | null) => void;
   onZoom: (nextScale: number) => void;
   scale: number;
 }
@@ -330,6 +330,11 @@ function DagCanvas({
     });
   }, [onZoom, scale]);
 
+  const handleCanvasClick = (event: ReactMouseEvent<HTMLDivElement>) => {
+    const target = event.target as HTMLElement;
+    if (!target.closest(".dag-node")) onSelect(null);
+  };
+
   useEffect(() => {
     const viewport = viewportRef.current;
     if (!viewport) return;
@@ -342,6 +347,7 @@ function DagCanvas({
       ref={viewportRef}
       className="canvas-scroll"
       aria-label="LangGraph 动态 DAG"
+      onClick={handleCanvasClick}
       title="按住 Ctrl 滚动鼠标滚轮缩放画布"
     >
       <div className="canvas-stage" style={stageStyle}>
@@ -546,6 +552,7 @@ export default function App() {
     ? tasks.filter((task) => task.deps.includes(selectedTask.id))
     : [];
   const readyCount = businessTasks.filter((task) => isReadyStatus(task.status)).length;
+  const releaseReadyCount = businessTasks.filter((task) => task.status === "release-ready").length;
   const selectedAgent = selectedTask ? agentByTask[selectedTask.id] ?? "codex" : "codex";
   const agentPrompt = selectedTask
     ? buildAgentPrompt(selectedAgent, selectedTask, tasks, assistant, displayApiUrl)
@@ -570,7 +577,7 @@ export default function App() {
     { id: "blocked", label: "阻塞", count: counts.blocked ?? 0 },
     { id: "in-progress", label: "进行中", count: counts["in-progress"] ?? 0 },
     { id: "planned", label: "计划中", count: counts.planned ?? 0 },
-    { id: "ready", label: "已就绪", count: readyCount },
+    { id: "ready", label: "工程/合同就绪", count: readyCount },
   ];
 
   if (isLoading && tasks.length === 0) {
@@ -676,7 +683,7 @@ export default function App() {
                 <h2>完整 DAG</h2>
                 <span className="api-badge">来自 /graph</span>
               </div>
-              <p>横向滚动浏览所有分组；点击节点后，仅突出显示它的直接上下游。</p>
+              <p>横向滚动浏览所有分组；点击节点后，仅突出显示它的直接上下游，点击空白处取消选中。</p>
             </div>
             <div className="graph-tools">
               <button type="button" onClick={() => setScale((value) => clampScale(value - 0.1))} title="缩小">
@@ -731,7 +738,7 @@ export default function App() {
               <span><i className="legend-dot" style={{ background: STATUS_META.planned.color }} />计划</span>
               <span><i className="legend-dot" style={{ background: STATUS_META["in-progress"].color }} />进行</span>
               <span><i className="legend-dot" style={{ background: STATUS_META.blocked.color }} />阻塞</span>
-              <span><i className="legend-dot" style={{ background: STATUS_META["release-ready"].color }} />就绪</span>
+              <span><i className="legend-dot" style={{ background: STATUS_META["release-ready"].color }} />代码/合同就绪</span>
             </div>
           </div>
 
@@ -867,7 +874,7 @@ export default function App() {
       </section>
 
       <footer className="footer-note">
-        <span><Info size={14} />这是 LangGraph 的可视化控制台，不会把“节点已入图”误报成“任务已完成”。</span>
+        <span><Info size={14} />代码/合同就绪不等于正式可发布；当前正式可发布 {releaseReadyCount}/{businessTasks.length}。</span>
         <span>最后同步：{formatDate(lastSync)}</span>
       </footer>
     </main>
