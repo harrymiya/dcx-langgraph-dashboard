@@ -12,8 +12,6 @@ from langgraph.graph import END, START, StateGraph
 
 ROOT = Path(__file__).resolve().parent
 TASKS = json.loads((ROOT / "tasks.json").read_text(encoding="utf-8"))
-for task in TASKS:
-    task["status_source"] = "bundled-task-snapshot"
 
 
 class DagState(TypedDict):
@@ -25,22 +23,22 @@ def build_graph():
 
     def make_node(task: dict):
         def node(_: DagState) -> dict:
-            return {
-                "tasks": {
-                    task["id"]: {
-                        "id": task["id"],
-                        "status": task.get("status", "planned"),
-                        "status_source": "bundled-task-snapshot",
-                        "ingestion_status": "ingested",
-                        "section": task.get("section", ""),
-                        "project": task.get("project", ""),
-                        "output": task.get("output", ""),
-                        "scope": task.get("scope", ""),
-                        "verify": task.get("verify", ""),
-                        "evidence": [],
-                    }
-                }
+            record = {
+                "id": task["id"],
+                "status": task.get("status", "planned"),
+                "status_source": task.get("status_source", "bundled-task-snapshot"),
+                "ingestion_status": "ingested",
+                "section": task.get("section", ""),
+                "project": task.get("project", ""),
+                "output": task.get("output", ""),
+                "scope": task.get("scope", ""),
+                "verify": task.get("verify", ""),
+                "evidence": task.get("evidence", []),
             }
+            for field in ("owner", "commit", "verified_at"):
+                if field in task:
+                    record[field] = task[field]
+            return {"tasks": {task["id"]: record}}
 
         return node
 
