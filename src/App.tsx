@@ -464,6 +464,26 @@ function DagCanvas({
     transform: "scale(" + scale + ")",
   };
 
+  useEffect(() => {
+    if (!selectedId) return;
+    const position = layout.positions.get(selectedId);
+    const viewport = viewportRef.current;
+    if (!position || !viewport) return;
+
+    // 选中节点后把它移到视口中央，筛选结果位于画布较远处时也能直接看到。
+    const frame = window.requestAnimationFrame(() => {
+      const nodeCenterX = (position.x + position.width / 2) * scale;
+      const nodeCenterY = (position.y + position.height / 2) * scale;
+      viewport.scrollTo({
+        left: nodeCenterX - viewport.clientWidth / 2,
+        top: nodeCenterY - viewport.clientHeight / 2,
+        behavior: "smooth",
+      });
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [layout, scale, selectedId]);
+
   const handleWheel = useCallback((event: globalThis.WheelEvent) => {
     if (!event.ctrlKey) return;
     // Chrome/Firefox 会把 Ctrl+滚轮解释为页面缩放；用 passive:false 的
@@ -755,15 +775,11 @@ export default function App() {
 
   const businessTasks = useMemo(() => tasks.filter((task) => !task.isControl), [tasks]);
   const counts = useMemo(() => statusCounts(tasks), [tasks]);
-  const matchedIds = useMemo(
-    () =>
-      new Set(
-        tasks
-          .filter((task) => taskMatchesFilter(task, query, filter))
-          .map((task) => task.id),
-      ),
+  const matchedTasks = useMemo(
+    () => tasks.filter((task) => taskMatchesFilter(task, query, filter)),
     [filter, query, tasks],
   );
+  const matchedIds = useMemo(() => new Set(matchedTasks.map((task) => task.id)), [matchedTasks]);
   const selectedTask = tasks.find((task) => task.id === selectedId) ?? null;
   const selectedBrief = selectedTask ? getTaskBrief(selectedTask) : null;
   const selectedDependents = selectedTask
@@ -772,6 +788,27 @@ export default function App() {
   const readyCount = businessTasks.filter((task) => isReadyStatus(task.status)).length;
   const releaseReadyCount = businessTasks.filter((task) => task.status === "release-ready").length;
   const selectedAgent = selectedTask ? agentByTask[selectedTask.id] ?? "codex" : "codex";
+
+  const handleFilterClick = (nextFilter: TaskFilter) => {
+    // “全部”只切换筛选状态；其他类型按钮同时承担结果节点的循环导航。
+    if (nextFilter === "all") {
+      setFilter(nextFilter);
+      return;
+    }
+
+    const nextMatches = tasks.filter((task) => taskMatchesFilter(task, query, nextFilter));
+    if (!nextMatches.length) {
+      setFilter(nextFilter);
+      setSelectedId(null);
+      return;
+    }
+
+    const currentIndex =
+      filter === nextFilter ? nextMatches.findIndex((task) => task.id === selectedId) : -1;
+    const nextTask = nextMatches[(currentIndex + 1) % nextMatches.length];
+    setFilter(nextFilter);
+    setSelectedId(nextTask.id);
+  };
 
   const copySelectedId = async () => {
     if (!selectedTask) return;
@@ -904,9 +941,14 @@ export default function App() {
                     className={filter === item.id ? "active" : ""}
                     key={item.id}
                     type="button"
-                    onClick={() => setFilter(item.id)}
+                    onClick={() => handleFilterClick(item.id)}
                     role="tab"
                     aria-selected={filter === item.id}
+                    aria-label={
+                      item.id === "all"
+                        ? "显示全部节点"
+                        : "筛选" + item.label + "并聚焦下一个节点"
+                    }
                   >
                     {item.label}
                     <span>{item.count}</span>
