@@ -1,5 +1,6 @@
 import type {
   Assistant,
+  AgentKind,
   BackendStatus,
   GraphDefinition,
   LiveTaskRecord,
@@ -18,6 +19,27 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     },
   });
   if (!response.ok) throw new Error(response.status + " " + response.statusText);
+  return response.json() as Promise<T>;
+}
+
+async function requestLocal<T>(path: string, init?: RequestInit): Promise<T> {
+  const response = await fetch(path, {
+    ...init,
+    headers: {
+      "content-type": "application/json",
+      ...(init?.headers ?? {}),
+    },
+  });
+  if (!response.ok) {
+    let detail = response.status + " " + response.statusText;
+    try {
+      const body = (await response.json()) as { error?: string };
+      if (body.error) detail += ": " + body.error;
+    } catch {
+      // Keep the HTTP status when the launcher cannot return JSON.
+    }
+    throw new Error(detail);
+  }
   return response.json() as Promise<T>;
 }
 
@@ -68,4 +90,26 @@ export async function runLangGraph(assistantId: string): Promise<LiveTaskRecord[
     },
   );
   return Object.values(result.tasks ?? {});
+}
+
+export interface AgentLaunchRequest {
+  agent: AgentKind;
+  taskId: string;
+  prompt: string;
+}
+
+export interface AgentLaunchResponse {
+  ok: boolean;
+  agent: AgentKind;
+  taskId: string;
+  terminal: string;
+  pid?: number;
+  message?: string;
+}
+
+export function launchAgent(payload: AgentLaunchRequest): Promise<AgentLaunchResponse> {
+  return requestLocal<AgentLaunchResponse>("/api/agents/launch", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
 }

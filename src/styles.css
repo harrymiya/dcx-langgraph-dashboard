@@ -840,6 +840,10 @@ button {
 }
 
 .agent-options button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
   min-width: 0;
   min-height: 30px;
   padding: 0 5px;
@@ -859,42 +863,9 @@ button {
   border-color: rgba(34, 211, 238, 0.38);
 }
 
-.prompt-heading {
-  display: flex;
-  justify-content: space-between;
-  gap: 8px;
-  margin-top: 14px;
-  color: #94a3b8;
-  font-size: 9px;
-}
-
-.prompt-heading span:last-child {
-  color: #64748b;
-  font-variant-numeric: tabular-nums;
-}
-
-.agent-prompt {
-  display: block;
-  width: 100%;
-  min-height: 168px;
-  margin-top: 7px;
-  padding: 9px;
-  resize: vertical;
-  color: #cbd5e1;
-  font: 9px/1.55 ui-monospace, SFMono-Regular, Consolas, monospace;
-  background: rgba(2, 6, 23, 0.45);
-  border: 1px solid rgba(148, 163, 184, 0.12);
-  border-radius: 6px;
-  outline: 0;
-}
-
-.agent-prompt:focus {
-  border-color: rgba(34, 211, 238, 0.38);
-}
-
-.prompt-copy {
-  width: 100%;
-  margin-top: 8px;
+.agent-options button:disabled {
+  cursor: wait;
+  opacity: 0.62;
 }
 
 .agent-note {
@@ -902,6 +873,26 @@ button {
   color: #64748b;
   font-size: 9px;
   line-height: 1.55;
+}
+
+.launch-feedback {
+  margin: 8px 0 0;
+  padding: 7px 8px;
+  font-size: 9px;
+  line-height: 1.45;
+  border-radius: 6px;
+}
+
+.launch-feedback.success {
+  color: #a7f3d0;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(52, 211, 153, 0.2);
+}
+
+.launch-feedback.error {
+  color: #fecaca;
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(248, 113, 113, 0.2);
 }
 
 .relation-block {
@@ -1280,7 +1271,6 @@ body[data-theme="light"] .api-badge {
 }
 
 body[data-theme="light"] .zoom-hint,
-body[data-theme="light"] .prompt-heading,
 body[data-theme="light"] .agent-note {
   color: #64748b;
 }
@@ -1289,11 +1279,22 @@ body[data-theme="light"] .agent-block {
   border-top-color: rgba(100, 116, 139, 0.16);
 }
 
-body[data-theme="light"] .agent-options button,
-body[data-theme="light"] .agent-prompt {
+body[data-theme="light"] .agent-options button {
   color: #475569;
   background: rgba(241, 245, 249, 0.78);
   border-color: rgba(100, 116, 139, 0.2);
+}
+
+body[data-theme="light"] .launch-feedback.success {
+  color: #047857;
+  background: #ecfdf5;
+  border-color: rgba(16, 185, 129, 0.24);
+}
+
+body[data-theme="light"] .launch-feedback.error {
+  color: #b91c1c;
+  background: #fef2f2;
+  border-color: rgba(239, 68, 68, 0.22);
 }
 
 body[data-theme="light"] .agent-options button:hover,

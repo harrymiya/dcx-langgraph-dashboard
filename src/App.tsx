@@ -1,20 +1,17 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties, MouseEvent as ReactMouseEvent } from "react";
 import {
-  Activity,
   AlertCircle,
   Check,
   ChevronRight,
   Copy,
-  Database,
   ExternalLink,
-  GitBranch,
   Info,
   LocateFixed,
   PanelRight,
   RefreshCw,
   Search,
-  Server,
+  Terminal,
   Moon,
   Workflow,
   X,
@@ -25,6 +22,7 @@ import {
 import {
   checkBackend,
   displayApiUrl,
+  launchAgent,
   loadGraphDefinition,
   runLangGraph,
 } from "./api";
@@ -293,6 +291,8 @@ function DagCanvas({
   scale,
 }: DagCanvasProps) {
   const viewportRef = useRef<HTMLDivElement>(null);
+  const dragRef = useRef({ active: false, moved: false, startX: 0, startY: 0, scrollLeft: 0, scrollTop: 0 });
+  const suppressClickRef = useRef(false);
   const layout = useMemo(() => buildLayout(tasks), [tasks]);
   const related = useMemo(() => relatedTaskIds(selectedId, tasks), [selectedId, tasks]);
   const stageStyle = {
@@ -330,9 +330,57 @@ function DagCanvas({
     });
   }, [onZoom, scale]);
 
+  const handlePointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (event.button !== 0) return;
+    const viewport = viewportRef.current;
+    if (!viewport) return;
+    dragRef.current = {
+      active: true,
+      moved: false,
+      startX: event.clientX,
+      startY: event.clientY,
+      scrollLeft: viewport.scrollLeft,
+      scrollTop: viewport.scrollTop,
+    };
+    viewport.setPointerCapture(event.pointerId);
+  };
+
+  const handlePointerMove = (event: ReactPointerEvent<HTMLDivElement>) => {
+    const viewport = viewportRef.current;
+    const drag = dragRef.current;
+    if (!viewport || !drag.active) return;
+    const deltaX = event.clientX - drag.startX;
+    const deltaY = event.clientY - drag.startY;
+    if (Math.abs(deltaX) > 3 || Math.abs(deltaY) > 3) drag.moved = true;
+    if (!drag.moved) return;
+    viewport.scrollLeft = drag.scrollLeft - deltaX;
+    viewport.scrollTop = drag.scrollTop - deltaY;
+  };
+
+  const finishPointerDrag = (event: ReactPointerEvent<HTMLDivElement>) => {
+    const viewport = viewportRef.current;
+    const drag = dragRef.current;
+    if (!drag.active) return;
+    if (drag.moved) suppressClickRef.current = true;
+    drag.active = false;
+    if (viewport?.hasPointerCapture(event.pointerId)) viewport.releasePointerCapture(event.pointerId);
+  };
+
   const handleCanvasClick = (event: ReactMouseEvent<HTMLDivElement>) => {
+    if (suppressClickRef.current) {
+      suppressClickRef.current = false;
+      return;
+    }
     const target = event.target as HTMLElement;
     if (!target.closest(".dag-node")) onSelect(null);
+  };
+
+  const handleNodeClick = (id: string) => {
+    if (suppressClickRef.current) {
+      suppressClickRef.current = false;
+      return;
+    }
+    onSelect(id);
   };
 
   useEffect(() => {
@@ -348,7 +396,11 @@ function DagCanvas({
       className="canvas-scroll"
       aria-label="LangGraph 动态 DAG"
       onClick={handleCanvasClick}
-      title="按住 Ctrl 滚动鼠标滚轮缩放画布"
+      onPointerDown={handlePointerDown}
+      onPointerMove={handlePointerMove}
+      onPointerUp={finishPointerDrag}
+      onPointerCancel={finishPointerDrag}
+      title="按住鼠标左键拖拽画布；按住 Ctrl 滚动鼠标滚轮缩放"
     >
       <div className="canvas-stage" style={stageStyle}>
         <div className="canvas-world" style={worldStyle}>
@@ -419,7 +471,7 @@ function DagCanvas({
                 className={className}
                 key={task.id}
                 type="button"
-                onClick={() => onSelect(task.id)}
+                onClick={() => handleNodeClick(task.id)}
                 style={
                   {
                     left: position.x,
@@ -478,8 +530,10 @@ export default function App() {
   const [error, setError] = useState("");
   const [lastSync, setLastSync] = useState("");
   const [copied, setCopied] = useState(false);
-  const [promptCopied, setPromptCopied] = useState(false);
   const [agentByTask, setAgentByTask] = useState<Record<string, AgentKind>>({});
+  const [launchingAgent, setLaunchingAgent] = useState<AgentKind | null>(null);
+  const [agentLaunchMessage, setAgentLaunchMessage] = useState("");
+  const [agentLaunchError, setAgentLaunchError] = useState("");
   const [theme, setTheme] = useState<Theme>(() => {
     try {
       return localStorage.getItem("refactor-control-room-theme") === "light" ? "light" : "dark";
@@ -554,9 +608,6 @@ export default function App() {
   const readyCount = businessTasks.filter((task) => isReadyStatus(task.status)).length;
   const releaseReadyCount = businessTasks.filter((task) => task.status === "release-ready").length;
   const selectedAgent = selectedTask ? agentByTask[selectedTask.id] ?? "codex" : "codex";
-  const agentPrompt = selectedTask
-    ? buildAgentPrompt(selectedAgent, selectedTask, tasks, assistant, displayApiUrl)
-    : "";
 
   const copySelectedId = async () => {
     if (!selectedTask) return;
@@ -565,11 +616,24 @@ export default function App() {
     window.setTimeout(() => setCopied(false), 1300);
   };
 
-  const copyAgentPrompt = async () => {
-    if (!agentPrompt) return;
-    await navigator.clipboard?.writeText(agentPrompt);
-    setPromptCopied(true);
-    window.setTimeout(() => setPromptCopied(false), 1500);
+  const launchSelectedAgent = async (kind: AgentKind) => {
+    const task = selectedTask;
+    if (!task || launchingAgent) return;
+    const prompt = buildAgentPrompt(kind, task, tasks, assistant, displayApiUrl);
+    setAgentByTask((current) => ({ ...current, [task.id]: kind }));
+    setAgentLaunchMessage("");
+    setAgentLaunchError("");
+    setLaunchingAgent(kind);
+    try {
+      const result = await launchAgent({ agent: kind, taskId: task.id, prompt });
+      setAgentLaunchMessage(result.message ?? AGENT_META[kind].label + " 已启动");
+    } catch (launchError) {
+      setAgentLaunchError(
+        launchError instanceof Error ? launchError.message : "Agent 启动失败",
+      );
+    } finally {
+      setLaunchingAgent(null);
+    }
   };
 
   const filterItems: Array<{ id: TaskFilter; label: string; count?: number }> = [
@@ -634,37 +698,6 @@ export default function App() {
         </div>
       </header>
 
-      <section className="hero">
-        <div className="hero-copy">
-          <div className="eyebrow">
-            <Activity size={14} />
-            LIVE GRAPH VIEW
-          </div>
-          <h1>重构 DAG 控制台</h1>
-          <p>
-            节点、依赖和运行状态全部来自当前 LangGraph API。点击节点查看上下游关系，
-            用筛选快速定位下一步工作。
-          </p>
-          <div className="hero-tags">
-            <span><Server size={13} />后端：LangGraph</span>
-            <span><GitBranch size={13} />graph：{assistant?.graph_id ?? "refactor_dag"}</span>
-            <span><Database size={13} />动态节点：{businessTasks.length}</span>
-          </div>
-        </div>
-        <div className="sync-card">
-          <div className="sync-card-heading">
-            <span className="live-pulse" />
-            <span>实时连接</span>
-            <span className="sync-time">{formatDate(lastSync)}</span>
-          </div>
-          <div className="sync-api">{displayApiUrl}</div>
-          <div className="sync-card-foot">
-            <span>{edges.length} 条依赖边</span>
-            <span>API schema 动态读取</span>
-          </div>
-        </div>
-      </section>
-
       {error ? (
         <div className="notice notice-warning">
           <AlertCircle size={17} />
@@ -683,7 +716,7 @@ export default function App() {
                 <h2>完整 DAG</h2>
                 <span className="api-badge">来自 /graph</span>
               </div>
-              <p>横向滚动浏览所有分组；点击节点后，仅突出显示它的直接上下游，点击空白处取消选中。</p>
+              <p>按住鼠标左键拖拽查看画布；点击节点突出显示直接上下游，点击空白处取消选中。</p>
             </div>
             <div className="graph-tools">
               <button type="button" onClick={() => setScale((value) => clampScale(value - 0.1))} title="缩小">
@@ -696,7 +729,7 @@ export default function App() {
               <button type="button" onClick={() => setScale(0.82)} title="重置缩放">
                 <LocateFixed size={16} />
               </button>
-              <span className="zoom-hint">Ctrl + 滚轮</span>
+              <span className="zoom-hint">拖拽移动 · Ctrl + 滚轮</span>
             </div>
           </div>
 
@@ -795,28 +828,20 @@ export default function App() {
                       className={selectedAgent === kind ? "active" : ""}
                       key={kind}
                       type="button"
-                      onClick={() => {
-                        if (!selectedTask) return;
-                        setAgentByTask((current) => ({ ...current, [selectedTask.id]: kind }));
-                      }}
+                      onClick={() => void launchSelectedAgent(kind)}
+                      disabled={launchingAgent !== null}
                       role="radio"
                       aria-checked={selectedAgent === kind}
-                      title={AGENT_META[kind].hint}
+                      title={"启动 " + AGENT_META[kind].label + " 处理当前节点：" + AGENT_META[kind].hint}
                     >
+                      {launchingAgent === kind ? <RefreshCw size={12} className="spin" /> : <Terminal size={12} />}
                       {AGENT_META[kind].label}
                     </button>
                   ))}
                 </div>
-                <div className="prompt-heading">
-                  <span>{AGENT_META[selectedAgent].label} 执行提示词</span>
-                  <span>{agentPrompt.length} 字符</span>
-                </div>
-                <textarea className="agent-prompt" value={agentPrompt} readOnly rows={9} />
-                <button className="button button-secondary prompt-copy" type="button" onClick={() => void copyAgentPrompt()}>
-                  {promptCopied ? <Check size={15} /> : <Copy size={15} />}
-                  {promptCopied ? "提示词已复制" : "复制提示词给 Agent"}
-                </button>
-                <p className="agent-note">提示词会携带当前节点状态、依赖、验证范围和 LangGraph 上下文；选择 Agent 只改变提示词目标，不会伪造执行结果。</p>
+                <p className="agent-note">点击按钮会直接打开新的 Konsole bash 窗口，在 APP18 重构仓库中启动对应 CLI；节点状态、依赖、验证范围和 LangGraph 上下文会自动注入。</p>
+                {agentLaunchMessage ? <p className="launch-feedback success">{agentLaunchMessage}</p> : null}
+                {agentLaunchError ? <p className="launch-feedback error">{agentLaunchError}</p> : null}
               </div>
 
               <div className="relation-block">
