@@ -440,7 +440,7 @@ button {
   align-items: center;
   gap: 10px;
   min-width: 0;
-  padding: 0 20px 10px;
+  padding: 5px 20px 10px;
   overflow-x: auto;
   scrollbar-width: none;
   white-space: nowrap;
