@@ -1,11 +1,10 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { CSSProperties } from "react";
 import {
   Activity,
   AlertCircle,
   Check,
   ChevronRight,
-  CircleDot,
   Copy,
   Database,
   ExternalLink,
@@ -45,12 +44,21 @@ import type {
   GraphEdge,
   GraphNode,
   LiveTaskRecord,
+  AgentKind,
 } from "./types";
 
 type TaskFilter = "all" | "blocked" | "in-progress" | "planned" | "ready";
 type Theme = "dark" | "light";
 
 const CONTROL_NODES = new Set(["__start__", "__end__"]);
+
+const AGENT_META: Record<AgentKind, { label: string; hint: string }> = {
+  opencode: { label: "OpenCode", hint: "适合直接在仓库内执行改动" },
+  pi: { label: "Pi", hint: "适合快速拆解和推进单个切片" },
+  codex: { label: "Codex", hint: "适合带门禁验证完成实现" },
+};
+
+const clampScale = (value: number) => Math.min(1.2, Math.max(0.58, value));
 
 function materializeTasks(
   definition: GraphDefinition,
@@ -78,7 +86,14 @@ function materializeTasks(
       isControl,
       deps: dependencies.get(node.id) ?? [],
       status: isControl ? "control" : live?.status ?? "unknown",
+      statusSource: isControl ? "graph-definition" : live?.status_source ?? "LangGraph run",
       ingestionStatus: isControl ? "ingested" : live?.ingestion_status ?? "unknown",
+      section: live?.section,
+      project: live?.project,
+      output: live?.output,
+      scope: live?.scope,
+      verify: live?.verify,
+      evidence: live?.evidence,
       data,
     };
   });
@@ -102,6 +117,60 @@ function formatDate(value: string) {
     minute: "2-digit",
     second: "2-digit",
   }).format(new Date(value));
+}
+
+function buildAgentPrompt(
+  agent: AgentKind,
+  task: DagTask,
+  tasks: DagTask[],
+  assistant: Assistant | null,
+  apiUrl: string,
+): string {
+  const byId = new Map(tasks.map((item) => [item.id, item]));
+  const dependents = tasks
+    .filter((item) => item.deps.includes(task.id))
+    .map((item) => item.id);
+  const dependencyContext = task.deps.length
+    ? task.deps
+        .map((id) => {
+          const dependency = byId.get(id);
+          return id + "（" + (dependency ? STATUS_META[dependency.status].label : "未返回") + "）";
+        })
+        .join("、")
+    : "无";
+  const dependentContext = dependents.length ? dependents.join("、") : "无";
+  const value = (input: string | undefined) => input?.trim() || "未由当前运行记录提供";
+
+  return [
+    "你是 " + AGENT_META[agent].label + "，请负责推进前端架构重构计划中的单个 DAG 节点。",
+    "",
+    "## 目标节点",
+    "- ID：" + task.id,
+    "- 名称：" + task.label,
+    "- 当前状态：" + STATUS_META[task.status].label + "（来源：" + task.statusSource + "）",
+    "- 工作项目：" + value(task.project),
+    "- 唯一产出：" + value(task.output),
+    "- 修改范围：" + value(task.scope),
+    "- 计划验证：" + value(task.verify),
+    "",
+    "## LangGraph 上下文",
+    "- graph_id：" + (assistant?.graph_id ?? "refactor_dag"),
+    "- assistant_id：" + (assistant?.assistant_id ?? "当前未返回"),
+    "- API：" + apiUrl,
+    "- 前置依赖：" + dependencyContext,
+    "- 后续节点：" + dependentContext,
+    "- checkpoint：" + (task.ingestionStatus === "ingested" ? "已进入" : "未确认") + "；这不等同于完成",
+    "",
+    "## 执行要求",
+    "1. 先阅读 /home/musk/code/dcx-web/dcx-web/docs/frontend-architecture-refactor-plan.md 的第 6.2.3 节和第 14 章对应任务行，再检查工作项目当前工作树和已有改动。",
+    "2. 只在工作项目和该节点的修改范围内选择最小可交付实现；保留用户已有改动，不触碰无关项目、token、query 或 .env。",
+    "3. 先确认前置依赖和当前计划门禁；如果依赖或真实环境证据未满足，不绕过门禁、不伪造状态，明确记录阻塞原因。",
+    "4. 完成实现后运行任务声明的最小验证，并记录真实命令、退出码、报告和提交；失败就保持当前状态。",
+    "5. 只有获得真实证据后才提升 code-ready/contract-ready；release-ready 还必须完成真实环境、性能、发布与回滚门。",
+    "",
+    "## 输出格式",
+    "说明：完成了什么、修改了哪些文件、验证命令及退出码、剩余门禁/阻塞、建议的下一节点。",
+  ].join("\n");
 }
 
 function getGroupTitle(group: string) {
@@ -210,6 +279,7 @@ interface DagCanvasProps {
   selectedId: string | null;
   matchedIds: Set<string>;
   onSelect: (id: string) => void;
+  onZoom: (nextScale: number) => void;
   scale: number;
 }
 
@@ -219,8 +289,10 @@ function DagCanvas({
   selectedId,
   matchedIds,
   onSelect,
+  onZoom,
   scale,
 }: DagCanvasProps) {
+  const viewportRef = useRef<HTMLDivElement>(null);
   const layout = useMemo(() => buildLayout(tasks), [tasks]);
   const related = useMemo(() => relatedTaskIds(selectedId, tasks), [selectedId, tasks]);
   const stageStyle = {
@@ -233,8 +305,45 @@ function DagCanvas({
     transform: "scale(" + scale + ")",
   };
 
+  const handleWheel = useCallback((event: globalThis.WheelEvent) => {
+    if (!event.ctrlKey) return;
+    // Chrome/Firefox 会把 Ctrl+滚轮解释为页面缩放；用 passive:false 的
+    // 原生捕获监听同时阻止默认动作和冒泡，确保只改变 DAG 画布的 scale。
+    event.preventDefault();
+    event.stopPropagation();
+
+    const viewport = viewportRef.current;
+    if (!viewport) return;
+    const rect = viewport.getBoundingClientRect();
+    const pointerOffsetX = event.clientX - rect.left;
+    const pointerOffsetY = event.clientY - rect.top;
+    const canvasPointX = pointerOffsetX + viewport.scrollLeft;
+    const canvasPointY = pointerOffsetY + viewport.scrollTop;
+    const nextScale = clampScale(scale + (event.deltaY > 0 ? -0.08 : 0.08));
+    if (nextScale === scale) return;
+
+    onZoom(nextScale);
+    requestAnimationFrame(() => {
+      const ratio = nextScale / scale;
+      viewport.scrollLeft = canvasPointX * ratio - pointerOffsetX;
+      viewport.scrollTop = canvasPointY * ratio - pointerOffsetY;
+    });
+  }, [onZoom, scale]);
+
+  useEffect(() => {
+    const viewport = viewportRef.current;
+    if (!viewport) return;
+    viewport.addEventListener("wheel", handleWheel, { capture: true, passive: false });
+    return () => viewport.removeEventListener("wheel", handleWheel, true);
+  }, [handleWheel]);
+
   return (
-    <div className="canvas-scroll" aria-label="LangGraph 动态 DAG">
+    <div
+      ref={viewportRef}
+      className="canvas-scroll"
+      aria-label="LangGraph 动态 DAG"
+      title="按住 Ctrl 滚动鼠标滚轮缩放画布"
+    >
       <div className="canvas-stage" style={stageStyle}>
         <div className="canvas-world" style={worldStyle}>
           <svg
@@ -363,6 +472,8 @@ export default function App() {
   const [error, setError] = useState("");
   const [lastSync, setLastSync] = useState("");
   const [copied, setCopied] = useState(false);
+  const [promptCopied, setPromptCopied] = useState(false);
+  const [agentByTask, setAgentByTask] = useState<Record<string, AgentKind>>({});
   const [theme, setTheme] = useState<Theme>(() => {
     try {
       return localStorage.getItem("refactor-control-room-theme") === "light" ? "light" : "dark";
@@ -435,13 +546,23 @@ export default function App() {
     ? tasks.filter((task) => task.deps.includes(selectedTask.id))
     : [];
   const readyCount = businessTasks.filter((task) => isReadyStatus(task.status)).length;
-  const unknownCount = businessTasks.filter((task) => task.status === "unknown").length;
+  const selectedAgent = selectedTask ? agentByTask[selectedTask.id] ?? "codex" : "codex";
+  const agentPrompt = selectedTask
+    ? buildAgentPrompt(selectedAgent, selectedTask, tasks, assistant, displayApiUrl)
+    : "";
 
   const copySelectedId = async () => {
     if (!selectedTask) return;
     await navigator.clipboard?.writeText(selectedTask.id);
     setCopied(true);
     window.setTimeout(() => setCopied(false), 1300);
+  };
+
+  const copyAgentPrompt = async () => {
+    if (!agentPrompt) return;
+    await navigator.clipboard?.writeText(agentPrompt);
+    setPromptCopied(true);
+    window.setTimeout(() => setPromptCopied(false), 1500);
   };
 
   const filterItems: Array<{ id: TaskFilter; label: string; count?: number }> = [
@@ -547,29 +668,6 @@ export default function App() {
         </div>
       ) : null}
 
-      <section className="metric-grid" aria-label="DAG 统计">
-        <div className="metric-card">
-          <span className="metric-icon blue"><GitBranch size={17} /></span>
-          <div><strong>{tasks.length}</strong><span>LangGraph 图节点</span></div>
-          <small>含 2 个控制节点</small>
-        </div>
-        <div className="metric-card">
-          <span className="metric-icon cyan"><CircleDot size={17} /></span>
-          <div><strong>{businessTasks.length}</strong><span>业务任务节点</span></div>
-          <small>从 graph API 动态计算</small>
-        </div>
-        <div className="metric-card">
-          <span className="metric-icon violet"><Check size={17} /></span>
-          <div><strong>{readyCount}</strong><span>已就绪任务</span></div>
-          <small>{unknownCount ? unknownCount + " 个待同步" : "状态已同步"}</small>
-        </div>
-        <div className="metric-card">
-          <span className="metric-icon orange"><PanelRight size={17} /></span>
-          <div><strong>{counts.blocked ?? 0}</strong><span>阻塞任务</span></div>
-          <small>{counts["in-progress"] ?? 0} 个正在推进</small>
-        </div>
-      </section>
-
       <section className="workspace">
         <div className="graph-panel">
           <div className="panel-header">
@@ -581,16 +679,17 @@ export default function App() {
               <p>横向滚动浏览所有分组；点击节点后，仅突出显示它的直接上下游。</p>
             </div>
             <div className="graph-tools">
-              <button type="button" onClick={() => setScale((value) => Math.max(0.58, value - 0.1))} title="缩小">
+              <button type="button" onClick={() => setScale((value) => clampScale(value - 0.1))} title="缩小">
                 <ZoomOut size={16} />
               </button>
               <span className="zoom-value">{Math.round(scale * 100)}%</span>
-              <button type="button" onClick={() => setScale((value) => Math.min(1.2, value + 0.1))} title="放大">
+              <button type="button" onClick={() => setScale((value) => clampScale(value + 0.1))} title="放大">
                 <ZoomIn size={16} />
               </button>
               <button type="button" onClick={() => setScale(0.82)} title="重置缩放">
                 <LocateFixed size={16} />
               </button>
+              <span className="zoom-hint">Ctrl + 滚轮</span>
             </div>
           </div>
 
@@ -643,6 +742,7 @@ export default function App() {
               selectedId={selectedId}
               matchedIds={matchedIds}
               onSelect={setSelectedId}
+              onZoom={setScale}
               scale={scale}
             />
           ) : (
@@ -673,7 +773,43 @@ export default function App() {
               <div className="detail-list">
                 <div><span>节点类型</span><strong>{selectedTask.type}</strong></div>
                 <div><span>分组</span><strong>{selectedTask.group}</strong></div>
-                <div><span>数据来源</span><strong>LangGraph graph API</strong></div>
+                <div><span>工作项目</span><strong>{selectedTask.project ?? "未返回"}</strong></div>
+                <div><span>状态来源</span><strong>{selectedTask.statusSource}</strong></div>
+                <div><span>数据来源</span><strong>LangGraph graph + run API</strong></div>
+              </div>
+
+              <div className="agent-block">
+                <div className="section-label">
+                  选择处理 Agent <span>3</span>
+                </div>
+                <div className="agent-options" role="radiogroup" aria-label="选择处理 Agent">
+                  {(Object.keys(AGENT_META) as AgentKind[]).map((kind) => (
+                    <button
+                      className={selectedAgent === kind ? "active" : ""}
+                      key={kind}
+                      type="button"
+                      onClick={() => {
+                        if (!selectedTask) return;
+                        setAgentByTask((current) => ({ ...current, [selectedTask.id]: kind }));
+                      }}
+                      role="radio"
+                      aria-checked={selectedAgent === kind}
+                      title={AGENT_META[kind].hint}
+                    >
+                      {AGENT_META[kind].label}
+                    </button>
+                  ))}
+                </div>
+                <div className="prompt-heading">
+                  <span>{AGENT_META[selectedAgent].label} 执行提示词</span>
+                  <span>{agentPrompt.length} 字符</span>
+                </div>
+                <textarea className="agent-prompt" value={agentPrompt} readOnly rows={9} />
+                <button className="button button-secondary prompt-copy" type="button" onClick={() => void copyAgentPrompt()}>
+                  {promptCopied ? <Check size={15} /> : <Copy size={15} />}
+                  {promptCopied ? "提示词已复制" : "复制提示词给 Agent"}
+                </button>
+                <p className="agent-note">提示词会携带当前节点状态、依赖、验证范围和 LangGraph 上下文；选择 Agent 只改变提示词目标，不会伪造执行结果。</p>
               </div>
 
               <div className="relation-block">

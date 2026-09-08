@@ -10,6 +10,8 @@ export type DagStatus =
 
 export type IngestionStatus = "ingested" | "not-ingested" | "unknown";
 
+export type AgentKind = "opencode" | "pi" | "codex";
+
 export interface GraphNode {
   id: string;
   type?: string;
@@ -34,7 +36,14 @@ export interface DagTask {
   isControl: boolean;
   deps: string[];
   status: DagStatus;
+  statusSource: string;
   ingestionStatus: IngestionStatus;
+  section?: string;
+  project?: string;
+  output?: string;
+  scope?: string;
+  verify?: string;
+  evidence?: unknown[];
   data: Record<string, unknown>;
 }
 
@@ -55,6 +64,13 @@ export interface Assistant {
 export interface LiveTaskRecord {
   id: string;
   status?: DagStatus;
+  status_source?: string;
   ingestion_status?: IngestionStatus;
+  section?: string;
+  project?: string;
+  output?: string;
+  scope?: string;
+  verify?: string;
+  evidence?: unknown[];
   [key: string]: unknown;
 }
