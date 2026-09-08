@@ -1,5 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { CSSProperties, MouseEvent as ReactMouseEvent } from "react";
+import type {
+  CSSProperties,
+  MouseEvent as ReactMouseEvent,
+  PointerEvent as ReactPointerEvent,
+} from "react";
 import {
   AlertCircle,
   Check,
@@ -332,6 +336,10 @@ function DagCanvas({
 
   const handlePointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
     if (event.button !== 0) return;
+    // 节点按钮需要保留原生 click 链路；如果在节点上捕获 pointer，后续
+    // click 会被重定向到 viewport，导致选中状态被空白画布逻辑清掉。
+    const target = event.target;
+    if (target instanceof Element && target.closest(".dag-node")) return;
     const viewport = viewportRef.current;
     if (!viewport) return;
     dragRef.current = {
@@ -746,7 +754,7 @@ export default function App() {
                 <button type="button" onClick={() => setQuery("")} aria-label="清除搜索">
                   <X size={14} />
                 </button>
-              ) : null}
+                ) : null}
             </label>
             <div className="filter-tabs" role="tablist" aria-label="状态筛选">
               {filterItems.map((item) => (
@@ -761,13 +769,9 @@ export default function App() {
                   {item.label}
                   <span>{item.count}</span>
                 </button>
-              ))}
+                ))}
             </div>
-          </div>
-
-          <div className="legend-row">
-            <span>当前显示 {matchedIds.size} / {tasks.length} 个节点</span>
-            <div className="legend">
+            <div className="legend" aria-label="节点状态图例">
               <span><i className="legend-dot" style={{ background: STATUS_META.planned.color }} />计划</span>
               <span><i className="legend-dot" style={{ background: STATUS_META["in-progress"].color }} />进行</span>
               <span><i className="legend-dot" style={{ background: STATUS_META.blocked.color }} />阻塞</span>

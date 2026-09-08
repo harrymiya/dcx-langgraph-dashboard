@@ -1,6 +1,7 @@
 :root {
   color: #e2e8f0;
   background: #080d18;
+  font-size: 14px;
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -34,19 +35,24 @@ button {
 }
 
 .dashboard-shell {
+  display: flex;
+  flex-direction: column;
   width: 100%;
   max-width: 2240px;
-  min-height: 100vh;
+  height: 100vh;
+  min-height: 0;
   margin: 0 auto;
   padding: 0 32px 26px;
+  overflow: hidden;
 }
 
 .topbar {
+  flex: 0 0 72px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   height: 72px;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+  border-bottom: 0;
 }
 
 .brand,
@@ -94,14 +100,14 @@ button {
 
 .brand strong {
   color: #f8fafc;
-  font-size: 14px;
+  font-size: 15px;
   letter-spacing: 0.01em;
 }
 
 .brand span {
   margin-top: 2px;
   color: #64748b;
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .topbar-actions {
@@ -113,7 +119,7 @@ button {
   height: 30px;
   padding: 0 10px;
   color: #94a3b8;
-  font-size: 12px;
+  font-size: 13px;
   background: rgba(15, 23, 42, 0.72);
   border: 1px solid rgba(148, 163, 184, 0.14);
   border-radius: 99px;
@@ -149,7 +155,7 @@ button {
   padding: 0 12px;
   color: #cbd5e1;
   text-decoration: none;
-  font-size: 12px;
+  font-size: 13px;
   cursor: pointer;
   border-radius: 8px;
   transition: 160ms ease;
@@ -194,7 +200,7 @@ button {
   min-height: 34px;
   padding: 0 10px;
   color: #fbbf24;
-  font-size: 11px;
+  font-size: 12px;
   cursor: pointer;
   background: rgba(30, 41, 59, 0.62);
   border: 1px solid rgba(245, 158, 11, 0.2);
@@ -228,7 +234,7 @@ button {
 .eyebrow {
   gap: 8px;
   color: #67e8f9;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 750;
   letter-spacing: 0.16em;
 }
@@ -245,7 +251,7 @@ button {
   max-width: 680px;
   margin: 0;
   color: #94a3b8;
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1.75;
 }
 
@@ -260,7 +266,7 @@ button {
   gap: 6px;
   padding: 6px 9px;
   color: #93c5fd;
-  font-size: 11px;
+  font-size: 12px;
   background: rgba(15, 23, 42, 0.7);
   border: 1px solid rgba(96, 165, 250, 0.15);
   border-radius: 6px;
@@ -278,14 +284,14 @@ button {
 .sync-card-heading {
   gap: 8px;
   color: #bae6fd;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 650;
 }
 
 .sync-time {
   margin-left: auto;
   color: #64748b;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 400;
 }
 
@@ -293,7 +299,7 @@ button {
   overflow: hidden;
   margin-top: 13px;
   color: #e0f2fe;
-  font: 11px/1.5 ui-monospace, SFMono-Regular, Consolas, monospace;
+  font: 12px/1.5 ui-monospace, SFMono-Regular, Consolas, monospace;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -302,7 +308,7 @@ button {
   justify-content: space-between;
   margin-top: 12px;
   color: #64748b;
-  font-size: 10px;
+  font-size: 11px;
 }
 
 .notice {
@@ -312,7 +318,7 @@ button {
   margin-bottom: 16px;
   padding: 11px 14px;
   color: #fed7aa;
-  font-size: 12px;
+  font-size: 13px;
   background: rgba(120, 53, 15, 0.25);
   border: 1px solid rgba(251, 146, 60, 0.24);
   border-radius: 8px;
@@ -328,7 +334,10 @@ button {
 }
 
 .workspace {
+  flex: 1 1 auto;
   display: grid;
+  height: auto;
+  min-height: 0;
   grid-template-columns: minmax(0, 1fr) 360px;
   gap: 18px;
   align-items: stretch;
@@ -336,6 +345,8 @@ button {
 
 .graph-panel,
 .details-panel {
+  height: 100%;
+  min-height: 0;
   min-width: 0;
   background: rgba(15, 23, 42, 0.76);
   border: 1px solid rgba(148, 163, 184, 0.15);
@@ -344,6 +355,8 @@ button {
 }
 
 .graph-panel {
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
 }
 
@@ -364,14 +377,14 @@ button {
 .details-empty h2 {
   margin: 0;
   color: #f8fafc;
-  font-size: 16px;
+  font-size: 17px;
   letter-spacing: -0.015em;
 }
 
 .api-badge {
   padding: 3px 6px;
   color: #67e8f9;
-  font-size: 9px;
+  font-size: 10px;
   letter-spacing: 0.08em;
   background: rgba(8, 145, 178, 0.14);
   border: 1px solid rgba(34, 211, 238, 0.18);
@@ -381,7 +394,7 @@ button {
 .panel-header p {
   margin: 6px 0 0;
   color: #64748b;
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .graph-tools {
@@ -411,14 +424,14 @@ button {
 .zoom-value {
   min-width: 39px;
   color: #64748b;
-  font-size: 10px;
+  font-size: 11px;
   text-align: center;
 }
 
 .zoom-hint {
   padding: 0 7px 0 4px;
   color: #64748b;
-  font-size: 9px;
+  font-size: 10px;
   white-space: nowrap;
 }
 
@@ -426,12 +439,29 @@ button {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 0 20px 13px;
+  min-width: 0;
+  padding: 0 20px 10px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  white-space: nowrap;
+}
+
+.graph-toolbar::-webkit-scrollbar {
+  display: none;
+}
+
+.graph-toolbar .legend {
+  flex: 0 0 auto;
+  min-width: max-content;
+  margin-left: auto;
+  flex-wrap: nowrap;
+  gap: 8px;
+  font-size: 10px;
 }
 
 .search-box {
   display: flex;
-  flex: 0 1 280px;
+  flex: 0 0 250px;
   align-items: center;
   gap: 8px;
   height: 34px;
@@ -452,7 +482,7 @@ button {
   width: 100%;
   min-width: 0;
   color: #e2e8f0;
-  font-size: 11px;
+  font-size: 12px;
   background: transparent;
   border: 0;
   outline: 0;
@@ -473,6 +503,9 @@ button {
 
 .filter-tabs {
   display: flex;
+  flex: 0 0 auto;
+  width: max-content;
+  max-width: 100%;
   gap: 3px;
   padding: 3px;
   overflow-x: auto;
@@ -488,7 +521,7 @@ button {
   height: 26px;
   padding: 0 8px;
   color: #64748b;
-  font-size: 10px;
+  font-size: 11px;
   white-space: nowrap;
   cursor: pointer;
   background: transparent;
@@ -499,6 +532,7 @@ button {
   min-width: 15px;
   padding: 1px 4px;
   color: #94a3b8;
+  font-size: 10px;
   background: rgba(100, 116, 139, 0.13);
   border-radius: 99px;
 }
@@ -515,14 +549,6 @@ button {
 .filter-tabs button.active span {
   color: #a5f3fc;
   background: rgba(34, 211, 238, 0.16);
-}
-
-.legend-row {
-  justify-content: space-between;
-  gap: 12px;
-  padding: 0 20px 11px;
-  color: #64748b;
-  font-size: 10px;
 }
 
 .legend {
@@ -543,8 +569,9 @@ button {
 }
 
 .canvas-scroll {
-  height: min(78vh, 900px);
-  min-height: 660px;
+  flex: 1 1 auto;
+  height: auto;
+  min-height: 0;
   overflow: auto;
   background:
     linear-gradient(rgba(30, 41, 59, 0.2) 1px, transparent 1px),
@@ -555,6 +582,13 @@ button {
   scrollbar-color: #334155 transparent;
   scrollbar-width: thin;
   overscroll-behavior: contain;
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
+}
+
+.canvas-scroll:active {
+  cursor: grabbing;
 }
 
 .canvas-stage {
@@ -567,6 +601,7 @@ button {
   position: relative;
   transform-origin: top left;
   transition: transform 180ms ease;
+  pointer-events: none;
 }
 
 .dag-edges {
@@ -614,7 +649,7 @@ button {
   align-items: center;
   gap: 7px;
   color: #64748b;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.09em;
   text-transform: uppercase;
@@ -622,20 +657,21 @@ button {
 
 .lane-index {
   color: #334155;
-  font: 10px ui-monospace, SFMono-Regular, Consolas, monospace;
+  font: 11px ui-monospace, SFMono-Regular, Consolas, monospace;
 }
 
 .lane-count {
   display: block;
   margin-top: 5px;
   color: #334155;
-  font-size: 9px;
+  font-size: 10px;
 }
 
 .dag-node {
   position: absolute;
   z-index: 2;
   display: block;
+  pointer-events: auto;
   padding: 11px 11px 9px;
   overflow: hidden;
   color: #cbd5e1;
@@ -684,7 +720,7 @@ button {
 .node-id {
   overflow: hidden;
   color: #e2e8f0;
-  font: 10px ui-monospace, SFMono-Regular, Consolas, monospace;
+  font: 11px ui-monospace, SFMono-Regular, Consolas, monospace;
   font-weight: 700;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -695,7 +731,7 @@ button {
   overflow: hidden;
   margin-top: 9px;
   color: #cbd5e1;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 550;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -707,20 +743,20 @@ button {
   gap: 8px;
   margin-top: 7px;
   color: #64748b;
-  font-size: 9px;
+  font-size: 10px;
 }
 
 .status-pill {
   flex-shrink: 0;
   gap: 5px;
   color: var(--status-color);
-  font-size: 10px;
+  font-size: 11px;
   white-space: nowrap;
 }
 
 .status-pill.compact {
   gap: 3px;
-  font-size: 8px;
+  font-size: 9px;
 }
 
 .status-dot {
@@ -730,9 +766,7 @@ button {
 }
 
 .details-panel {
-  position: sticky;
-  top: 18px;
-  min-height: 660px;
+  overflow-y: auto;
   align-self: start;
   padding: 20px 18px;
 }
@@ -746,7 +780,7 @@ button {
 
 .details-kicker {
   color: #64748b;
-  font-size: 9px;
+  font-size: 10px;
   font-weight: 750;
   letter-spacing: 0.14em;
 }
@@ -782,13 +816,13 @@ button {
 .ingestion-state {
   gap: 5px;
   color: #64748b;
-  font-size: 10px;
+  font-size: 11px;
 }
 
 .task-name {
   margin: 17px 0 14px;
   color: #f8fafc;
-  font-size: 14px;
+  font-size: 15px;
   line-height: 1.45;
 }
 
@@ -813,14 +847,14 @@ button {
 
 .detail-list span {
   color: #64748b;
-  font-size: 10px;
+  font-size: 11px;
 }
 
 .detail-list strong {
   max-width: 180px;
   overflow: hidden;
   color: #cbd5e1;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 550;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -848,7 +882,7 @@ button {
   min-height: 30px;
   padding: 0 5px;
   color: #94a3b8;
-  font-size: 10px;
+  font-size: 11px;
   cursor: pointer;
   background: rgba(30, 41, 59, 0.48);
   border: 1px solid rgba(148, 163, 184, 0.12);
@@ -871,14 +905,14 @@ button {
 .agent-note {
   margin: 8px 0 0;
   color: #64748b;
-  font-size: 9px;
+  font-size: 10px;
   line-height: 1.55;
 }
 
 .launch-feedback {
   margin: 8px 0 0;
   padding: 7px 8px;
-  font-size: 9px;
+  font-size: 10px;
   line-height: 1.45;
   border-radius: 6px;
 }
@@ -902,7 +936,7 @@ button {
 .section-label {
   justify-content: space-between;
   color: #94a3b8;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.04em;
 }
@@ -913,7 +947,7 @@ button {
   height: 18px;
   place-items: center;
   color: #67e8f9;
-  font-size: 9px;
+  font-size: 10px;
   background: rgba(34, 211, 238, 0.1);
   border-radius: 5px;
 }
@@ -935,7 +969,7 @@ button {
   min-width: 0;
   padding: 6px 7px;
   color: #93c5fd;
-  font: 10px ui-monospace, SFMono-Regular, Consolas, monospace;
+  font: 11px ui-monospace, SFMono-Regular, Consolas, monospace;
   text-align: left;
   cursor: pointer;
   background: rgba(30, 41, 59, 0.42);
@@ -954,7 +988,7 @@ button {
 .muted-copy {
   margin: 9px 0 0;
   color: #475569;
-  font-size: 10px;
+  font-size: 11px;
   line-height: 1.5;
 }
 
@@ -966,7 +1000,7 @@ button {
 .detail-actions .button {
   flex: 1;
   padding: 0 7px;
-  font-size: 10px;
+  font-size: 11px;
 }
 
 .details-empty {
@@ -991,7 +1025,7 @@ button {
 .details-empty p {
   margin: 10px 0 0;
   color: #64748b;
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.7;
 }
 
@@ -1001,7 +1035,7 @@ button {
   margin-top: 26px;
   padding: 10px;
   color: #7dd3fc;
-  font-size: 10px;
+  font-size: 11px;
   line-height: 1.5;
   background: rgba(8, 47, 73, 0.3);
   border: 1px solid rgba(56, 189, 248, 0.14);
@@ -1013,7 +1047,7 @@ button {
   gap: 16px;
   padding: 15px 2px 0;
   color: #475569;
-  font-size: 10px;
+  font-size: 11px;
 }
 
 .footer-note span {
@@ -1035,13 +1069,13 @@ button {
 
 .app-loading strong {
   margin-top: 18px;
-  font-size: 15px;
+  font-size: 16px;
 }
 
 .app-loading > span {
   margin-top: 7px;
   color: #64748b;
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .loading-orbit {
@@ -1078,7 +1112,7 @@ body[data-theme="light"] {
 }
 
 body[data-theme="light"] .topbar {
-  border-bottom-color: rgba(71, 85, 105, 0.15);
+  border-bottom: 0;
 }
 
 body[data-theme="light"] .brand-mark {
@@ -1099,7 +1133,6 @@ body[data-theme="light"] .task-name {
 body[data-theme="light"] .brand span,
 body[data-theme="light"] .hero p,
 body[data-theme="light"] .panel-header p,
-body[data-theme="light"] .legend-row,
 body[data-theme="light"] .footer-note {
   color: #64748b;
 }
