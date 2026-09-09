@@ -29,7 +29,9 @@ import {
   launchAgent,
   loadGraphDefinition,
   runLangGraph,
+  syncTaskEvidence,
 } from "./api";
+import type { EvidenceReadyStatus } from "./api";
 import {
   groupForNode,
   isReadyStatus,
@@ -150,6 +152,9 @@ function materializeTasks(
       scope: firstText(live?.scope, recordText(data, ["scope", "范围", "修改范围"])),
       verify: firstText(live?.verify, recordText(data, ["verify", "verification", "验证", "计划验证"])),
       evidence: live?.evidence,
+      commit: live?.commit,
+      commits: live?.commits,
+      verifiedAt: live?.verified_at,
       data,
     };
   });
@@ -327,6 +332,14 @@ function StatusPill({ status, compact = false }: StatusPillProps) {
       {compact ? meta.shortLabel : meta.label}
     </span>
   );
+}
+
+interface DetailValueProps {
+  value: string;
+}
+
+function DetailValue({ value }: DetailValueProps) {
+  return <strong title={value}>{value}</strong>;
 }
 
 const PROGRESS_STATUSES: DagStatus[] = [
@@ -717,6 +730,10 @@ export default function App() {
   const [launchingAgent, setLaunchingAgent] = useState<AgentKind | null>(null);
   const [agentLaunchMessage, setAgentLaunchMessage] = useState("");
   const [agentLaunchError, setAgentLaunchError] = useState("");
+  const [evidenceStatus, setEvidenceStatus] = useState<EvidenceReadyStatus>("contract-ready");
+  const [syncingEvidence, setSyncingEvidence] = useState(false);
+  const [evidenceSyncMessage, setEvidenceSyncMessage] = useState("");
+  const [evidenceSyncError, setEvidenceSyncError] = useState("");
   const [theme, setTheme] = useState<Theme>(() => {
     try {
       return localStorage.getItem("refactor-control-room-theme") === "light" ? "light" : "dark";
@@ -834,6 +851,25 @@ export default function App() {
       );
     } finally {
       setLaunchingAgent(null);
+    }
+  };
+
+  const syncSelectedEvidence = async () => {
+    const task = selectedTask;
+    if (!task || !task.evidence?.length || syncingEvidence) return;
+    setEvidenceSyncMessage("");
+    setEvidenceSyncError("");
+    setSyncingEvidence(true);
+    try {
+      const result = await syncTaskEvidence({ taskId: task.id, status: evidenceStatus });
+      setEvidenceSyncMessage(
+        `${result.status} 已同步，证据 ${result.evidenceCount} 条，commit ${result.commit}`,
+      );
+      await refresh();
+    } catch (syncError) {
+      setEvidenceSyncError(syncError instanceof Error ? syncError.message : "证据同步失败");
+    } finally {
+      setSyncingEvidence(false);
     }
   };
 
@@ -1037,14 +1073,56 @@ export default function App() {
                 </div>
               </div>
               <div className="detail-list">
-                <div><span>节点类型</span><strong>{selectedTask.type}</strong></div>
-                <div><span>分组</span><strong>{selectedTask.group}</strong></div>
-                <div><span>工作项目</span><strong>{selectedTask.project ?? "未返回"}</strong></div>
-                <div><span>唯一产出</span><strong>{selectedTask.output ?? "未返回"}</strong></div>
-                <div><span>修改范围</span><strong>{selectedTask.scope ?? "未返回"}</strong></div>
-                <div><span>计划验证</span><strong>{selectedTask.verify ?? "未返回"}</strong></div>
-                <div><span>状态来源</span><strong>{selectedTask.statusSource}</strong></div>
-                <div><span>数据来源</span><strong>LangGraph graph + run API</strong></div>
+                <div><span>节点类型</span><DetailValue value={selectedTask.type} /></div>
+                <div><span>分组</span><DetailValue value={selectedTask.group} /></div>
+                <div><span>工作项目</span><DetailValue value={selectedTask.project ?? "未返回"} /></div>
+                <div><span>唯一产出</span><DetailValue value={selectedTask.output ?? "未返回"} /></div>
+                <div><span>修改范围</span><DetailValue value={selectedTask.scope ?? "未返回"} /></div>
+                <div><span>计划验证</span><DetailValue value={selectedTask.verify ?? "未返回"} /></div>
+                <div><span>状态来源</span><DetailValue value={selectedTask.statusSource} /></div>
+                <div><span>证据数量</span><DetailValue value={String(selectedTask.evidence?.length ?? 0)} /></div>
+                <div><span>提交</span><DetailValue value={selectedTask.commit ?? "未返回"} /></div>
+                <div><span>数据来源</span><DetailValue value="LangGraph graph + run API + evidence manifest" /></div>
+              </div>
+
+              <div className="evidence-block">
+                <div className="section-label">
+                  接收并同步证据 <span>{selectedTask.evidence?.length ?? 0}</span>
+                </div>
+                <p className="evidence-note">
+                  只接收 manifest 中 checks 全部 exit=0 的证据；同步会先校验前置依赖，不直接改写普通 graph state。
+                </p>
+                {selectedTask.commits ? (
+                  <div className="commit-list">
+                    {Object.entries(selectedTask.commits).map(([project, commit]) => (
+                      <span key={project} title={commit}>{project} {commit}</span>
+                    ))}
+                  </div>
+                ) : null}
+                <div className="evidence-controls">
+                  <label htmlFor="evidence-status">目标状态</label>
+                  <select
+                    id="evidence-status"
+                    value={evidenceStatus}
+                    onChange={(event) => setEvidenceStatus(event.target.value as EvidenceReadyStatus)}
+                    disabled={syncingEvidence}
+                  >
+                    <option value="contract-ready">contract-ready</option>
+                    <option value="code-ready">code-ready</option>
+                  </select>
+                  <button
+                    className="button button-primary"
+                    type="button"
+                    onClick={() => void syncSelectedEvidence()}
+                    disabled={syncingEvidence || !selectedTask.evidence?.length}
+                  >
+                    {syncingEvidence ? <RefreshCw size={14} className="spin" /> : <Check size={14} />}
+                    {syncingEvidence ? "同步中…" : "接收证据"}
+                  </button>
+                </div>
+                {!selectedTask.evidence?.length ? <p className="muted-copy">当前节点没有可接收的 manifest 证据。</p> : null}
+                {evidenceSyncMessage ? <p className="launch-feedback success">{evidenceSyncMessage}</p> : null}
+                {evidenceSyncError ? <p className="launch-feedback error">{evidenceSyncError}</p> : null}
               </div>
 
               <div className="agent-block">

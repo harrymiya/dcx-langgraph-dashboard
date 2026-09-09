@@ -48,6 +48,9 @@ export interface DagTask {
   scope?: string;
   verify?: string;
   evidence?: unknown[];
+  commit?: string;
+  commits?: Record<string, string>;
+  verifiedAt?: string;
   data: Record<string, unknown>;
 }
 
@@ -87,5 +90,8 @@ export interface LiveTaskRecord {
   scope?: string;
   verify?: string;
   evidence?: unknown[];
+  commit?: string;
+  commits?: Record<string, string>;
+  verified_at?: string;
   [key: string]: unknown;
 }

@@ -1,15 +1,21 @@
 import { spawn } from "node:child_process";
 import { existsSync } from "node:fs";
+import { readFile, rename, writeFile } from "node:fs/promises";
 import type { IncomingMessage, ServerResponse } from "node:http";
+import { resolve } from "node:path";
 import { defineConfig } from "vite";
 import type { Plugin } from "vite";
 import react from "@vitejs/plugin-react";
+import { buildEvidenceUpdate } from "./scripts/evidence-sync.mjs";
 
 const langGraphApi = process.env.LANGGRAPH_API_URL ?? "http://127.0.0.1:8123";
 const frontendPort = Number(process.env.FRONTEND_PORT ?? 5175);
 const agentWorkspace = "/mnt/data/code/dcx-web/dcx-web";
 const terminalPath = "/usr/bin/konsole";
 const maxPromptBytes = 64 * 1024;
+const dashboardRoot = resolve(process.cwd());
+const taskSnapshotPath = resolve(dashboardRoot, "backend/tasks.json");
+const evidenceManifestPath = process.env.EVIDENCE_MANIFEST_PATH ?? "/mnt/data/code/dcx-web/dcx-web/.test-local/reports/langgraph-task-evidence.json";
 const agentCommands = {
   opencode: "opencode",
   pi: "pi",
@@ -135,8 +141,76 @@ function agentLauncherPlugin(): Plugin {
   };
 }
 
+async function readJsonFile(path: string): Promise<unknown> {
+  return JSON.parse(await readFile(path, "utf8"));
+}
+
+function createEvidenceSyncMiddleware() {
+  return async (request: IncomingMessage, response: ServerResponse, _next: () => void) => {
+    if (request.method === "OPTIONS") {
+      response.statusCode = 204;
+      response.end();
+      return;
+    }
+    if (request.method !== "POST") {
+      jsonResponse(response, 405, { error: "只支持 POST /api/evidence/sync" });
+      return;
+    }
+
+    try {
+      const payload = JSON.parse(await readRequestBody(request));
+      const tasks = await readJsonFile(taskSnapshotPath);
+      const manifest = await readJsonFile(evidenceManifestPath);
+      const result = buildEvidenceUpdate({
+        tasks: tasks as Array<Record<string, unknown>>,
+        manifest: manifest as Record<string, unknown>,
+        payload,
+      });
+      const temporaryPath = taskSnapshotPath + ".writing";
+      await writeFile(temporaryPath, JSON.stringify(result.tasks) + "\n", "utf8");
+      await rename(temporaryPath, taskSnapshotPath);
+      jsonResponse(response, 200, {
+        ok: true,
+        taskId: result.taskId,
+        status: result.status,
+        statusSource: result.statusSource,
+        commit: result.commit,
+        ...(result.commits ? { commits: result.commits } : {}),
+        report: result.report,
+        verifiedAt: result.verifiedAt,
+        evidenceCount: result.evidenceCount,
+        changed: result.changed,
+      });
+    } catch (error) {
+      const code = error && typeof error === "object" && "code" in error ? error.code : undefined;
+      const status = code === "ENOENT" ? 503 : error instanceof SyntaxError ? 400 : 422;
+      jsonResponse(response, status, {
+        error:
+          code === "ENOENT"
+            ? "证据 manifest 或 dashboard task snapshot 不存在"
+            : error instanceof Error
+              ? error.message
+              : "证据同步请求无效",
+      });
+    }
+  };
+}
+
+function evidenceSyncPlugin(): Plugin {
+  const middleware = createEvidenceSyncMiddleware();
+  return {
+    name: "dcx-evidence-sync",
+    configureServer(server) {
+      server.middlewares.use("/api/evidence/sync", middleware);
+    },
+    configurePreviewServer(server) {
+      server.middlewares.use("/api/evidence/sync", middleware);
+    },
+  };
+}
+
 export default defineConfig({
-  plugins: [react(), agentLauncherPlugin()],
+  plugins: [react(), agentLauncherPlugin(), evidenceSyncPlugin()],
   server: {
     host: "127.0.0.1",
     port: frontendPort,

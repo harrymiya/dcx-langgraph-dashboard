@@ -113,3 +113,30 @@ export function launchAgent(payload: AgentLaunchRequest): Promise<AgentLaunchRes
     body: JSON.stringify(payload),
   });
 }
+
+export type EvidenceReadyStatus = "code-ready" | "contract-ready";
+
+export interface EvidenceSyncRequest {
+  taskId: string;
+  status: EvidenceReadyStatus;
+}
+
+export interface EvidenceSyncResponse {
+  ok: boolean;
+  taskId: string;
+  status: EvidenceReadyStatus;
+  statusSource: "evidence-manifest";
+  commit: string;
+  commits?: Record<string, string>;
+  report: string;
+  verifiedAt: string;
+  evidenceCount: number;
+  changed: boolean;
+}
+
+export function syncTaskEvidence(payload: EvidenceSyncRequest): Promise<EvidenceSyncResponse> {
+  return requestLocal<EvidenceSyncResponse>("/api/evidence/sync", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}

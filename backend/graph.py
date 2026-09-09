@@ -11,7 +11,26 @@ from langgraph.graph import END, START, StateGraph
 
 
 ROOT = Path(__file__).resolve().parent
-TASKS = json.loads((ROOT / "tasks.json").read_text(encoding="utf-8"))
+TASKS_PATH = ROOT / "tasks.json"
+TASKS = json.loads(TASKS_PATH.read_text(encoding="utf-8"))
+_task_snapshot_mtime_ns = TASKS_PATH.stat().st_mtime_ns
+_task_snapshot_by_id = {task["id"]: task for task in TASKS}
+
+
+def current_task(task_id: str, fallback: dict) -> dict:
+    """Reload task metadata after dashboard evidence sync without rebuilding graph topology."""
+    global _task_snapshot_mtime_ns, _task_snapshot_by_id
+    try:
+        mtime_ns = TASKS_PATH.stat().st_mtime_ns
+        if mtime_ns != _task_snapshot_mtime_ns:
+            tasks = json.loads(TASKS_PATH.read_text(encoding="utf-8"))
+            if isinstance(tasks, list) and all(isinstance(task, dict) and "id" in task for task in tasks):
+                _task_snapshot_by_id = {task["id"]: task for task in tasks}
+                _task_snapshot_mtime_ns = mtime_ns
+    except (OSError, json.JSONDecodeError, TypeError):
+        # Keep the last known good snapshot; the sync endpoint writes atomically.
+        pass
+    return _task_snapshot_by_id.get(task_id, fallback)
 
 
 class DagState(TypedDict):
@@ -21,8 +40,9 @@ class DagState(TypedDict):
 def build_graph():
     builder = StateGraph(DagState)
 
-    def make_node(task: dict):
+    def make_node(task_id: str, fallback_task: dict):
         def node(_: DagState) -> dict:
+            task = current_task(task_id, fallback_task)
             record = {
                 "id": task["id"],
                 "status": task.get("status", "planned"),
@@ -35,7 +55,7 @@ def build_graph():
                 "verify": task.get("verify", ""),
                 "evidence": task.get("evidence", []),
             }
-            for field in ("owner", "commit", "verified_at"):
+            for field in ("owner", "commit", "commits", "verified_at"):
                 if field in task:
                     record[field] = task[field]
             return {"tasks": {task["id"]: record}}
@@ -43,7 +63,7 @@ def build_graph():
         return node
 
     for task in TASKS:
-        builder.add_node(task["id"], make_node(task))
+        builder.add_node(task["id"], make_node(task["id"], task))
 
     ids = {task["id"] for task in TASKS}
     dependents = {task_id: [] for task_id in ids}
