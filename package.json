@@ -1,5 +1,5 @@
 {
-  "name": "dcx-langgraph-dashboard",
+  "name": "langgraph-dashboard",
   "version": "0.1.0",
   "private": true,
   "packageManager": "pnpm@11.9.0",

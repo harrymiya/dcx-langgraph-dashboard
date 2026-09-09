@@ -33,7 +33,7 @@
 
 安装前端依赖后，一条命令启动前后端：
 
-    cd /mnt/data/code/dcx-langgraph-dashboard
+    cd /mnt/data/code/langgraph-dashboard
     npm install
     npm run dev:all
 

@@ -575,15 +575,6 @@ button {
   display: none;
 }
 
-.graph-toolbar .legend {
-  flex: 0 0 auto;
-  min-width: max-content;
-  margin-left: auto;
-  flex-wrap: nowrap;
-  gap: 8px;
-  font-size: 10px;
-}
-
 .search-box {
   display: flex;
   flex: 0 0 250px;
@@ -676,17 +667,7 @@ button {
   background: rgba(34, 211, 238, 0.16);
 }
 
-.legend {
-  gap: 12px;
-}
-
-.legend > span {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.legend-dot {
+.filter-dot {
   display: inline-block;
   width: 6px;
   height: 6px;

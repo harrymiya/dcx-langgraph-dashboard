@@ -837,12 +837,17 @@ export default function App() {
     }
   };
 
-  const filterItems: Array<{ id: TaskFilter; label: string; count?: number }> = [
+  const filterItems: Array<{ id: TaskFilter; label: string; count?: number; color?: string }> = [
     { id: "all", label: "全部", count: businessTasks.length },
-    { id: "blocked", label: "阻塞", count: counts.blocked ?? 0 },
-    { id: "in-progress", label: "进行中", count: counts["in-progress"] ?? 0 },
-    { id: "planned", label: "计划中", count: counts.planned ?? 0 },
-    { id: "ready", label: "工程/合同就绪", count: readyCount },
+    { id: "blocked", label: "阻塞", count: counts.blocked ?? 0, color: STATUS_META.blocked.color },
+    {
+      id: "in-progress",
+      label: "进行中",
+      count: counts["in-progress"] ?? 0,
+      color: STATUS_META["in-progress"].color,
+    },
+    { id: "planned", label: "计划中", count: counts.planned ?? 0, color: STATUS_META.planned.color },
+    { id: "ready", label: "工程/合同就绪", count: readyCount, color: STATUS_META["release-ready"].color },
   ];
 
   if (isLoading && tasks.length === 0) {
@@ -950,16 +955,17 @@ export default function App() {
                         : "筛选" + item.label + "并聚焦下一个节点"
                     }
                   >
+                    {item.color ? (
+                      <i
+                        className="filter-dot"
+                        aria-hidden="true"
+                        style={{ backgroundColor: item.color }}
+                      />
+                    ) : null}
                     {item.label}
                     <span>{item.count}</span>
                   </button>
                 ))}
-              </div>
-              <div className="legend" aria-label="节点状态图例">
-                <span><i className="legend-dot" style={{ background: STATUS_META.planned.color }} />计划</span>
-                <span><i className="legend-dot" style={{ background: STATUS_META["in-progress"].color }} />进行</span>
-                <span><i className="legend-dot" style={{ background: STATUS_META.blocked.color }} />阻塞</span>
-                <span><i className="legend-dot" style={{ background: STATUS_META["release-ready"].color }} />代码/合同就绪</span>
               </div>
             </div>
             <div className="graph-tools">
