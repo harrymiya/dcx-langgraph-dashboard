@@ -411,7 +411,6 @@ function StatusProgress({ tasks, counts }: StatusProgressProps) {
                 }}
               />
               <span>{STATUS_META[status].label}</span>
-              <strong>{count}</strong>
               <em>{percent}%</em>
             </span>
           );

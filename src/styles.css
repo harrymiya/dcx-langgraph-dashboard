@@ -162,12 +162,6 @@ button {
   box-shadow: 0 0 7px color-mix(in srgb, currentColor, transparent 45%);
 }
 
-.status-progress-item strong {
-  color: #e2e8f0;
-  font-size: 11px;
-  font-weight: 700;
-}
-
 .status-progress-item em {
   color: #64748b;
   font-size: 10px;
@@ -1489,10 +1483,6 @@ body[data-theme="light"] .status-progress-segment {
 
 body[data-theme="light"] .status-progress-item {
   color: #475569;
-}
-
-body[data-theme="light"] .status-progress-item strong {
-  color: #1e293b;
 }
 
 body[data-theme="light"] .task-brief-item {
