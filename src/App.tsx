@@ -7,7 +7,9 @@ import type {
 import {
   AlertCircle,
   Check,
+  ChevronDown,
   ChevronRight,
+  ChevronUp,
   Copy,
   ExternalLink,
   Info,
@@ -803,6 +805,8 @@ export default function App() {
   );
   const matchedIds = useMemo(() => new Set(matchedTasks.map((task) => task.id)), [matchedTasks]);
   const selectedTask = tasks.find((task) => task.id === selectedId) ?? null;
+  const selectedMatchIndex = matchedTasks.findIndex((task) => task.id === selectedId);
+  const searchResultPosition = selectedMatchIndex >= 0 ? selectedMatchIndex + 1 : 1;
   const selectedBrief = selectedTask ? getTaskBrief(selectedTask) : null;
   const selectedDependents = selectedTask
     ? tasks.filter((task) => task.deps.includes(selectedTask.id))
@@ -824,6 +828,21 @@ export default function App() {
     setAgentLaunchMessage("");
     setAgentLaunchError("");
   }, [selectedAgent, selectedId]);
+
+  const handleQueryChange = (nextQuery: string) => {
+    setQuery(nextQuery);
+    if (!nextQuery.trim()) return;
+
+    const nextMatches = tasks.filter((task) => taskMatchesFilter(task, nextQuery, filter));
+    setSelectedId(nextMatches[0]?.id ?? null);
+  };
+
+  const navigateSearchResult = (offset: -1 | 1) => {
+    if (matchedTasks.length < 2) return;
+    const currentIndex = selectedMatchIndex >= 0 ? selectedMatchIndex : 0;
+    const nextIndex = (currentIndex + offset + matchedTasks.length) % matchedTasks.length;
+    setSelectedId(matchedTasks[nextIndex].id);
+  };
 
   const handleFilterClick = (nextFilter: TaskFilter) => {
     // “全部”只切换筛选状态；其他类型按钮同时承担结果节点的循环导航。
@@ -1000,12 +1019,37 @@ export default function App() {
                 <Search size={16} />
                 <input
                   value={query}
-                  onChange={(event) => setQuery(event.target.value)}
+                  onChange={(event) => handleQueryChange(event.target.value)}
                   placeholder="搜索任务 ID、分组或节点类型…"
                   aria-label="搜索任务"
                 />
+                {query && matchedTasks.length ? (
+                  <span className="search-result-count" aria-live="polite">
+                    {searchResultPosition}/{matchedTasks.length}
+                  </span>
+                ) : null}
+                {query && matchedTasks.length > 1 ? (
+                  <span className="search-result-nav" aria-label="切换搜索结果">
+                    <button
+                      type="button"
+                      onClick={() => navigateSearchResult(-1)}
+                      aria-label="聚焦上一个搜索结果"
+                      title="上一个搜索结果"
+                    >
+                      <ChevronUp size={14} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => navigateSearchResult(1)}
+                      aria-label="聚焦下一个搜索结果"
+                      title="下一个搜索结果"
+                    >
+                      <ChevronDown size={14} />
+                    </button>
+                  </span>
+                ) : null}
                 {query ? (
-                  <button type="button" onClick={() => setQuery("")} aria-label="清除搜索">
+                  <button type="button" onClick={() => setQuery("")} aria-label="清除搜索" className="search-clear">
                     <X size={14} />
                   </button>
                 ) : null}
