@@ -8,7 +8,7 @@
     "dev": "vite",
     "dev:all": "node scripts/dev-all.mjs",
     "start": "node scripts/dev-all.mjs",
-    "test": "node --test ./scripts/evidence-sync.test.mjs",
+    "test": "node --test ./scripts/evidence-sync.test.mjs ./scripts/agent-workspaces.test.mjs",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit"

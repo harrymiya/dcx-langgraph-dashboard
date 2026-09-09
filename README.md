@@ -7,7 +7,7 @@
 - GET /assistants/{assistant_id}/graph 动态读取节点和依赖边
 - POST /threads/{thread_id}/runs/wait 同步节点运行状态
 - 开发环境通过 Vite /langgraph 代理访问项目内的 http://127.0.0.1:8123
-- 开发/预览环境通过 Vite /api/agents/launch 在本机打开 Konsole，并在 APP18 仓库启动 Agent CLI
+- 开发/预览环境通过 Vite /api/agents/launch 在本机打开 Konsole，并在 APP18/APP19/APP20 白名单仓库启动 Agent CLI
 
 当前项目内置 131 个业务节点；LangGraph API 会额外返回 `__start__`、`__end__`
 两个控制节点。页面会根据接口响应实时计算数量。
@@ -24,7 +24,7 @@
 - 状态筛选按钮支持循环聚焦：点击“阻塞”“进行中”“计划中”或“工程/合同就绪”后，画布会聚焦该结果中的一个节点；再次点击同一按钮切换下一个结果，点击到末尾后从头循环。搜索条件也会参与结果计算。“全部”仅切换为全量视图，不执行节点循环聚焦。
 - 选中节点后自动将节点移动到画布视口中央，并弱化无关节点和连线；右侧面板展示目标、达成条件、实施方案、依赖和后续节点。
 - 支持画布拖拽、缩放按钮以及 `Ctrl + 鼠标滚轮` 缩放，提供深色/浅色主题切换。
-- 从节点详情面板启动 OpenCode、Pi 或 Codex，在固定的 APP18 工作目录打开新的 Konsole 窗口，并自动注入节点上下文。
+- 从节点详情面板启动 OpenCode、Pi 或 Codex，在 APP18/APP19/APP20 白名单工作目录打开新的 Konsole 窗口，并自动注入节点上下文。
 
 ## 启动
 
@@ -76,12 +76,12 @@
 - 状态标签：快速查看阻塞、进行中、计划中和工程/合同就绪任务；重复点击同一标签会循环聚焦匹配节点
 - 重新同步：重新拉取 LangGraph 图定义，并执行一次 refactor_dag
 - 缩放按钮：适配完整 DAG 的横向画布；也可以在画布内按住 Ctrl 滚动鼠标滚轮缩放，浏览器页面不会跟着缩放
-- 节点详情：点击 OpenCode、Pi、Codex 按钮会直接打开新的 Konsole bash 窗口，在 `/mnt/data/code/dcx-web/dcx-web` 中启动对应 CLI；当前节点、依赖、状态和验证上下文由页面自动注入，不需要复制提示词
+- 节点详情：先选择 APP18、APP19 或 APP20 白名单项目，再选择 OpenCode、Pi、Codex；当前节点、依赖、状态和验证上下文由页面自动注入，不需要复制提示词
 - 顶部主题按钮：切换深色/浅色模式，偏好保存在浏览器本地
 
 无 evidence manifest 时，后端会把计划第 6.2.3 节的状态快照作为 `plan-snapshot` 展示投影；有逐任务 evidence manifest 时，仍以 manifest 为严格证据源。看板不会把“节点已入图”误报为“任务已完成”。
 
-Agent 启动器只接受固定的 Agent 类型和固定的 APP18 工作目录，不接受页面传入任意命令或工作目录。它依赖当前桌面环境存在 `/usr/bin/konsole`，以及 PATH 中可用的 `opencode`、`pi`、`codex` 命令。
+Agent 启动器只接受固定的 Agent 类型和 APP18/APP19/APP20 工作项目白名单，不接受页面传入任意命令或工作目录。白名单映射为 APP18=`/mnt/data/code/dcx-web/dcx-web`、APP19=`/mnt/data/code/dcx/dcx-web`、APP20=`/mnt/data/code/well-log-platform`。它依赖当前桌面环境存在 `/usr/bin/konsole`，以及 PATH 中可用的 `opencode`、`pi`、`codex` 命令。
 
 ## 页面操作说明
 
@@ -102,7 +102,7 @@ Agent 启动器只接受固定的 Agent 类型和固定的 APP18 工作目录，
 - 前置依赖与直接后续节点
 - 节点 ID 复制操作和 Agent 启动入口
 
-点击 OpenCode、Pi 或 Codex 后，Vite 本地中间件会调用 `/api/agents/launch`，在固定目录 `/mnt/data/code/dcx-web/dcx-web` 中打开 Konsole 并启动对应 CLI。启动器只接受内置 Agent 类型、任务 ID 和页面生成的上下文，不接受任意命令或工作目录。
+点击 OpenCode、Pi 或 Codex 后，Vite 本地中间件会调用 `/api/agents/launch`，仅在所选 APP18/APP19/APP20 白名单目录中打开 Konsole 并启动对应 CLI。启动器只接受内置 Agent 类型、任务 ID、白名单工作项目和页面生成的上下文，不接受任意命令或工作目录。
 
 ## 数据流与项目结构
 

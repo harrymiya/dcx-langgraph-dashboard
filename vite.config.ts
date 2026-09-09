@@ -6,11 +6,11 @@ import { resolve } from "node:path";
 import { defineConfig } from "vite";
 import type { Plugin } from "vite";
 import react from "@vitejs/plugin-react";
+import { resolveAgentWorkspace } from "./scripts/agent-workspaces.mjs";
 import { buildEvidenceUpdate } from "./scripts/evidence-sync.mjs";
 
 const langGraphApi = process.env.LANGGRAPH_API_URL ?? "http://127.0.0.1:8123";
 const frontendPort = Number(process.env.FRONTEND_PORT ?? 5175);
-const agentWorkspace = "/mnt/data/code/dcx-web/dcx-web";
 const terminalPath = "/usr/bin/konsole";
 const maxPromptBytes = 64 * 1024;
 const dashboardRoot = resolve(process.cwd());
@@ -57,20 +57,12 @@ function createAgentLauncherMiddleware() {
       jsonResponse(response, 405, { error: "只支持 POST /api/agents/launch" });
       return;
     }
-    if (!existsSync(agentWorkspace)) {
-      jsonResponse(response, 503, { error: "Agent 工作目录不存在：" + agentWorkspace });
-      return;
-    }
-    if (!existsSync(terminalPath)) {
-      jsonResponse(response, 503, { error: "未找到 Konsole，无法打开 Agent 终端窗口" });
-      return;
-    }
-
     try {
       const payload = JSON.parse(await readRequestBody(request)) as {
         agent?: unknown;
         taskId?: unknown;
         prompt?: unknown;
+        workspace?: unknown;
       };
       if (!isAgentKind(payload.agent)) {
         jsonResponse(response, 400, { error: "不支持的 Agent 类型" });
@@ -86,6 +78,19 @@ function createAgentLauncherMiddleware() {
       }
       if (Buffer.byteLength(payload.prompt, "utf8") > maxPromptBytes) {
         jsonResponse(response, 413, { error: "Agent 工作上下文超过 64 KiB" });
+        return;
+      }
+      const agentWorkspace = resolveAgentWorkspace(payload.workspace);
+      if (!agentWorkspace) {
+        jsonResponse(response, 400, { error: "工作项目不在 APP18/APP19/APP20 白名单中" });
+        return;
+      }
+      if (!existsSync(agentWorkspace)) {
+        jsonResponse(response, 503, { error: "Agent 工作目录不存在：" + agentWorkspace });
+        return;
+      }
+      if (!existsSync(terminalPath)) {
+        jsonResponse(response, 503, { error: "未找到 Konsole，无法打开 Agent 终端窗口" });
         return;
       }
 
@@ -116,6 +121,7 @@ function createAgentLauncherMiddleware() {
         ok: true,
         agent: payload.agent,
         taskId: payload.taskId,
+        workspace: payload.workspace ?? "APP18",
         terminal: "konsole",
         pid: child.pid,
         message: command + " 已在新的 Konsole 窗口启动",

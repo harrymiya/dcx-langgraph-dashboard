@@ -31,7 +31,7 @@ import {
   runLangGraph,
   syncTaskEvidence,
 } from "./api";
-import type { EvidenceReadyStatus } from "./api";
+import type { AgentWorkspace, EvidenceReadyStatus } from "./api";
 import {
   groupForNode,
   isReadyStatus,
@@ -61,6 +61,18 @@ const AGENT_META: Record<AgentKind, { label: string; hint: string }> = {
   pi: { label: "Pi", hint: "适合快速拆解和推进单个切片" },
   codex: { label: "Codex", hint: "适合带门禁验证完成实现" },
 };
+
+const AGENT_WORKSPACE_META: Record<AgentWorkspace, { label: string; path: string }> = {
+  APP18: { label: "APP18", path: "/mnt/data/code/dcx-web/dcx-web" },
+  APP19: { label: "APP19", path: "/mnt/data/code/dcx/dcx-web" },
+  APP20: { label: "APP20", path: "/mnt/data/code/well-log-platform" },
+};
+
+function inferAgentWorkspace(task: DagTask): AgentWorkspace {
+  if (task.project?.includes("APP19")) return "APP19";
+  if (task.project?.includes("APP20")) return "APP20";
+  return "APP18";
+}
 
 const clampScale = (value: number) => Math.min(1.2, Math.max(0.58, value));
 
@@ -727,6 +739,8 @@ export default function App() {
   const [lastSync, setLastSync] = useState("");
   const [copied, setCopied] = useState(false);
   const [agentByTask, setAgentByTask] = useState<Record<string, AgentKind>>({});
+  const [workspaceByTask, setWorkspaceByTask] = useState<Record<string, AgentWorkspace>>({});
+  const [agentPrompt, setAgentPrompt] = useState("");
   const [launchingAgent, setLaunchingAgent] = useState<AgentKind | null>(null);
   const [agentLaunchMessage, setAgentLaunchMessage] = useState("");
   const [agentLaunchError, setAgentLaunchError] = useState("");
@@ -804,7 +818,22 @@ export default function App() {
     : [];
   const readyCount = businessTasks.filter((task) => isReadyStatus(task.status)).length;
   const releaseReadyCount = businessTasks.filter((task) => task.status === "release-ready").length;
-  const selectedAgent = selectedTask ? agentByTask[selectedTask.id] ?? "codex" : "codex";
+  const selectedAgent = selectedTask ? agentByTask[selectedTask.id] ?? null : null;
+  const selectedWorkspace = selectedTask
+    ? workspaceByTask[selectedTask.id] ?? inferAgentWorkspace(selectedTask)
+    : "APP18";
+
+  useEffect(() => {
+    if (!selectedTask || !selectedAgent) {
+      setAgentPrompt("");
+      setAgentLaunchMessage("");
+      setAgentLaunchError("");
+      return;
+    }
+    setAgentPrompt(buildAgentPrompt(selectedAgent, selectedTask, tasks, assistant, displayApiUrl));
+    setAgentLaunchMessage("");
+    setAgentLaunchError("");
+  }, [selectedAgent, selectedId]);
 
   const handleFilterClick = (nextFilter: TaskFilter) => {
     // “全部”只切换筛选状态；其他类型按钮同时承担结果节点的循环导航。
@@ -834,17 +863,35 @@ export default function App() {
     window.setTimeout(() => setCopied(false), 1300);
   };
 
-  const launchSelectedAgent = async (kind: AgentKind) => {
+  const selectAgent = (kind: AgentKind) => {
+    if (!selectedTask || launchingAgent) return;
+    setAgentByTask((current) => ({ ...current, [selectedTask.id]: kind }));
+  };
+
+  const selectWorkspace = (workspace: AgentWorkspace) => {
+    if (!selectedTask || launchingAgent) return;
+    setWorkspaceByTask((current) => ({ ...current, [selectedTask.id]: workspace }));
+  };
+
+  const launchSelectedAgent = async () => {
     const task = selectedTask;
-    if (!task || launchingAgent) return;
-    const prompt = buildAgentPrompt(kind, task, tasks, assistant, displayApiUrl);
-    setAgentByTask((current) => ({ ...current, [task.id]: kind }));
+    const kind = selectedAgent;
+    if (!task || !kind || launchingAgent) return;
+    if (!agentPrompt.trim()) {
+      setAgentLaunchError("提示词不能为空");
+      return;
+    }
     setAgentLaunchMessage("");
     setAgentLaunchError("");
     setLaunchingAgent(kind);
     try {
-      const result = await launchAgent({ agent: kind, taskId: task.id, prompt });
-      setAgentLaunchMessage(result.message ?? AGENT_META[kind].label + " 已启动");
+      const result = await launchAgent({
+        agent: kind,
+        taskId: task.id,
+        prompt: agentPrompt,
+        workspace: selectedWorkspace,
+      });
+      setAgentLaunchMessage(result.message ?? `${AGENT_META[kind].label} 已在 ${selectedWorkspace} 启动`);
     } catch (launchError) {
       setAgentLaunchError(
         launchError instanceof Error ? launchError.message : "Agent 启动失败",
@@ -1040,7 +1087,7 @@ export default function App() {
               <div className="details-header">
                 <div>
                   <span className="details-kicker">NODE INSPECTOR</span>
-                  <h2>{selectedTask.id}</h2>
+                  <h2 title={selectedTask.id}>{selectedTask.id}</h2>
                 </div>
                 <button type="button" className="icon-button" onClick={() => setSelectedId(null)} aria-label="关闭详情">
                   <X size={17} />
@@ -1053,7 +1100,7 @@ export default function App() {
                   {selectedTask.ingestionStatus === "ingested" ? "已进入 checkpoint" : "未同步 checkpoint"}
                 </span>
               </div>
-              <h3 className="task-name">{selectedTask.label}</h3>
+              <h3 className="task-name" title={selectedTask.label}>{selectedTask.label}</h3>
               <div className="task-brief" aria-label="节点说明">
                 <div className="task-brief-item">
                   <span>节点说明</span>
@@ -1127,26 +1174,65 @@ export default function App() {
 
               <div className="agent-block">
                 <div className="section-label">
-                  选择处理 Agent <span>3</span>
+                  选择处理 Agent / 工作项目 <span>3</span>
                 </div>
+                <div className="agent-workspace-row">
+                  <label htmlFor="agent-workspace-select">白名单项目</label>
+                  <select
+                    id="agent-workspace-select"
+                    value={selectedWorkspace}
+                    onChange={(event) => selectWorkspace(event.target.value as AgentWorkspace)}
+                    disabled={launchingAgent !== null}
+                  >
+                    {(Object.keys(AGENT_WORKSPACE_META) as AgentWorkspace[]).map((workspace) => (
+                      <option key={workspace} value={workspace}>
+                        {AGENT_WORKSPACE_META[workspace].label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <p className="agent-note workspace-note">
+                  仅允许 APP18、APP19、APP20 白名单目录；当前路径：{AGENT_WORKSPACE_META[selectedWorkspace].path}
+                </p>
                 <div className="agent-options" role="radiogroup" aria-label="选择处理 Agent">
                   {(Object.keys(AGENT_META) as AgentKind[]).map((kind) => (
                     <button
                       className={selectedAgent === kind ? "active" : ""}
                       key={kind}
                       type="button"
-                      onClick={() => void launchSelectedAgent(kind)}
+                      onClick={() => selectAgent(kind)}
                       disabled={launchingAgent !== null}
                       role="radio"
                       aria-checked={selectedAgent === kind}
-                      title={"启动 " + AGENT_META[kind].label + " 处理当前节点：" + AGENT_META[kind].hint}
+                      title={"选择 " + AGENT_META[kind].label + "：" + AGENT_META[kind].hint}
                     >
-                      {launchingAgent === kind ? <RefreshCw size={12} className="spin" /> : <Terminal size={12} />}
+                      <Terminal size={12} />
                       {AGENT_META[kind].label}
                     </button>
                   ))}
                 </div>
-                <p className="agent-note">点击按钮会直接打开新的 Konsole bash 窗口，在 APP18 重构仓库中启动对应 CLI；节点状态、依赖、验证范围和 LangGraph 上下文会自动注入。</p>
+                {selectedAgent ? (
+                  <div className="agent-prompt-editor">
+                    <label htmlFor="agent-prompt-input">提示词（可编辑）</label>
+                    <textarea
+                      id="agent-prompt-input"
+                      value={agentPrompt}
+                      onChange={(event) => setAgentPrompt(event.target.value)}
+                      rows={10}
+                      spellCheck={false}
+                    />
+                    <button
+                      className="button button-primary agent-launch-button"
+                      type="button"
+                      onClick={() => void launchSelectedAgent()}
+                      disabled={launchingAgent !== null}
+                    >
+                      {launchingAgent ? <RefreshCw size={15} className="spin" /> : <Terminal size={15} />}
+                      {launchingAgent ? "拉起中…" : "拉起 Agent"}
+                    </button>
+                  </div>
+                ) : null}
+                <p className="agent-note">选择 Agent 后可编辑提示词；点击“拉起 Agent”才会打开新的 Konsole bash 窗口并启动对应 CLI。</p>
                 {agentLaunchMessage ? <p className="launch-feedback success">{agentLaunchMessage}</p> : null}
                 {agentLaunchError ? <p className="launch-feedback error">{agentLaunchError}</p> : null}
               </div>
@@ -1156,7 +1242,12 @@ export default function App() {
                 {selectedTask.deps.length ? (
                   <div className="relation-list">
                     {selectedTask.deps.map((dependency) => (
-                      <button type="button" key={dependency} onClick={() => setSelectedId(dependency)}>
+                      <button
+                        type="button"
+                        key={dependency}
+                        title={dependency}
+                        onClick={() => setSelectedId(dependency)}
+                      >
                         <ChevronRight size={13} />
                         {dependency}
                       </button>
@@ -1170,7 +1261,12 @@ export default function App() {
                 {selectedDependents.length ? (
                   <div className="relation-list">
                     {selectedDependents.map((dependent) => (
-                      <button type="button" key={dependent.id} onClick={() => setSelectedId(dependent.id)}>
+                      <button
+                        type="button"
+                        key={dependent.id}
+                        title={dependent.id}
+                        onClick={() => setSelectedId(dependent.id)}
+                      >
                         <ChevronRight size={13} />
                         {dependent.id}
                         <StatusPill status={dependent.status} compact />

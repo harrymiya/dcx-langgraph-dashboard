@@ -1074,6 +1074,41 @@ button {
   margin-top: 9px;
 }
 
+.agent-workspace-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 7px;
+  align-items: center;
+  margin-top: 10px;
+}
+
+.agent-workspace-row label {
+  color: #67e8f9;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.agent-workspace-row select {
+  min-width: 0;
+  height: 31px;
+  padding: 0 8px;
+  color: #cbd5e1;
+  font: 11px ui-monospace, SFMono-Regular, Consolas, monospace;
+  background: rgba(2, 6, 23, 0.42);
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: 6px;
+  outline: 0;
+}
+
+.agent-workspace-row select:focus {
+  border-color: rgba(103, 232, 249, 0.5);
+  box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.08);
+}
+
+.workspace-note {
+  overflow-wrap: anywhere;
+}
+
 .agent-options button {
   display: flex;
   align-items: center;
@@ -1101,6 +1136,41 @@ button {
 .agent-options button:disabled {
   cursor: wait;
   opacity: 0.62;
+}
+
+.agent-prompt-editor {
+  display: grid;
+  gap: 7px;
+  margin-top: 12px;
+}
+
+.agent-prompt-editor label {
+  color: #67e8f9;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.agent-prompt-editor textarea {
+  width: 100%;
+  min-height: 180px;
+  padding: 9px 10px;
+  color: #cbd5e1;
+  font: 10px/1.55 ui-monospace, SFMono-Regular, Consolas, monospace;
+  resize: vertical;
+  background: rgba(2, 6, 23, 0.42);
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: 6px;
+  outline: 0;
+}
+
+.agent-prompt-editor textarea:focus {
+  border-color: rgba(103, 232, 249, 0.5);
+  box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.08);
+}
+
+.agent-launch-button {
+  width: 100%;
 }
 
 .agent-note {
@@ -1577,6 +1647,26 @@ body[data-theme="light"] .evidence-controls select {
 
 body[data-theme="light"] .agent-options button {
   color: #475569;
+  background: rgba(241, 245, 249, 0.78);
+  border-color: rgba(100, 116, 139, 0.2);
+}
+
+body[data-theme="light"] .agent-prompt-editor label {
+  color: #0e7490;
+}
+
+body[data-theme="light"] .agent-prompt-editor textarea {
+  color: #334155;
+  background: rgba(241, 245, 249, 0.78);
+  border-color: rgba(100, 116, 139, 0.2);
+}
+
+body[data-theme="light"] .agent-workspace-row label {
+  color: #0e7490;
+}
+
+body[data-theme="light"] .agent-workspace-row select {
+  color: #334155;
   background: rgba(241, 245, 249, 0.78);
   border-color: rgba(100, 116, 139, 0.2);
 }

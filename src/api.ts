@@ -96,16 +96,20 @@ export interface AgentLaunchRequest {
   agent: AgentKind;
   taskId: string;
   prompt: string;
+  workspace?: AgentWorkspace;
 }
 
 export interface AgentLaunchResponse {
   ok: boolean;
   agent: AgentKind;
   taskId: string;
+  workspace: AgentWorkspace;
   terminal: string;
   pid?: number;
   message?: string;
 }
+
+export type AgentWorkspace = "APP18" | "APP19" | "APP20";
 
 export function launchAgent(payload: AgentLaunchRequest): Promise<AgentLaunchResponse> {
   return requestLocal<AgentLaunchResponse>("/api/agents/launch", {
