@@ -34,11 +34,12 @@ import {
 import type { AgentWorkspace, EvidenceReadyStatus } from "./api";
 import {
   groupForNode,
-  isReadyStatus,
   relatedTaskIds,
   STATUS_META,
   taskMatchesFilter,
+  WORKFLOW_STATUSES,
 } from "./graph";
+import type { TaskFilter } from "./graph";
 import type {
   Assistant,
   BackendStatus,
@@ -51,7 +52,6 @@ import type {
   AgentKind,
 } from "./types";
 
-type TaskFilter = "all" | "blocked" | "in-progress" | "planned" | "ready";
 type Theme = "dark" | "light";
 
 const CONTROL_NODES = new Set(["__start__", "__end__"]);
@@ -354,16 +354,6 @@ function DetailValue({ value }: DetailValueProps) {
   return <strong title={value}>{value}</strong>;
 }
 
-const PROGRESS_STATUSES: DagStatus[] = [
-  "release-ready",
-  "contract-ready",
-  "code-ready",
-  "in-progress",
-  "blocked",
-  "planned",
-  "unknown",
-];
-
 interface StatusProgressProps {
   tasks: DagTask[];
   counts: Record<string, number>;
@@ -373,7 +363,7 @@ function StatusProgress({ tasks, counts }: StatusProgressProps) {
   const total = tasks.filter((task) => !task.isControl).length;
   const releaseReady = counts["release-ready"] ?? 0;
   const releasePercent = total ? Math.round((releaseReady / total) * 100) : 0;
-  const progressLabel = PROGRESS_STATUSES.filter((status) => (counts[status] ?? 0) > 0)
+  const progressLabel = WORKFLOW_STATUSES.filter((status) => (counts[status] ?? 0) > 0)
     .map((status) => STATUS_META[status].label + " " + (counts[status] ?? 0))
     .join("，");
 
@@ -391,7 +381,7 @@ function StatusProgress({ tasks, counts }: StatusProgressProps) {
       </div>
 
       <div className="status-progress-track" role="img" aria-label={progressLabel || "暂无业务节点状态"}>
-        {PROGRESS_STATUSES.map((status) => {
+        {WORKFLOW_STATUSES.map((status) => {
           const count = counts[status] ?? 0;
           if (!count || !total) return null;
           return (
@@ -409,7 +399,7 @@ function StatusProgress({ tasks, counts }: StatusProgressProps) {
       </div>
 
       <div className="status-progress-legend">
-        {PROGRESS_STATUSES.map((status) => {
+        {WORKFLOW_STATUSES.map((status) => {
           const count = counts[status] ?? 0;
           const percent = total ? Math.round((count / total) * 100) : 0;
           return (
@@ -693,11 +683,13 @@ function DagCanvas({
               >
                 <span className="node-topline">
                   <span className="node-id">{task.id}</span>
-                  <StatusPill status={task.status} compact />
+                  <StatusPill status={task.status} />
                 </span>
                 <span className="node-label">{task.label}</span>
                 <span className="node-meta">
-                  <span>{task.type}</span>
+                  <span className="node-status-label" title={statusMeta.label}>
+                    {statusMeta.label}
+                  </span>
                   <span>{task.deps.length ? task.deps.length + " 个前置" : "无前置"}</span>
                 </span>
               </button>
@@ -816,7 +808,6 @@ export default function App() {
   const selectedDependents = selectedTask
     ? tasks.filter((task) => task.deps.includes(selectedTask.id))
     : [];
-  const readyCount = businessTasks.filter((task) => isReadyStatus(task.status)).length;
   const releaseReadyCount = businessTasks.filter((task) => task.status === "release-ready").length;
   const selectedAgent = selectedTask ? agentByTask[selectedTask.id] ?? null : null;
   const selectedWorkspace = selectedTask
@@ -920,17 +911,14 @@ export default function App() {
     }
   };
 
-  const filterItems: Array<{ id: TaskFilter; label: string; count?: number; color?: string }> = [
+  const filterItems: Array<{ id: TaskFilter; label: string; count: number; color?: string }> = [
     { id: "all", label: "全部", count: businessTasks.length },
-    { id: "blocked", label: "阻塞", count: counts.blocked ?? 0, color: STATUS_META.blocked.color },
-    {
-      id: "in-progress",
-      label: "进行中",
-      count: counts["in-progress"] ?? 0,
-      color: STATUS_META["in-progress"].color,
-    },
-    { id: "planned", label: "计划中", count: counts.planned ?? 0, color: STATUS_META.planned.color },
-    { id: "ready", label: "工程/合同就绪", count: readyCount, color: STATUS_META["release-ready"].color },
+    ...WORKFLOW_STATUSES.map((status) => ({
+      id: status,
+      label: STATUS_META[status].label,
+      count: counts[status] ?? 0,
+      color: STATUS_META[status].color,
+    })),
   ];
 
   if (isLoading && tasks.length === 0) {

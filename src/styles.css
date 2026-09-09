@@ -852,6 +852,14 @@ button {
   font-size: 10px;
 }
 
+.node-status-label {
+  overflow: hidden;
+  color: var(--status-color);
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .status-pill {
   flex-shrink: 0;
   gap: 5px;

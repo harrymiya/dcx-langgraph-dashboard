@@ -1,5 +1,18 @@
 import type { DagStatus, DagTask } from "./types";
 
+export const WORKFLOW_STATUSES = [
+  "release-ready",
+  "contract-ready",
+  "code-ready",
+  "in-progress",
+  "blocked",
+  "planned",
+  "unknown",
+] as const satisfies readonly Exclude<DagStatus, "control">[];
+
+export type WorkflowStatus = (typeof WORKFLOW_STATUSES)[number];
+export type TaskFilter = "all" | WorkflowStatus;
+
 export const STATUS_META: Record<
   DagStatus,
   { label: string; shortLabel: string; color: string; tone: string }
@@ -26,7 +39,7 @@ export function groupForNode(id: string): string {
 export function taskMatchesFilter(
   task: DagTask,
   query: string,
-  filter: DagStatus | "all" | "ready",
+  filter: TaskFilter,
 ): boolean {
   const normalizedQuery = query.trim().toLowerCase();
   const queryMatch =
@@ -37,7 +50,7 @@ export function taskMatchesFilter(
       .includes(normalizedQuery);
   const statusMatch =
     filter === "all" ||
-    (filter === "ready" ? isReadyStatus(task.status) : task.status === filter);
+    task.status === filter;
   return queryMatch && statusMatch;
 }
 
