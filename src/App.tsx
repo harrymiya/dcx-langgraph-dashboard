@@ -14,7 +14,7 @@ import {
   ExternalLink,
   Info,
   LocateFixed,
-  PanelRight,
+  MousePointerClick,
   RefreshCw,
   Search,
   Terminal,
@@ -35,6 +35,7 @@ import {
 } from "./api";
 import type { AgentWorkspace, EvidenceReadyStatus } from "./api";
 import AgentBoard, { type Agent, type AgentBoardSnapshot } from "./AgentBoard";
+import TerminalPanel, { type TerminalPanelHandle } from "./TerminalPanel";
 import {
   groupForNode,
   relatedTaskIds,
@@ -809,6 +810,7 @@ export default function App() {
   const [evidenceSyncError, setEvidenceSyncError] = useState("");
   const [agentSnapshot, setAgentSnapshot] = useState<AgentBoardSnapshot>([]);
   const [agentTaskByPid, setAgentTaskByPid] = useState<Record<string, string>>({});
+  const terminalRef = useRef<TerminalPanelHandle>(null);
   const [pendingAgentTasks, setPendingAgentTasks] = useState<string[]>([]);
   const [agentBindings, setAgentBindings] = useState<Record<string, string>>({});
   const [theme, setTheme] = useState<Theme>(() => {
@@ -956,7 +958,48 @@ export default function App() {
     setWorkspaceByTask((current) => ({ ...current, [selectedTask.id]: workspace }));
   };
 
-  const launchSelectedAgent = async () => {
+  const buildInjectedPrompt = () => {
+    const task = selectedTask;
+    if (!task) return "";
+    return [
+      agentPrompt.trim(),
+      "",
+      "[系统注入要求]",
+      `本次处理的 DAG 节点 ID 是：${task.id}`,
+      `请在你的思维链中原样输出一次节点 ID：${task.id}`,
+      "只需要输出一次该节点 ID，后续不要重复输出。",
+    ].join("\n");
+  };
+
+  // 主链路：属性栏拉起 Agent 时，直接在画布下方命令行开一个新 Tab 并运行，
+  // Agent 跑完后 Tab 保留为可交互 shell，可继续敲命令。
+  const launchSelectedAgent = () => {
+    const task = selectedTask;
+    const kind = selectedAgent;
+    if (!task || !kind || launchingAgent) return;
+    if (!agentPrompt.trim()) {
+      setAgentLaunchError("提示词不能为空");
+      return;
+    }
+    setAgentLaunchMessage("");
+    setAgentLaunchError("");
+    const handler = terminalRef.current;
+    if (!handler) {
+      setAgentLaunchError("页内终端尚未就绪，请稍后重试（或用外部 Konsole）");
+      return;
+    }
+    handler.openAgentTerminal({
+      agent: kind,
+      taskId: task.id,
+      prompt: buildInjectedPrompt(),
+      workspace: selectedWorkspace,
+    });
+    setAgentLaunchMessage(`${AGENT_META[kind].label} 已在下方命令行新开 Tab（${selectedWorkspace} · ${task.id}），正在启动…`);
+    setPendingAgentTasks((current) => (current.includes(task.id) ? current : [...current, task.id]));
+  };
+
+  // 兜底链路：保留原来的外部 Konsole 弹窗方式。
+  const launchSelectedAgentExternal = async () => {
     const task = selectedTask;
     const kind = selectedAgent;
     if (!task || !kind || launchingAgent) return;
@@ -968,18 +1011,10 @@ export default function App() {
     setAgentLaunchError("");
     setLaunchingAgent(kind);
     try {
-      const injectedPrompt = [
-        agentPrompt.trim(),
-        "",
-        "[系统注入要求]",
-        `本次处理的 DAG 节点 ID 是：${task.id}`,
-        `请在你的思维链中原样输出一次节点 ID：${task.id}`,
-        "只需要输出一次该节点 ID，后续不要重复输出。",
-      ].join("\n");
       const result = await launchAgent({
         agent: kind,
         taskId: task.id,
-        prompt: injectedPrompt,
+        prompt: buildInjectedPrompt(),
         workspace: selectedWorkspace,
       });
       setAgentLaunchMessage(result.message ?? `${AGENT_META[kind].label} 已在 ${selectedWorkspace} 启动`);
@@ -1208,6 +1243,7 @@ export default function App() {
           ) : (
             <EmptyState message="LangGraph 没有返回节点" />
           )}
+          <TerminalPanel ref={terminalRef} theme={theme} defaultWorkspace={selectedWorkspace} />
         </div>
 
         <aside className={"details-panel " + (selectedTask ? "has-selection" : "")}>
@@ -1353,15 +1389,25 @@ export default function App() {
                     <button
                       className="button button-primary agent-launch-button"
                       type="button"
-                      onClick={() => void launchSelectedAgent()}
+                      onClick={() => launchSelectedAgent()}
                       disabled={launchingAgent !== null}
                     >
+                      <Terminal size={15} />
+                      在下方终端拉起
+                    </button>
+                    <button
+                      className="button button-ghost agent-launch-button"
+                      type="button"
+                      onClick={() => void launchSelectedAgentExternal()}
+                      disabled={launchingAgent !== null}
+                      title="兜底：仍用外部 Konsole 窗口启动"
+                    >
                       {launchingAgent ? <RefreshCw size={15} className="spin" /> : <Terminal size={15} />}
-                      {launchingAgent ? "拉起中…" : "拉起 Agent"}
+                      {launchingAgent ? "拉起中…" : "外部 Konsole 拉起"}
                     </button>
                   </div>
                 ) : null}
-                <p className="agent-note">选择 Agent 后可编辑提示词；点击“拉起 Agent”才会打开新的 Konsole bash 窗口并启动对应 CLI。</p>
+                <p className="agent-note">选择 Agent 后可编辑提示词；「在下方终端拉起」会在画布下方命令行新开一个 Tab 并运行，跑完后可继续交互；「外部 Konsole 拉起」仍用原来的外部窗口方式。</p>
                 {agentLaunchMessage ? <p className="launch-feedback success">{agentLaunchMessage}</p> : null}
                 {agentLaunchError ? <p className="launch-feedback error">{agentLaunchError}</p> : null}
               </div>
@@ -1418,9 +1464,31 @@ export default function App() {
             </>
           ) : (
             <div className="details-empty">
-              <div className="details-empty-icon"><PanelRight size={21} /></div>
-              <h2>节点详情</h2>
-              <p>点击任意节点，查看它的状态、前置依赖和后续节点。</p>
+              <span className="details-kicker">NODE INSPECTOR</span>
+              <div className="details-empty-orbit" aria-hidden="true">
+                <div className="details-empty-icon"><MousePointerClick size={22} /></div>
+              </div>
+              <h2>尚未选中节点</h2>
+              <p>点击画布上的任意节点，在这里查看状态、依赖与证据，并拉起 Agent 推进。</p>
+              <div className="details-empty-stats" aria-label="当前任务统计">
+                <span><b>{businessTasks.length}</b>业务节点</span>
+                <i />
+                <span><b>{releaseReadyCount}</b>可发布</span>
+              </div>
+              <ul className="details-empty-steps">
+                <li>
+                  <Search size={13} />
+                  <span><b>搜索定位</b>按 ID、分组或类型找节点</span>
+                </li>
+                <li>
+                  <MousePointerClick size={13} />
+                  <span><b>点击查看</b>状态、前置与后续依赖</span>
+                </li>
+                <li>
+                  <Terminal size={13} />
+                  <span><b>下方终端</b>拉起 Agent 直接开干</span>
+                </li>
+              </ul>
               <div className="tip">
                 <Info size={15} />
                 选中节点后，画布会自动弱化无关连线。

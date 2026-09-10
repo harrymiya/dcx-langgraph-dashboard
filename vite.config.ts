@@ -8,6 +8,7 @@ import type { Plugin } from "vite";
 import react from "@vitejs/plugin-react";
 import { resolveAgentWorkspace } from "./scripts/agent-workspaces.mjs";
 import { buildEvidenceUpdate } from "./scripts/evidence-sync.mjs";
+import { terminalPlugin } from "./scripts/terminal-plugin.mjs";
 
 const langGraphApi = process.env.LANGGRAPH_API_URL ?? "http://127.0.0.1:8123";
 const agentBoardPort = process.env.AGENTBOARD_PORT ?? "8710";
@@ -257,7 +258,7 @@ function evidenceSyncPlugin(): Plugin {
 }
 
 export default defineConfig({
-  plugins: [react(), agentLauncherPlugin(), evidenceSyncPlugin()],
+  plugins: [react(), agentLauncherPlugin(), evidenceSyncPlugin(), terminalPlugin()],
   server: {
     host: "127.0.0.1",
     port: frontendPort,
