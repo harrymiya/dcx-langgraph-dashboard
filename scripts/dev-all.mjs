@@ -7,6 +7,7 @@ import { setTimeout as delay } from "node:timers/promises";
 const root = resolve(import.meta.dirname, "..");
 const backendRoot = join(root, "backend");
 const backendConfig = join(backendRoot, "langgraph.json");
+const agentBoardServer = join(backendRoot, "agentboard_server.py");
 const virtualEnvironment = join(backendRoot, ".venv");
 const isWindows = process.platform === "win32";
 const executableSuffix = isWindows ? ".cmd" : "";
@@ -14,8 +15,10 @@ const pythonInVenv = join(virtualEnvironment, isWindows ? "Scripts" : "bin", "py
 const langgraphInVenv = join(virtualEnvironment, isWindows ? "Scripts" : "bin", "langgraph" + executableSuffix);
 const frontendPort = process.env.FRONTEND_PORT ?? "5175";
 const backendPort = process.env.LANGGRAPH_PORT ?? "8123";
+const agentBoardPort = process.env.AGENTBOARD_PORT ?? "8710";
 
 let backendProcess;
+let agentBoardProcess;
 let frontendProcess;
 let shuttingDown = false;
 
@@ -69,9 +72,11 @@ function isPortAvailable(port) {
 async function assertPortsAvailable() {
   const backendPortNumber = assertValidPort(backendPort, "LangGraph");
   const frontendPortNumber = assertValidPort(frontendPort, "Vite");
-  const [backendAvailable, frontendAvailable] = await Promise.all([
+  const agentBoardPortNumber = assertValidPort(agentBoardPort, "Agent Board");
+  const [backendAvailable, frontendAvailable, agentBoardAvailable] = await Promise.all([
     isPortAvailable(backendPortNumber),
     isPortAvailable(frontendPortNumber),
+    isPortAvailable(agentBoardPortNumber),
   ]);
   if (!backendAvailable) {
     throw new Error(
@@ -82,6 +87,9 @@ async function assertPortsAvailable() {
     throw new Error(
       `Vite 端口 ${frontendPort} 已被占用；请停止旧服务，或使用 FRONTEND_PORT=其他端口 npm run dev:all。`,
     );
+  }
+  if (!agentBoardAvailable) {
+    throw new Error(`Agent Board 端口 ${agentBoardPort} 已被占用；请停止旧服务，或使用 AGENTBOARD_PORT=其他端口 npm run dev:all。`);
   }
 }
 
@@ -118,6 +126,14 @@ function ensureLangGraph() {
   return langgraphInVenv;
 }
 
+async function waitForAgentBoard() {
+  for (let attempt = 0; attempt < 40; attempt += 1) {
+    try { const response = await fetch(`http://127.0.0.1:${agentBoardPort}/health`); if (response.ok) return; } catch {}
+    await delay(250);
+  }
+  throw new Error(`Agent Board 服务在 ${agentBoardPort} 端口启动超时。`);
+}
+
 async function waitForBackend() {
   for (let attempt = 0; attempt < 120; attempt += 1) {
     if (backendProcess?.exitCode !== null) {
@@ -143,6 +159,7 @@ function shutdown(code) {
   shuttingDown = true;
   stopProcess(frontendProcess);
   stopProcess(backendProcess);
+  stopProcess(agentBoardProcess);
   process.exitCode = code;
 }
 
@@ -174,7 +191,15 @@ async function main() {
     }
   });
 
-  await waitForBackend();
+  const python = process.env.AGENTBOARD_PYTHON ?? findExecutable("python3") ?? findExecutable("python");
+  if (!python) throw new Error("未找到 Python，无法启动 Agent Board");
+  console.log(`[agentboard] Agent Board ${agentBoardPort} 启动中…`);
+  agentBoardProcess = spawn(python, [agentBoardServer, "--port", agentBoardPort], {
+    cwd: backendRoot, env: { ...sharedEnv, AGENTBOARD_PORT: agentBoardPort }, stdio: "inherit",
+  });
+  agentBoardProcess.on("error", (error) => { if (!shuttingDown) { console.error("[agentboard] 启动失败：", error.message); shutdown(1); } });
+  agentBoardProcess.on("exit", (code) => { if (!shuttingDown) { console.error(`[agentboard] 已退出（状态码：${code ?? "unknown"}）`); shutdown(code ?? 1); } });
+  await Promise.all([waitForBackend(), waitForAgentBoard()]);
   console.log(`[frontend] Vite ${frontendPort} 启动中…`);
   const npm = isWindows ? "npm.cmd" : "npm";
   frontendProcess = spawn(npm, ["run", "dev"], {

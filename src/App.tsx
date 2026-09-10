@@ -34,6 +34,7 @@ import {
   syncTaskEvidence,
 } from "./api";
 import type { AgentWorkspace, EvidenceReadyStatus } from "./api";
+import AgentBoard, { type Agent, type AgentBoardSnapshot } from "./AgentBoard";
 import {
   groupForNode,
   relatedTaskIds,
@@ -668,6 +669,7 @@ function DagCanvas({
             return (
               <button
                 className={className}
+                data-task-id={task.id}
                 key={task.id}
                 type="button"
                 onClick={() => handleNodeClick(task.id)}
@@ -714,6 +716,44 @@ function EmptyState({ message }: { message: string }) {
   );
 }
 
+function AgentDagLinks({ agents, taskVersion, bindings }: { agents: Agent[]; taskVersion: string; bindings: Record<string, string> }) {
+  const [lines, setLines] = useState<Array<{ id: string; x1: number; y1: number; x2: number; y2: number }>>([]);
+  useEffect(() => {
+    const update = () => {
+      const workspace = document.querySelector<HTMLElement>(".workspace-linked");
+      if (!workspace) return;
+      const root = workspace.getBoundingClientRect();
+      const next = agents.flatMap((agent) => {
+        const name = String(agent.agent ?? "").toLowerCase();
+        // Agent Board 的 agent 名称通常包含任务节点 ID；也兼容最后阶段字段。
+        const stage = String(agent.last?.stage ?? "").toLowerCase();
+        const taskNodes = Array.from(document.querySelectorAll<HTMLElement>("[data-task-id]"));
+        const assignedTaskId = bindings[String(agent.agent ?? "")];
+        const target = (assignedTaskId && taskNodes.find((node) => node.dataset.taskId === assignedTaskId)) ?? taskNodes.find((node) => {
+          const id = String(node.dataset.taskId ?? "").toLowerCase();
+          return id && (name.includes(id) || stage === id || name === id);
+        });
+        // 不使用 CSS.escape，兼容旧版浏览器及包含特殊字符的 Agent 名称。
+        const source = Array.from(document.querySelectorAll<HTMLElement>("[data-agent]"))
+          .find((node) => node.dataset.agent === String(agent.agent ?? ""));
+        if (!target || !source) return [];
+        const from = source.getBoundingClientRect();
+        const to = target.getBoundingClientRect();
+        return [{ id: String(agent.agent), x1: from.right - root.left, y1: from.top + from.height / 2 - root.top, x2: to.left - root.left, y2: to.top + to.height / 2 - root.top }];
+      });
+      setLines(next);
+    };
+    update();
+    const observer = new ResizeObserver(update);
+    const workspace = document.querySelector<HTMLElement>(".workspace-linked");
+    if (workspace) observer.observe(workspace);
+    window.addEventListener("resize", update);
+    window.addEventListener("scroll", update, true);
+    return () => { observer.disconnect(); window.removeEventListener("resize", update); window.removeEventListener("scroll", update, true); };
+  }, [agents, taskVersion, bindings]);
+  return <svg className="agent-dag-links" aria-hidden="true"><defs><marker id="agent-link-arrow" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7" /></marker></defs>{lines.map((line) => { const bend = Math.max(24, (line.x2 - line.x1) * .35); return <path key={line.id} d={`M ${line.x1} ${line.y1} C ${line.x1 + bend} ${line.y1}, ${line.x2 - bend} ${line.y2}, ${line.x2} ${line.y2}`} />; })}</svg>;
+}
+
 export default function App() {
   const [tasks, setTasks] = useState<DagTask[]>([]);
   const [edges, setEdges] = useState<GraphEdge[]>([]);
@@ -741,6 +781,10 @@ export default function App() {
   const [syncingEvidence, setSyncingEvidence] = useState(false);
   const [evidenceSyncMessage, setEvidenceSyncMessage] = useState("");
   const [evidenceSyncError, setEvidenceSyncError] = useState("");
+  const [agentSnapshot, setAgentSnapshot] = useState<AgentBoardSnapshot>([]);
+  const [agentTaskByPid, setAgentTaskByPid] = useState<Record<string, string>>({});
+  const [pendingAgentTasks, setPendingAgentTasks] = useState<string[]>([]);
+  const [agentBindings, setAgentBindings] = useState<Record<string, string>>({});
   const [theme, setTheme] = useState<Theme>(() => {
     try {
       return localStorage.getItem("refactor-control-room-theme") === "light" ? "light" : "dark";
@@ -795,6 +839,10 @@ export default function App() {
 
   useEffect(() => {
     void refresh();
+    const timer = window.setInterval(() => {
+      void refresh();
+    }, 10_000);
+    return () => window.clearInterval(timer);
   }, [refresh]);
 
   const businessTasks = useMemo(() => tasks.filter((task) => !task.isControl), [tasks]);
@@ -894,13 +942,23 @@ export default function App() {
     setAgentLaunchError("");
     setLaunchingAgent(kind);
     try {
+      const injectedPrompt = [
+        agentPrompt.trim(),
+        "",
+        "[系统注入要求]",
+        `本次处理的 DAG 节点 ID 是：${task.id}`,
+        `请在你的思维链中原样输出一次节点 ID：${task.id}`,
+        "只需要输出一次该节点 ID，后续不要重复输出。",
+      ].join("\\n");
       const result = await launchAgent({
         agent: kind,
         taskId: task.id,
-        prompt: agentPrompt,
+        prompt: injectedPrompt,
         workspace: selectedWorkspace,
       });
       setAgentLaunchMessage(result.message ?? `${AGENT_META[kind].label} 已在 ${selectedWorkspace} 启动`);
+      if (result.pid && task.id) setAgentTaskByPid((current) => ({ ...current, [String(result.pid)]: task.id }));
+      setPendingAgentTasks((current) => current.includes(task.id) ? current : [...current, task.id]);
     } catch (launchError) {
       setAgentLaunchError(
         launchError instanceof Error ? launchError.message : "Agent 启动失败",
@@ -1005,7 +1063,21 @@ export default function App() {
 
       <StatusProgress tasks={tasks} counts={counts} />
 
-      <section className="workspace">
+      <section className="workspace workspace-linked">
+        <AgentBoard onAgentsChange={(agents) => {
+          setAgentSnapshot(agents);
+          const pending = pendingAgentTasks.filter((taskId) => !Object.values(agentBindings).includes(taskId));
+          const next = { ...agentBindings };
+          const unbound = agents.filter((agent) => !next[String(agent.agent ?? "")]);
+          pending.forEach((taskId) => {
+            const match = unbound.find((agent) => {
+              const text = JSON.stringify(agent).toLowerCase();
+              return text.includes(taskId.toLowerCase());
+            });
+            if (match?.agent) next[String(match.agent)] = taskId;
+          });
+          if (Object.keys(next).length !== Object.keys(agentBindings).length) setAgentBindings(next);
+        }} />
         <div className="graph-panel">
           <div className="panel-header">
             <div className="panel-heading">
@@ -1330,6 +1402,7 @@ export default function App() {
             </div>
           )}
         </aside>
+        <AgentDagLinks agents={agentSnapshot} bindings={{ ...Object.fromEntries(Object.entries(agentTaskByPid).map(([pid, taskId]) => [String(agentSnapshot.find((agent) => String(agent.pid) === pid)?.agent ?? pid), taskId])), ...agentBindings }} taskVersion={`${tasks.length}:${scale}:${selectedId ?? ""}`} />
       </section>
 
       <footer className="footer-note">

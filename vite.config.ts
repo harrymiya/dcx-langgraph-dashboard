@@ -10,6 +10,7 @@ import { resolveAgentWorkspace } from "./scripts/agent-workspaces.mjs";
 import { buildEvidenceUpdate } from "./scripts/evidence-sync.mjs";
 
 const langGraphApi = process.env.LANGGRAPH_API_URL ?? "http://127.0.0.1:8123";
+const agentBoardApi = process.env.AGENTBOARD_API_URL ?? "http://127.0.0.1:8710";
 const frontendPort = Number(process.env.FRONTEND_PORT ?? 5175);
 const terminalPath = "/usr/bin/konsole";
 const maxPromptBytes = 64 * 1024;
@@ -222,6 +223,10 @@ export default defineConfig({
     port: frontendPort,
     strictPort: true,
     proxy: {
+      "/agentboard": {
+        target: agentBoardApi,
+        changeOrigin: true,
+      },
       "/langgraph": {
         target: langGraphApi,
         changeOrigin: true,

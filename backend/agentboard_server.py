@@ -1,0 +1,967 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+agentboard_server.py — 多 agent 协同实时看板 · 网页化后端(纯 stdlib,零依赖)
+============================================================================
+
+复用 agentboard.sh / hermes_board_discover.py 已落盘的看板数据,做成 HTTP 服务,
+让前端页面拉取渲染。数据源与 bash 看板完全一致:
+    $BOARD_ROOT/<run>/__discovered__/   (auto-discover 生成)
+    $BOARD_ROOT/<run>/<agent>.*          (手动 start/log 登记的 agent)
+其中 $BOARD_ROOT 默认 ~/.hermes/agent-board, run 默认当天日期(可用 AGENTBOARD_RUN 指定)。
+
+每次轮询(默认 0.2s, 5Hz)重新扫盘 → 内存快照 → /api/data 返回 JSON。
+另有 /api/events 返回事件流、/health 探活、/ 返回静态页面。
+
+运行:
+    python3 agentboard_server.py [--port 8710] [--root DIR] [--run RUN] [--interval 0.2]
+    # 静态页默认从 web/index.html 读取(--web 可指定)。
+
+数据模型(与 bash 版一致):
+  进程卡: .pid .start .cmd .log .think
+  cron卡: .cron   (name|state|last_status|sched|next_run|last_run|err)
+状态:  running:<secs> / exited / nopid / cron:<last_status>
+"""
+
+import argparse
+import base64
+import datetime as dt
+import hashlib
+import json
+import logging
+import os
+import re
+import struct
+import subprocess
+import sys
+import threading
+import time
+from concurrent.futures import ThreadPoolExecutor
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from urllib.parse import unquote
+
+log = logging.getLogger("agentboard")
+
+# ---- 轻量 WebSocket(纯 stdlib, RFC6455) ----
+WS_GUID = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
+
+
+def ws_accept_key(key):
+    return base64.b64encode(hashlib.sha1((key + WS_GUID).encode()).digest()).decode()
+
+
+class WebSocket:
+    """服务端 WebSocket 连接: 握手后可在独立线程收发帧。
+    本看板仅用服务端→客户端推送(文本帧), 客户端不发业务消息。
+    """
+
+    def __init__(self, sock, addr):
+        self.sock = sock
+        self.addr = addr
+        self.closed = False
+        self._lock = threading.Lock()
+        # 升级握手必须由 handler 线程完成(因为它持有 HTTP 请求行/头)
+
+    MAX_FRAME_SIZE = 2 * 1024 * 1024
+
+    def _recv_frame(self):
+        b = self.sock.recv(2)
+        if len(b) < 2:
+            raise ConnectionError("short header")
+        b1, b2 = b[0], b[1]
+        if b1 & 0x70:
+            raise ConnectionError("unsupported websocket extension")
+        final = bool(b1 & 0x80)
+        opcode = b1 & 0x0F
+        masked = b2 & 0x80
+        if not masked:
+            raise ConnectionError("client frame is not masked")
+        length = b2 & 0x7F
+        if length == 126:
+            length = struct.unpack(">H", self._recv_exact(2))[0]
+        elif length == 127:
+            length = struct.unpack(">Q", self._recv_exact(8))[0]
+        if length > self.MAX_FRAME_SIZE:
+            raise ConnectionError("websocket frame too large")
+        if opcode >= 0x8 and (not final or length > 125):
+            raise ConnectionError("invalid websocket control frame")
+        mask = self._recv_exact(4) if masked else None
+        payload = self._recv_exact(length)
+        if mask:
+            payload = bytes(c ^ mask[i % 4] for i, c in enumerate(payload))
+        if opcode == 0x8:  # close
+            raise ConnectionError("close frame")
+        return opcode, payload
+
+    def _recv_exact(self, n):
+        data = b""
+        while len(data) < n:
+            chunk = self.sock.recv(n - len(data))
+            if not chunk:
+                raise ConnectionError("eof")
+            data += chunk
+        return data
+
+    def send_text(self, text):
+        if self.closed:
+            return
+        payload = text.encode("utf-8")
+        if len(payload) > self.MAX_FRAME_SIZE:
+            raise ValueError("websocket payload too large")
+        n = len(payload)
+        head = bytearray([0x81])  # FIN + text
+        if n < 126:
+            head.append(n)
+        elif n < 65536:
+            head.append(126)
+            head += struct.pack(">H", n)
+        else:
+            head.append(127)
+            head += struct.pack(">Q", n)
+        try:
+            with self._lock:
+                self.sock.sendall(bytes(head) + payload)
+        except OSError:
+            self.close()
+
+    def close(self):
+        if self.closed:
+            return
+        self.closed = True
+        try:
+            self.sock.close()
+        except OSError:
+            pass
+
+
+DEFAULT_ROOT = os.environ.get("AGENTBOARD_ROOT", os.path.expanduser("~/.hermes/agent-board"))
+DEFAULT_WEB = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "web", "index.html")
+# 自动发现脚本: 周期重扫 /proc + codex sqlite, 刷新 __discovered__/
+# 优先用本仓库自带的 discover/ 脚本(自包含), 找不到再回退到 HERMES_SCRIPTS / ~/.hermes
+_DISCOVER_HERE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "agentboard_discover",
+                              "hermes_board_discover.py")
+DISCOVER_SCRIPT = _DISCOVER_HERE if os.path.exists(_DISCOVER_HERE) else os.path.join(
+    os.path.dirname(os.path.abspath(__file__)), "..", "..", "scripts", "utils", "hermes_board_discover.py")
+if not os.path.exists(DISCOVER_SCRIPT):
+    cand = os.environ.get("HERMES_SCRIPTS")
+    DISCOVER_SCRIPT = os.path.join(cand or os.path.expanduser("~/.hermes/scripts"), "utils",
+                                   "hermes_board_discover.py")
+
+# 与 agentboard.sh status_icon/status_of 对应的状态归类
+DONE_WORDS = ("done", "ok", "success", "complete", "completed", "finished")
+RUNNING_WORDS = ("running", "start", "started", "working", "active", "launched")
+ERROR_WORDS = ("error", "failed", "fail", "blocked", "stalled", "exited")
+THINK_WORDS = ("think", "thinking")
+WAIT_WORDS = ("waiting", "queued", "pending", "scheduled", "paused",
+              "needs_input", "awaiting", "reviewing", "blocked_on", "on_hold")
+IDLE_WORDS = ("idle", "inactive", "sleeping", "standby")
+KNOWN_STATUS_WORDS = (DONE_WORDS + RUNNING_WORDS + ERROR_WORDS + THINK_WORDS +
+                      WAIT_WORDS + IDLE_WORDS)
+
+
+def classify(status):
+    """把任意 status 归一化成 {shell, label, color-group} 用于前端配色"""
+    s = str(status or "").strip().lower()
+    if s in DONE_WORDS:
+        return {"group": "idle", "label": "DONE"}
+    if s in RUNNING_WORDS:
+        return {"group": "running", "label": "RUNNING"}
+    if s in ERROR_WORDS:
+        return {"group": "error", "label": "ERROR"}
+    if s in THINK_WORDS:
+        return {"group": "thinking", "label": "THINKING"}
+    if s in WAIT_WORDS:
+        return {"group": "waiting", "label": "WAITING"}
+    if s in IDLE_WORDS:
+        return {"group": "idle", "label": "IDLE"}
+    return {"group": "idle", "label": (status or "IDLE").upper()}
+
+
+def find_run(root):
+    run = os.environ.get("AGENTBOARD_RUN")
+    if run:
+        return run
+    # 取最近有数据的 run(目录名倒序的字典序即日期倒序)
+    try:
+        runs = [d for d in os.listdir(root)
+                if os.path.isdir(os.path.join(root, d)) and re.match(r"^\d{8}$", d)]
+        if runs:
+            return max(runs)
+    except OSError:
+        pass
+    return time.strftime("%Y%m%d")
+
+
+def port_number(value):
+    try:
+        port = int(value)
+    except (TypeError, ValueError):
+        raise argparse.ArgumentTypeError("port must be an integer")
+    if not 1 <= port <= 65535:
+        raise argparse.ArgumentTypeError("port must be between 1 and 65535")
+    return port
+
+
+def positive_float(value):
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        raise argparse.ArgumentTypeError("interval must be a number")
+    if number <= 0:
+        raise argparse.ArgumentTypeError("interval must be greater than 0")
+    return number
+
+
+class BoardScanner:
+    """扫描看板文件 → 内存快照(进程卡 + cron 卡 + 全局统计)。"""
+
+    def __init__(self, root, run=None):
+        self.root = os.path.abspath(root)
+        self.run = run or find_run(root)
+        self.board_dir = os.path.join(self.root, self.run)
+        os.makedirs(self.board_dir, exist_ok=True)
+        try:
+            self._hz = int(os.sysconf("SC_CLK_TCK"))
+        except (ValueError, OSError, AttributeError):
+            self._hz = 100
+        self._boot_time = self._read_boot_time()
+
+    @staticmethod
+    def _read_boot_time():
+        try:
+            with open("/proc/stat", encoding="ascii", errors="ignore") as fh:
+                m = re.search(r"^btime\s+(\d+)$", fh.read(), re.MULTILINE)
+                return int(m.group(1)) if m else None
+        except OSError:
+            return None
+
+    # ---- 进程卡 ----
+    def read_agent(self, agent):
+        base = os.path.join(self.board_dir, agent)          # 手动登记
+        dbase = os.path.join(self.board_dir, "__discovered__", agent)  # 自动发现
+        pidf = startf = cmdf = logf = thinkf = cronf = None
+        pid_source = "manual"
+        # 优先 __discovered__
+        for f in (dbase, base):
+            if os.path.isfile(f + ".pid"):
+                pidf = f + ".pid"
+                pid_source = "discovered" if f == dbase else "manual"
+                break
+        for f in (dbase, base):
+            if os.path.isfile(f + ".cron"):
+                cronf = f + ".cron"
+                break
+        for f in (dbase, base):
+            if os.path.isfile(f + ".start") and pidf:
+                startf = f + ".start"
+                break
+        for f in (dbase, base):
+            if os.path.isfile(f + ".cmd"):
+                cmdf = f + ".cmd"
+                break
+        # log / think: 都可能有,取存在的那个目录
+        for f in (dbase, base):
+            if os.path.isfile(f + ".log"):
+                logf = f + ".log"
+                break
+        for f in (dbase, base):
+            if os.path.isfile(f + ".think"):
+                thinkf = f + ".think"
+                break
+
+        if cronf:
+            cron_source = "discovered" if cronf == dbase + ".cron" else "manual"
+            return self._cron_card(agent, cronf, thinkf, cron_source)
+        if not pidf:
+            return None
+
+        # ---- 进程存活 ----
+        status = "nopid"
+        dur = None
+        pidv = self._read(pidf).strip()
+        try:
+            pid = int(pidv)
+        except ValueError:
+            pid = None
+        start_epoch = self._read(startf).strip() if startf else ""
+        # pid=0 是发现层明确写入的“虚拟会话”，空/非法 pid 不再被当成虚拟会话。
+        virtual = pid == 0 and bool(start_epoch)
+        alive = virtual or (pid is not None and pid > 0 and self._alive(pid, start_epoch))
+        if alive:
+            try:
+                dur = max(0, int(time.time()) - int(float(start_epoch)))
+            except (ValueError, TypeError):
+                dur = None
+            status = "running"
+        elif pid is not None and pid > 0:
+            status = "exited"
+        else:
+            status = "invalid"
+
+        # 最后结构化事件
+        last = self._last_event(logf, status, dur)
+        cmd = self._read(cmdf).strip() if cmdf else ""
+        think = self._think(thinkf)
+        # 卡片展示归类(与 bash cell_collect 一致): 运行中进程→running(除非最后事件是 done);
+        # exited 未标记 done→error; 否则取最后事件状态
+        last_status = str(last["status"] or "").strip().lower()
+        if status == "running":
+            # 进程存活不等于任务正在运行；所有已知任务态使用统一集合原样保留。
+            disp = last_status if last_status in KNOWN_STATUS_WORDS else "running"
+        elif status in ("exited", "error"):
+            disp = last_status if last_status in DONE_WORDS else "exited"
+        else:
+            disp = "error"
+        # 思维链新鲜度同步: 进程存活 && 仍在近期输出思维 → 状态提升为活跃,
+        # 避免"思维链在刷新但卡片仍显示 IDLE"的状态滞后(日志状态可能滞后/为 idle)。
+        if status == "running" and disp not in DONE_WORDS:
+            dg = classify(disp).get("group")
+            if dg in ("idle", "waiting") and self._think_recent(thinkf):
+                disp = "running"
+        return {
+            "agent": agent,
+            "type": "proc",
+            "source": pid_source,
+            "pid": pidv,
+            "status": status,
+            "dur": dur,
+            "cmd": cmd,
+            "cls": classify(disp),
+            "last": last,
+            "think": think,
+        }
+
+    @staticmethod
+    def _read(f):
+        try:
+            with open(f, "r", encoding="utf-8", errors="replace") as fh:
+                return fh.read()
+        except OSError:
+            return ""
+
+    def _alive(self, pid, expected_start=""):
+        if not os.path.isdir("/proc"):
+            try:
+                os.kill(pid, 0)
+            except (OSError, ProcessLookupError, ValueError):
+                return False
+            if expected_start:
+                actual = self._process_start_epoch(pid)
+                if actual is not None:
+                    try:
+                        if abs(actual - float(expected_start)) > 2.0:
+                            return False
+                    except (TypeError, ValueError):
+                        return False
+            return True
+        try:
+            with open(f"/proc/{pid}/stat", encoding="utf-8", errors="replace") as fh:
+                stat = fh.read()
+            after = stat.rsplit(")", 1)[-1].split()
+            if not after or after[0] == "Z":
+                return False
+            if expected_start and self._boot_time is not None:
+                ticks = int(after[19])
+                actual = self._boot_time + ticks / self._hz
+                if abs(actual - float(expected_start)) > 2.0:
+                    return False
+            os.kill(pid, 0)
+            return True
+        except (OSError, ProcessLookupError, ValueError, IndexError):
+            return False
+
+    @staticmethod
+    def _process_start_epoch(pid):
+        """Read a process start time on macOS from ps; return None elsewhere."""
+        try:
+            result = subprocess.run(
+                ["ps", "-p", str(pid), "-o", "lstart="],
+                capture_output=True, text=True, timeout=2, check=False,
+            )
+            value = result.stdout.strip()
+            if not value:
+                return None
+            return dt.datetime.strptime(value, "%a %b %d %H:%M:%S %Y").timestamp()
+        except (OSError, subprocess.SubprocessError, TypeError, ValueError, OverflowError):
+            return None
+
+    def _last_event(self, logf, status, dur):
+        line = ""
+        if logf:
+            try:
+                with open(logf, "r", encoding="utf-8", errors="replace") as fh:
+                    for line in fh:
+                        pass
+                line = (line or "").strip()
+            except OSError:
+                pass
+        # 没有日志时，存活进程默认 RUNNING；不能用 idle，否则会被归为 WAITING。
+        ts, stage, st, msg = "", "-", ("running" if status == "running" else "idle"), ""
+        if line:
+            parts = line.split("|", 3)
+            if len(parts) >= 3:
+                ts, stage, st = parts[0], parts[1], parts[2].strip().lower()
+            msg = parts[3] if len(parts) == 4 else ""
+            msg = msg.replace("\\|", "|")
+        if status == "running" and st not in KNOWN_STATUS_WORDS:
+            # PID 存活只描述进程生命周期，不能覆盖任务层的完成/等待/思考/错误状态。
+            # 仅当发现层没有提供可识别的任务状态时，才回退为 running。
+            st = "running"
+        return {"ts": ts, "stage": stage, "status": st, "cls": classify(st), "msg": msg, "dur": dur}
+
+    def _cron_card(self, agent, cronf, thinkf, source="discovered"):
+        raw = self._read(cronf).strip()
+        parts = raw.split("|") if raw else ["?"] * 7
+        name = parts[0] or agent
+        state = parts[1] if len(parts) > 1 else "?"
+        lst = parts[2] if len(parts) > 2 else "-"
+        sched = parts[3] if len(parts) > 3 else "?"
+        next_run = parts[4] if len(parts) > 4 else "-"
+        last_run = parts[5] if len(parts) > 5 else "-"
+        err = parts[6] if len(parts) > 6 else ""
+        st = lst if lst in RUNNING_WORDS or lst in ERROR_WORDS or lst in THINK_WORDS else "idle"
+        return {
+            "agent": agent,
+            "type": "cron",
+            "source": source,
+            "name": name,
+            "state": state,
+            "status": st,
+            "sched": sched,
+            "next_run": self._short_ts(next_run),
+            "last_run": self._short_ts(last_run),
+            "err": err,
+            "cls": classify(lst),
+            "think": self._think(thinkf),
+        }
+
+    @staticmethod
+    def _short_ts(s):
+        s = s.replace("T", " ").replace("Z", "")
+        # 只保留 月-日 时:分:秒
+        m = re.search(r"(\d{2}-\d{2}) (\d{2}:\d{2}(?::\d{2})?)", s)
+        if m:
+            return f"{m.group(1)} {m.group(2)}"
+        m = re.search(r"(\d{2}):(\d{2})(?::\d{2})?$", s)
+        if m:
+            return f"{m.group(1)}:{m.group(2)}"
+        return s[:16]
+
+    def _think(self, thinkf):
+        out = []
+        if not thinkf:
+            return out
+        try:
+            with open(thinkf, "r", encoding="utf-8", errors="replace") as fh:
+                for ln in fh:
+                    ln = ln.rstrip("\n")
+                    if not ln:
+                        continue
+                    if "|" in ln:
+                        hms, txt = ln.split("|", 1)
+                    else:
+                        hms, txt = "", ln
+                    out.append({"ts": hms, "text": txt})
+        except OSError:
+            pass
+        return out
+
+    @staticmethod
+    def _think_latest_epoch(line_ts):
+        # 把思维链行首的 HH:MM:SS 时间戳解析为 epoch, 无法解析返回 None
+        raw = (line_ts or '').strip()
+        if not raw:
+            return None
+        m = re.fullmatch(r'(\d{2}):(\d{2}):(\d{2})', raw)
+        if not m:
+            return None
+        h, mi, s = int(m.group(1)), int(m.group(2)), int(m.group(3))
+        now = dt.datetime.now().astimezone()
+        cand = now.replace(hour=h, minute=mi, second=s, microsecond=0)
+        # 未来时间(跨午夜)回退到前一天
+        if cand.timestamp() > time.time() + 180:
+            cand -= dt.timedelta(days=1)
+        return cand.timestamp()
+
+    def _think_recent(self, thinkf, window=60.0):
+        # 是否有近期(默认 60s 内)的思维输出。
+        # 从 .think 文件最新时间戳行判断 —— 独立于 .log 状态, 用于把
+        # 仍在活跃输出思维但日志态滞后/为 idle 的卡片提升为活跃。
+        if not thinkf or not os.path.isfile(thinkf):
+            return False
+        try:
+            latest = None
+            with open(thinkf, 'r', encoding='utf-8', errors='replace') as fh:
+                for ln in fh:
+                    ln = ln.rstrip('\n')
+                    if not ln:
+                        continue
+                    ts = (ln.split('|', 1)[0] if '|' in ln else '')
+                    e = self._think_latest_epoch(ts)
+                    if e is not None:
+                        latest = e if latest is None else max(latest, e)
+            if latest is None:
+                return False
+            # 容忍一点点时钟/写盘延迟
+            return (time.time() - latest) <= window + 2.0
+        except OSError:
+            return False
+
+    # ---- 扫描入口 ----
+    def scan(self):
+        agents = set()
+        # __discovered__: .pid / .cron
+        dd = os.path.join(self.board_dir, "__discovered__")
+        if os.path.isdir(dd):
+            for fn in os.listdir(dd):
+                m = re.match(r"^(.*)\.(pid|cron)$", fn)
+                if m:
+                    agents.add(m.group(1))
+        # 手动登记: 根目录 .pid/.log/.cron
+        for fn in os.listdir(self.board_dir):
+            m = re.match(r"^(.*)\.(pid|cron)$", fn)
+            if m:
+                agents.add(m.group(1))
+        cards = []
+        with ThreadPoolExecutor(max_workers=8) as ex:
+            results = list(ex.map(self.read_agent, sorted(agents)))
+        for r in results:
+            if r:
+                cards.append(r)
+        return cards
+
+    def kill_agent(self, agent):
+        """Terminate a discovered/manual process after validating its PID identity."""
+        if not agent or any(ch in agent for ch in ("/", "\\", "\x00")):
+            return 400, {"ok": False, "error": "invalid agent"}
+        card = self.read_agent(agent)
+        if not card:
+            return 404, {"ok": False, "error": "agent not found"}
+        if card.get("type") != "proc":
+            return 409, {"ok": False, "error": "agent is not a process"}
+        try:
+            pid = int(str(card.get("pid", "")).strip())
+        except (TypeError, ValueError):
+            return 409, {"ok": False, "error": "agent has no valid pid"}
+        if pid <= 0:
+            return 409, {"ok": False, "error": "agent is a virtual session"}
+        start_base = os.path.join(self.board_dir,
+                                 "__discovered__" if card.get("source") == "discovered" else "")
+        startf = os.path.join(start_base, agent + ".start")
+        expected_start = self._read(startf).strip()
+        if not self._alive(pid, expected_start):
+            return 409, {"ok": False, "error": "agent process is no longer running"}
+        try:
+            os.kill(pid, 15)
+        except ProcessLookupError:
+            return 409, {"ok": False, "error": "agent process is no longer running"}
+        except PermissionError:
+            return 403, {"ok": False, "error": "permission denied"}
+        except OSError as exc:
+            return 500, {"ok": False, "error": str(exc)}
+        return 200, {"ok": True, "agent": agent, "pid": pid}
+
+    def _stats(self, cards, events):
+        # DONE 已移到右侧完成栏，不再计入顶部“活跃/运行”统计。
+        active = [c for c in cards if c.get("cls", {}).get("label") != "DONE"]
+        ntotal = len(active)
+        nrt = 0
+        nerr = 0
+        for c in active:
+            if c.get("type") == "cron":
+                continue
+            group = c.get("cls", {}).get("group")
+            if group == "running":
+                nrt += 1
+            elif group == "error":
+                nerr += 1
+        return {"total": ntotal, "running": nrt, "error": nerr, "events": events}
+
+
+class BoardStore:
+    """持有快照 + 事件流,周期性刷新。变化时通过 WebSocket 实时推送。"""
+
+    def __init__(self, root, run=None, interval=0.2):
+        self.scanner = BoardScanner(root, run)
+        self.interval = float(interval)
+        if self.interval <= 0:
+            raise ValueError("interval must be greater than 0")
+        self.stats = {}
+        self.agents = []
+        self.events = []
+        self.total_events = 0
+        self._clients = []          # WebSocket 连接
+        self._clients_lock = threading.Lock()
+        self._refresh_lock = threading.Lock()
+        self._data_lock = threading.RLock()
+        self._stop = threading.Event()
+        self.last_refresh = 0.0
+        self.last_discover = 0.0
+        self.last_error = ""
+        self._last_sig = None       # 上次推送的数据签名(去重,避免无变化时也推送)
+        self._refresh()
+        self._last_sig = self._sig()
+
+    def kill_agent(self, agent):
+        return self.scanner.kill_agent(agent)
+
+    def add_client(self, ws):
+        with self._clients_lock:
+            self._clients.append(ws)
+        # 新连接首次进入立即推一份当前快照(相当于首次拉取)
+        self.broadcast()
+
+    def remove_client(self, ws):
+        with self._clients_lock:
+            try:
+                self._clients.remove(ws)
+            except ValueError:
+                pass
+
+    def broadcast(self):
+        """把当前快照推给所有连接的 WebSocket。
+        无客户端或数据未变化时静默跳过(有变化判断由调用方或轮询对比负责)。
+        """
+        with self._clients_lock:
+            clients = list(self._clients)
+        if not clients:
+            return
+        msg = json.dumps(self.data(), ensure_ascii=False)
+        dead = []
+        for ws in clients:
+            try:
+                ws.send_text(msg)
+            except Exception:
+                dead.append(ws)
+        if dead:
+            with self._clients_lock:
+                for ws in dead:
+                    try:
+                        self._clients.remove(ws)
+                    except ValueError:
+                        pass
+
+    def _sig(self):
+        """当前数据快照的签名: 内部文件 mtime_ns + size + 事件数汇总。变化才推送。"""
+        parts = [self.total_events, self.stats.get("total"), self.stats.get("running")]
+        # 纳秒级 mtime + size 能识别同一秒内多次追加的思维链刷新。
+        dd = os.path.join(self.scanner.board_dir, "__discovered__")
+        for d in (self.scanner.board_dir, dd):
+            if not os.path.isdir(d):
+                continue
+            try:
+                for fn in sorted(os.listdir(d)):
+                    if fn.endswith(('.log', '.think', '.pid', '.cron')):
+                        path = os.path.join(d, fn)
+                        st = os.stat(path)
+                        parts.append(fn)
+                        parts.append(st.st_mtime_ns)
+                        parts.append(st.st_size)
+            except OSError:
+                pass
+        return tuple(parts)
+
+    def _collect_events(self):
+        ev = []
+        total = 0
+        for fn in os.listdir(self.scanner.board_dir):
+            if fn.endswith(".log") and not fn.startswith("_"):
+                total += self._append_log(fn[:-4], os.path.join(self.scanner.board_dir, fn), ev)
+        dd = os.path.join(self.scanner.board_dir, "__discovered__")
+        if os.path.isdir(dd):
+            for fn in os.listdir(dd):
+                if fn.endswith(".log"):
+                    total += self._append_log(fn[:-4], os.path.join(dd, fn), ev)
+        # 手动目录与 discovered 目录可能同时留下同一条日志，去重后再排序。
+        unique = []
+        seen = set()
+        for item in ev:
+            key = (item["agent"], item["ts"], item["stage"], item["status"], item["msg"])
+            if key in seen:
+                continue
+            seen.add(key)
+            unique.append(item)
+        ev = unique
+        # 以解析后的 epoch 排序；HH:MM:SS 字符串在跨午夜或混合 ISO 时间时不可靠。
+        ev.sort(key=lambda e: e.get("_epoch", float("-inf")), reverse=True)
+        # 事件流只保留最新信息，避免把历史日志持续推送给前端。
+        for item in ev:
+            item.pop("_epoch", None)
+        return ev[:12], total
+
+    @staticmethod
+    def _event_epoch(value):
+        raw = str(value or "").strip()
+        if not raw:
+            return None
+        try:
+            number = float(raw)
+            # 兼容毫秒 epoch。
+            return number / 1000 if number > 10_000_000_000 else number
+        except ValueError:
+            pass
+        try:
+            text = raw.replace("Z", "+00:00")
+            parsed = dt.datetime.fromisoformat(text)
+            if parsed.tzinfo is None:
+                parsed = parsed.replace(tzinfo=dt.timezone.utc)
+            return parsed.timestamp()
+        except ValueError:
+            pass
+        m = re.fullmatch(r"(\d{2}):(\d{2})(?::(\d{2}))?", raw)
+        if m:
+            now = dt.datetime.now().astimezone()
+            candidate = now.replace(hour=int(m.group(1)), minute=int(m.group(2)),
+                                    second=int(m.group(3) or 0), microsecond=0)
+            # 未来时间通常属于上一天，避免跨午夜时旧事件跑到最前。
+            if candidate.timestamp() > time.time() + 60:
+                candidate -= dt.timedelta(days=1)
+            return candidate.timestamp()
+        return None
+
+    @staticmethod
+    def _append_log(agent, path, ev):
+        n = 0
+        try:
+            with open(path, "r", encoding="utf-8", errors="replace") as fh:
+                for ln in fh:
+                    ln = ln.rstrip("\n")
+                    if not ln:
+                        continue
+                    parts = ln.split("|", 3)
+                    if len(parts) < 3:
+                        continue
+                    n += 1
+                    ev.append({"agent": agent, "ts": parts[0], "stage": parts[1],
+                               "status": parts[2], "cls": classify(parts[2]),
+                               "msg": parts[3].replace("\\|", "|") if len(parts) == 4 else "",
+                               "_epoch": BoardStore._event_epoch(parts[0]) or float("-inf")})
+        except OSError:
+            pass
+        return n
+
+    def _refresh(self):
+        with self._refresh_lock:
+            agents = self.scanner.scan()
+            events, total_events = self._collect_events()
+            stats = self.scanner._stats(agents, total_events)
+            with self._data_lock:
+                self.agents = agents
+                self.events = events
+                self.total_events = total_events
+                self.stats = stats
+                self.last_refresh = time.time()
+
+    def data(self):
+        with self._data_lock:
+            return {"ts": int(time.time()), "run": self.scanner.run,
+                    "stats": dict(self.stats), "agents": list(self.agents),
+                    "events": list(self.events),
+                    "monitor": {"last_refresh": self.last_refresh,
+                                 "last_discover": self.last_discover,
+                                 "error": self.last_error}}
+
+    def stop(self):
+        """Request both background loops to stop; useful for tests and clean shutdown."""
+        self._stop.set()
+
+    def run_loop(self):
+        # 每轮先跑一次自动发现(将 /proc + codex sqlite 的最新状态刷成 __discovered__/ 文件),
+        # 再做内存快照 → 前端才能看到 agent 的实时活动(否则静态文件停留在上次 discover 的时刻)。
+        # discover 负责把外部会话/进程/思维链物化成 __discovered__ 文件。
+        # 卡片实时性取决于它的写入频率,因此默认跟随 5Hz 刷新节奏。
+        # discover 会启动 Python 子进程并扫描多个数据库/JSONL，不需要 5Hz 重复执行。
+        discover_span = max(1.0, self.interval)
+        last_disc = [0.0]
+
+        def _loop_discover():
+            while not self._stop.is_set():
+                now = time.time()
+                if now - last_disc[0] >= discover_span:
+                    last_disc[0] = now
+                    try:
+                        with self._refresh_lock:
+                            self._run_discover()
+                    except Exception as exc:
+                        self.last_error = f"discover: {type(exc).__name__}: {exc}"
+                        log.exception("discover loop failed")
+                self._stop.wait(min(0.05, discover_span / 4))
+
+        threading.Thread(target=_loop_discover, daemon=True).start()
+
+        while not self._stop.wait(self.interval):
+            try:
+                self._refresh()
+                sig = self._sig()
+                if sig != self._last_sig:
+                    self._last_sig = sig
+                    self.broadcast()
+            except Exception as exc:
+                self.last_error = f"refresh: {type(exc).__name__}: {exc}"
+                log.exception("refresh loop failed")
+
+    def _run_discover(self):
+        if not DISCOVER_SCRIPT or not os.path.exists(DISCOVER_SCRIPT):
+            return
+        env = dict(os.environ)
+        try:
+            import subprocess
+            env["AGENTBOARD_ROOT"] = self.scanner.root
+            env["AGENTBOARD_RUN"] = self.scanner.run
+            result = subprocess.run([sys.executable, DISCOVER_SCRIPT], env=env,
+                                    capture_output=True, text=True, timeout=30)
+            if result.returncode != 0:
+                detail = (result.stderr or result.stdout or "discover failed").strip()[-500:]
+                raise RuntimeError(detail)
+            self.last_discover = time.time()
+            self.last_error = ""
+        except Exception as exc:
+            self.last_error = f"discover: {type(exc).__name__}: {exc}"
+            log.warning("discover failed: %s", exc)
+
+
+class Handler(BaseHTTPRequestHandler):
+    store = None
+    web_file = DEFAULT_WEB
+    html_cache = None
+
+    def log_message(self, *a):
+        pass
+
+    def _ws_upgrade(self):
+        """RFC6455 握手 → 在 handler 线程同步读帧(收 close/ping), 直到连接断开。
+        同步阻塞在 _ws_upgrade 内, 因此 finish()/close_connection 不会在半途关掉 socket。
+        """
+        key = self.headers.get("Sec-WebSocket-Key", "")
+        if not key:
+            self.send_response(400)
+            self.end_headers()
+            return
+        accept = ws_accept_key(key)
+        self.send_response(101, "Switching Protocols")
+        self.send_header("Upgrade", "websocket")
+        self.send_header("Connection", "Upgrade")
+        self.send_header("Sec-WebSocket-Accept", accept)
+        self.end_headers()
+        # 阻止 http.server 在握手后继续用 HTTP 循环复用/关闭 socket
+        self.close_connection = True
+        ws = WebSocket(self.connection, self.client_address)
+        store = self.store
+        store.add_client(ws)
+        try:
+            while True:
+                try:
+                    opcode, payload = ws._recv_frame()
+                except Exception:
+                    break
+                if opcode == 0x9:  # ping → pong
+                    try:
+                        ws.sock.sendall(b"\x8a" + bytes([len(payload)]) + payload)
+                    except OSError:
+                        break
+        finally:
+            ws.close()
+            store.remove_client(ws)
+
+    def _send_bytes(self, body, ctype="application/json; charset=utf-8", code=200):
+        self.send_response(code)
+        self.send_header("Content-Type", ctype)
+        self.send_header("Content-Length", str(len(body)))
+        self.send_header("Cache-Control", "no-store")
+        self.send_header("X-Content-Type-Options", "nosniff")
+        self.send_header("Referrer-Policy", "no-referrer")
+        self.send_header("X-Frame-Options", "DENY")
+        self.send_header("Permissions-Policy", "camera=(), microphone=(), geolocation=()")
+        self.send_header("Content-Security-Policy",
+                         "default-src 'self'; connect-src 'self' ws: wss:; "
+                         "style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; "
+                         "base-uri 'none'; frame-ancestors 'none'")
+        self.end_headers()
+        if self.command != "HEAD":
+            try:
+                self.wfile.write(body)
+            except OSError:
+                pass
+
+    def do_HEAD(self):
+        self.do_GET()
+
+    def _send_json(self, payload, code=200):
+        self._send_bytes(json.dumps(payload, ensure_ascii=False).encode("utf-8"), code=code)
+
+    def do_POST(self):
+        path = self.path.split("?")[0]
+        prefix = "/api/agents/"
+        if path.startswith(prefix) and path.endswith("/kill"):
+            agent = unquote(path[len(prefix):-len("/kill")])
+            code, payload = self.store.kill_agent(agent)
+            self._send_json(payload, code)
+            return
+        self._send_bytes(b"not found", "text/plain; charset=utf-8", 404)
+
+    def do_GET(self):
+        path = self.path.split("?")[0]
+        # 嵌入宿主应用时使用 /agentboard 前缀，避免与其它 /api 路由冲突。
+        embedded = path.startswith("/agentboard/")
+        route = path[len("/agentboard"):] if embedded else path
+        if route == "/ws":
+            self._ws_upgrade()
+            return
+        if route == "/health":
+            self._send_bytes(b'{"ok":true}\n')
+        elif route == "/api/data":
+            self._send_bytes(json.dumps(self.store.data(), ensure_ascii=False).encode("utf-8"))
+        elif route == "/api/events":
+            self._send_bytes(json.dumps({"events": self.store.events}, ensure_ascii=False).encode("utf-8"))
+        elif path == "/" or path == "/index.html":
+            try:
+                if self.html_cache is None:
+                    with open(self.web_file, "r", encoding="utf-8") as f:
+                        self.html_cache = f.read()
+                self._send_bytes(self.html_cache.encode("utf-8"), "text/html; charset=utf-8")
+            except OSError:
+                self._send_bytes(b"index.html not found; set --web", "text/plain; charset=utf-8", 404)
+        else:
+            self._send_bytes(b"not found", "text/plain; charset=utf-8", 404)
+
+
+class AgentBoardHTTPServer(ThreadingHTTPServer):
+    """Keep client connections from preventing a clean process shutdown."""
+
+    daemon_threads = True
+    allow_reuse_address = True
+
+
+def main():
+    logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
+    ap = argparse.ArgumentParser(description="agentboard web backend")
+    ap.add_argument("--port", type=port_number, default=port_number(os.environ.get("AGENTBOARD_PORT", "8710")))
+    ap.add_argument("--root", default=DEFAULT_ROOT)
+    ap.add_argument("--run", default=None)
+    ap.add_argument("--interval", type=positive_float,
+                    default=positive_float(os.environ.get("AGENTBOARD_INTERVAL", "0.2")),
+                    help="refresh interval in seconds (must be > 0)")
+    ap.add_argument("--web", default=DEFAULT_WEB)
+    args = ap.parse_args()
+
+    store = BoardStore(args.root, args.run, args.interval)
+    Handler.store = store
+    Handler.web_file = os.path.abspath(args.web)
+
+    import threading
+    threading.Thread(target=store.run_loop, daemon=True).start()
+
+    server = AgentBoardHTTPServer(("127.0.0.1", args.port), Handler)
+    print(f"agentboard-web serving on http://127.0.0.1:{args.port} (run={store.scanner.run}, "
+          f"interval={args.interval}s, root={args.root})")
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        pass
+    finally:
+        store.stop()
+        server.server_close()
+
+
+if __name__ == "__main__":
+    main()
