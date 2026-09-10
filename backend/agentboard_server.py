@@ -891,9 +891,11 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         path = self.path.split("?")[0]
+        # 兼容 Vite 剥离前缀前后的两种形态：/api/agents/x/kill 与 /agentboard/api/agents/x/kill。
+        route = path[len("/agentboard"):] if path.startswith("/agentboard/") else path
         prefix = "/api/agents/"
-        if path.startswith(prefix) and path.endswith("/kill"):
-            agent = unquote(path[len(prefix):-len("/kill")])
+        if route.startswith(prefix) and route.endswith("/kill"):
+            agent = unquote(route[len(prefix):-len("/kill")])
             code, payload = self.store.kill_agent(agent)
             self._send_json(payload, code)
             return

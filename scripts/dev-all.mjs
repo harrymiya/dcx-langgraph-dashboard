@@ -169,6 +169,10 @@ async function main() {
   const sharedEnv = {
     ...process.env,
     LANGGRAPH_API_URL: process.env.LANGGRAPH_API_URL ?? `http://127.0.0.1:${backendPort}`,
+    // Vite 侧通过 AGENTBOARD_API_URL 确定 /agentboard 代理目标；仅透传
+    // AGENTBOARD_PORT 会导致自定义端口时前端仍代理到默认 8710。
+    AGENTBOARD_PORT: agentBoardPort,
+    AGENTBOARD_API_URL: process.env.AGENTBOARD_API_URL ?? `http://127.0.0.1:${agentBoardPort}`,
     PYTHONUNBUFFERED: "1",
   };
 

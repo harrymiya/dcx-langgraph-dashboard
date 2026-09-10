@@ -10,7 +10,8 @@ import { resolveAgentWorkspace } from "./scripts/agent-workspaces.mjs";
 import { buildEvidenceUpdate } from "./scripts/evidence-sync.mjs";
 
 const langGraphApi = process.env.LANGGRAPH_API_URL ?? "http://127.0.0.1:8123";
-const agentBoardApi = process.env.AGENTBOARD_API_URL ?? "http://127.0.0.1:8710";
+const agentBoardPort = process.env.AGENTBOARD_PORT ?? "8710";
+const agentBoardApi = process.env.AGENTBOARD_API_URL ?? `http://127.0.0.1:${agentBoardPort}`;
 const frontendPort = Number(process.env.FRONTEND_PORT ?? 5175);
 const terminalPath = "/usr/bin/konsole";
 const maxPromptBytes = 64 * 1024;
@@ -265,6 +266,9 @@ export default defineConfig({
       "/agentboard": {
         target: agentBoardApi,
         changeOrigin: true,
+        // 后端同时支持带 /agentboard 前缀和不带前缀的路径；这里统一剥离前缀，
+        // 以兼容旧版 agentboard_server（仅识别 /api/*，不识别 /agentboard/*）。
+        rewrite: (path) => path.replace(/^\/agentboard/, "") || "/",
       },
       "/langgraph": {
         target: langGraphApi,
