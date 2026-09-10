@@ -507,7 +507,7 @@ button {
   flex-direction: column;
   min-height: 0;
   overflow: hidden;
-  background: linear-gradient(145deg, rgba(23, 25, 28, .92), rgba(16, 18, 20, .9));
+  background: rgba(15, 23, 42, 0.76);
 }
 
 .agent-board-title { display:flex; align-items:center; gap:9px; padding:16px 14px 12px; border-bottom:1px solid rgba(148,163,184,.14); letter-spacing:1.4px; }
@@ -520,8 +520,8 @@ button {
 .agent-board-stats b { color:#cbd5e1; }
 .agent-card-list { min-height:0; overflow:auto; padding:9px; }
 .agent-board-empty { padding:28px 8px; color:#64748b; font-size:11px; text-align:center; }
-.agent-card { position:relative; min-height:154px; margin-bottom:8px; padding:10px; overflow:hidden; background:linear-gradient(145deg,rgba(255,255,255,.045),transparent 28%),linear-gradient(180deg,#17191c,#101214); border:1px solid rgba(180,185,190,.22); border-radius:6px; box-shadow:0 8px 20px rgba(0,0,0,.24); transition:transform .25s ease, box-shadow .3s ease, border-color .25s ease; animation: agent-card-in .45s ease both; }
-.agent-card:hover { transform:translateX(3px); border-color:rgba(205,210,215,.46); box-shadow:0 12px 28px rgba(0,0,0,.3); }
+.agent-card { position:relative; min-height:154px; margin-bottom:8px; padding:10px; overflow:hidden; background:linear-gradient(145deg,rgba(22,34,54,.97),rgba(15,23,42,.94)); border:1px solid rgba(100,116,139,.26); border-radius:6px; box-shadow:0 8px 20px rgba(2,6,23,.26); transition:transform .25s ease, box-shadow .3s ease, border-color .25s ease; animation: agent-card-in .45s ease both; }
+.agent-card:hover { transform:translateX(3px); border-color:rgba(103,232,249,.46); box-shadow:0 12px 28px rgba(2,6,23,.3); }
 .agent-card-head { display:flex; align-items:center; gap:7px; min-width:0; padding-bottom:8px; border-bottom:1px solid rgba(148,163,184,.14); }
 .agent-card-head strong { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font:650 11px ui-monospace,monospace; }
 .agent-brand { padding:2px 5px; color:#c8ccd0; border:1px solid rgba(205,210,215,.28); border-radius:2px; font:800 9px ui-monospace,monospace; text-transform:uppercase; }
@@ -1798,6 +1798,15 @@ body[data-theme="light"] .agent-options button.active {
   color: #075985;
   background: #e0f2fe;
   border-color: rgba(14, 165, 233, 0.38);
+}
+
+body[data-theme="light"] .agent-dag-links path {
+  stroke: #0f172a;
+  filter: drop-shadow(0 0 3px rgba(15, 23, 42, 0.2));
+}
+
+body[data-theme="light"] .agent-dag-links marker path {
+  fill: #0f172a;
 }
 
 /* Agent Board 左侧栏跟随页面主题 */

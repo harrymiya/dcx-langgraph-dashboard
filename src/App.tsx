@@ -723,6 +723,22 @@ function AgentDagLinks({ agents, taskVersion, bindings }: { agents: Agent[]; tas
       const workspace = document.querySelector<HTMLElement>(".workspace-linked");
       if (!workspace) return;
       const root = workspace.getBoundingClientRect();
+      // 画布可视区域（.canvas-scroll 的视口）在 workspace 坐标系下的边界。
+      // 目标节点滚出可视区时，虚线终点钳制到该边框，不再跟随节点跑到屏外。
+      const viewport = workspace.querySelector<HTMLElement>(".canvas-scroll");
+      const viewportRect = viewport?.getBoundingClientRect();
+      let hasViewport = false;
+      let borderLeft = 0;
+      let borderTop = 0;
+      let borderRight = 0;
+      let borderBottom = 0;
+      if (viewportRect && viewportRect.width > 0 && viewportRect.height > 0) {
+        borderLeft = viewportRect.left - root.left + 4;
+        borderTop = viewportRect.top - root.top + 4;
+        borderRight = viewportRect.right - root.left - 8;
+        borderBottom = viewportRect.bottom - root.top - 8;
+        hasViewport = borderRight > borderLeft && borderBottom > borderTop;
+      }
       const next = agents.flatMap((agent) => {
         const name = String(agent.agent ?? "").toLowerCase();
         // Agent Board 的 agent 名称通常包含任务节点 ID；也兼容最后阶段字段。
@@ -739,7 +755,13 @@ function AgentDagLinks({ agents, taskVersion, bindings }: { agents: Agent[]; tas
         if (!target || !source) return [];
         const from = source.getBoundingClientRect();
         const to = target.getBoundingClientRect();
-        return [{ id: String(agent.agent), x1: from.right - root.left, y1: from.top + from.height / 2 - root.top, x2: to.left - root.left, y2: to.top + to.height / 2 - root.top }];
+        let x2 = to.left - root.left;
+        let y2 = to.top + to.height / 2 - root.top;
+        if (hasViewport && (x2 < borderLeft || x2 > borderRight || y2 < borderTop || y2 > borderBottom)) {
+          x2 = Math.min(Math.max(x2, borderLeft), borderRight);
+          y2 = Math.min(Math.max(y2, borderTop), borderBottom);
+        }
+        return [{ id: String(agent.agent), x1: from.right - root.left, y1: from.top + from.height / 2 - root.top, x2, y2 }];
       });
       setLines(next);
     };
@@ -747,9 +769,13 @@ function AgentDagLinks({ agents, taskVersion, bindings }: { agents: Agent[]; tas
     const observer = new ResizeObserver(update);
     const workspace = document.querySelector<HTMLElement>(".workspace-linked");
     if (workspace) observer.observe(workspace);
+    const viewport = workspace?.querySelector<HTMLElement>(".canvas-scroll");
+    if (viewport) observer.observe(viewport);
+    const handleViewportScroll = () => update();
+    viewport?.addEventListener("scroll", handleViewportScroll, { passive: true });
     window.addEventListener("resize", update);
     window.addEventListener("scroll", update, true);
-    return () => { observer.disconnect(); window.removeEventListener("resize", update); window.removeEventListener("scroll", update, true); };
+    return () => { observer.disconnect(); viewport?.removeEventListener("scroll", handleViewportScroll); window.removeEventListener("resize", update); window.removeEventListener("scroll", update, true); };
   }, [agents, taskVersion, bindings]);
   return <svg className="agent-dag-links" aria-hidden="true"><defs><marker id="agent-link-arrow" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7" /></marker></defs>{lines.map((line) => { const bend = Math.max(24, (line.x2 - line.x1) * .35); return <path key={line.id} d={`M ${line.x1} ${line.y1} C ${line.x1 + bend} ${line.y1}, ${line.x2 - bend} ${line.y2}, ${line.x2} ${line.y2}`} />; })}</svg>;
 }
@@ -949,7 +975,7 @@ export default function App() {
         `本次处理的 DAG 节点 ID 是：${task.id}`,
         `请在你的思维链中原样输出一次节点 ID：${task.id}`,
         "只需要输出一次该节点 ID，后续不要重复输出。",
-      ].join("\\n");
+      ].join("\n");
       const result = await launchAgent({
         agent: kind,
         taskId: task.id,
