@@ -14,6 +14,8 @@ import {
   ExternalLink,
   Info,
   LocateFixed,
+  Maximize2,
+  Minimize2,
   MousePointerClick,
   RefreshCw,
   Search,
@@ -500,12 +502,10 @@ function DagCanvas({
     });
 
     return () => window.cancelAnimationFrame(frame);
-  }, [layout, scale, selectedId]);
+  }, [layout, selectedId]);
 
   const handleWheel = useCallback((event: globalThis.WheelEvent) => {
-    if (!event.ctrlKey) return;
-    // Chrome/Firefox 会把 Ctrl+滚轮解释为页面缩放；用 passive:false 的
-    // 原生捕获监听同时阻止默认动作和冒泡，确保只改变 DAG 画布的 scale。
+    // 画布内滚轮直接缩放；阻止默认滚动，确保只改变 DAG 画布的 scale。
     event.preventDefault();
     event.stopPropagation();
 
@@ -514,16 +514,17 @@ function DagCanvas({
     const rect = viewport.getBoundingClientRect();
     const pointerOffsetX = event.clientX - rect.left;
     const pointerOffsetY = event.clientY - rect.top;
-    const canvasPointX = pointerOffsetX + viewport.scrollLeft;
-    const canvasPointY = pointerOffsetY + viewport.scrollTop;
+    // 先换算为未缩放的画布坐标，再按新比例计算滚动位置，
+    // 这样缩放前后光标下方始终是同一块画布内容。
+    const canvasPointX = (pointerOffsetX + viewport.scrollLeft) / scale;
+    const canvasPointY = (pointerOffsetY + viewport.scrollTop) / scale;
     const nextScale = clampScale(scale + (event.deltaY > 0 ? -0.08 : 0.08));
     if (nextScale === scale) return;
 
     onZoom(nextScale);
     requestAnimationFrame(() => {
-      const ratio = nextScale / scale;
-      viewport.scrollLeft = canvasPointX * ratio - pointerOffsetX;
-      viewport.scrollTop = canvasPointY * ratio - pointerOffsetY;
+      viewport.scrollLeft = canvasPointX * nextScale - pointerOffsetX;
+      viewport.scrollTop = canvasPointY * nextScale - pointerOffsetY;
     });
   }, [onZoom, scale]);
 
@@ -602,7 +603,7 @@ function DagCanvas({
       onPointerUp={finishPointerDrag}
       onPointerCancel={finishPointerDrag}
       onDragStart={(event) => event.preventDefault()}
-      title="按住鼠标左键拖拽画布；按住 Ctrl 滚动鼠标滚轮缩放"
+      title="按住鼠标左键拖拽画布；滚动鼠标滚轮缩放"
     >
       <div className="canvas-stage" style={stageStyle}>
         <div className="canvas-world" style={worldStyle}>
@@ -813,6 +814,8 @@ export default function App() {
   const terminalRef = useRef<TerminalPanelHandle>(null);
   const [pendingAgentTasks, setPendingAgentTasks] = useState<string[]>([]);
   const [agentBindings, setAgentBindings] = useState<Record<string, string>>({});
+  const [isGraphFullscreen, setIsGraphFullscreen] = useState(false);
+  const graphPanelRef = useRef<HTMLDivElement>(null);
   const [theme, setTheme] = useState<Theme>(() => {
     try {
       return localStorage.getItem("refactor-control-room-theme") === "light" ? "light" : "dark";
@@ -1048,6 +1051,28 @@ export default function App() {
     }
   };
 
+  const toggleGraphFullscreen = async () => {
+    const panel = graphPanelRef.current;
+    if (!panel) return;
+    try {
+      if (document.fullscreenElement === panel) {
+        await document.exitFullscreen();
+      } else {
+        await panel.requestFullscreen();
+      }
+    } catch {
+      // 全屏 API 可能被浏览器策略禁用，不影响画布正常使用。
+    }
+  };
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsGraphFullscreen(document.fullscreenElement === graphPanelRef.current);
+    };
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
+  }, []);
+
   const filterItems: Array<{ id: TaskFilter; label: string; count: number; color?: string }> = [
     { id: "all", label: "全部", count: businessTasks.length },
     ...WORKFLOW_STATUSES.map((status) => ({
@@ -1139,7 +1164,7 @@ export default function App() {
           });
           if (Object.keys(next).length !== Object.keys(agentBindings).length) setAgentBindings(next);
         }} />
-        <div className="graph-panel">
+        <div ref={graphPanelRef} className="graph-panel">
           <div className="panel-header">
             <div className="panel-heading">
               <div className="panel-title-row">
@@ -1223,10 +1248,13 @@ export default function App() {
               <button type="button" onClick={() => setScale((value) => clampScale(value + 0.1))} title="放大">
                 <ZoomIn size={16} />
               </button>
+              <button type="button" onClick={() => void toggleGraphFullscreen()} title={isGraphFullscreen ? "退出全屏" : "画布全屏"} aria-label={isGraphFullscreen ? "退出画布全屏" : "画布全屏"}>
+                {isGraphFullscreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+              </button>
               <button type="button" onClick={() => setScale(0.82)} title="重置缩放">
                 <LocateFixed size={16} />
               </button>
-              <span className="zoom-hint">拖拽移动 · Ctrl + 滚轮</span>
+              <span className="zoom-hint">拖拽移动 · 滚轮缩放</span>
             </div>
           </div>
 

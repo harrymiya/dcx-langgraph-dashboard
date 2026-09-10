@@ -547,6 +547,19 @@ button {
   overflow: hidden;
 }
 
+.graph-panel:fullscreen {
+  width: 100vw;
+  height: 100vh;
+  padding: 0;
+  background: #0f172a;
+  border: 0;
+  border-radius: 0;
+}
+
+.graph-panel:fullscreen .canvas-scroll {
+  flex: 1;
+}
+
 .panel-header {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
