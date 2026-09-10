@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { buildEvidenceUpdate } from "./evidence-sync.mjs";
+import { buildEvidenceUpdate, reconcileEvidenceSnapshot } from "./evidence-sync.mjs";
 
 const evidence = {
   report: ".test-local/reports/WL-13-code-restructure-20260909.md",
@@ -49,6 +49,33 @@ test("rejects failed checks and missing dependency readiness", () => {
   const blocked = fixture();
   blocked.tasks[0].status = "in-progress";
   assert.throws(() => buildEvidenceUpdate(blocked), /前置依赖/);
+});
+
+test("reconciles persisted task statuses from the evidence manifest", () => {
+  const result = reconcileEvidenceSnapshot({
+    tasks: [
+      { id: "CLEAN-01", status: "planned", status_source: "plan-snapshot" },
+      { id: "REL-03", status: "code-ready", status_source: "evidence-manifest" },
+    ],
+    manifest: {
+      tasks: {
+        "CLEAN-01": {
+          status: "contract-ready",
+          commit: "abc123",
+          verified_at: "2026-01-01T00:00:00Z",
+          evidence: [{ status: "contract-ready", commit: "abc123", verified_at: "2026-01-01T00:00:00Z", checks: [{ command: "ok", exit: 0 }] }],
+        },
+        "REL-03": {
+          status: "code-ready",
+          evidence: [{ status: "code-ready", checks: [{ command: "ok", exit: 0 }] }],
+        },
+      },
+    },
+  });
+  assert.equal(result.changed, true);
+  assert.equal(result.tasks[0].status, "contract-ready");
+  assert.equal(result.tasks[0].status_source, "evidence-manifest");
+  assert.equal(result.tasks[1].status, "code-ready");
 });
 
 test("does not duplicate the same accepted evidence", () => {

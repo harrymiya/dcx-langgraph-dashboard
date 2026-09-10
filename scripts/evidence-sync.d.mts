@@ -16,6 +16,14 @@ export interface EvidenceSyncResult {
   changed: boolean;
 }
 
+export function reconcileEvidenceSnapshot(input: {
+  tasks: Array<Record<string, unknown>>;
+  manifest: Record<string, unknown>;
+}): {
+  tasks: Array<Record<string, unknown>>;
+  changed: boolean;
+};
+
 export function buildEvidenceUpdate(input: {
   tasks: Array<Record<string, unknown>>;
   manifest: Record<string, unknown>;

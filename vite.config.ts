@@ -7,7 +7,7 @@ import { defineConfig } from "vite";
 import type { Plugin } from "vite";
 import react from "@vitejs/plugin-react";
 import { resolveAgentWorkspace } from "./scripts/agent-workspaces.mjs";
-import { buildEvidenceUpdate } from "./scripts/evidence-sync.mjs";
+import { buildEvidenceUpdate, reconcileEvidenceSnapshot } from "./scripts/evidence-sync.mjs";
 import { terminalPlugin } from "./scripts/terminal-plugin.mjs";
 
 const langGraphApi = process.env.LANGGRAPH_API_URL ?? "http://127.0.0.1:8123";
@@ -193,6 +193,20 @@ async function readJsonFile(path: string): Promise<unknown> {
   return JSON.parse(await readFile(path, "utf8"));
 }
 
+async function reconcileTaskSnapshot() {
+  try {
+    const tasks = await readJsonFile(taskSnapshotPath) as Array<Record<string, unknown>>;
+    const manifest = await readJsonFile(evidenceManifestPath) as Record<string, unknown>;
+    const result = reconcileEvidenceSnapshot({ tasks, manifest });
+    if (!result.changed) return;
+    const temporaryPath = taskSnapshotPath + ".reconcile.writing";
+    await writeFile(temporaryPath, JSON.stringify(result.tasks) + "\n", "utf8");
+    await rename(temporaryPath, taskSnapshotPath);
+  } catch {
+    // Evidence is optional in local development; retain the last valid task snapshot.
+  }
+}
+
 function createEvidenceSyncMiddleware() {
   return async (request: IncomingMessage, response: ServerResponse, _next: () => void) => {
     if (request.method === "OPTIONS") {
@@ -248,10 +262,12 @@ function evidenceSyncPlugin(): Plugin {
   const middleware = createEvidenceSyncMiddleware();
   return {
     name: "dcx-evidence-sync",
-    configureServer(server) {
+    async configureServer(server) {
+      await reconcileTaskSnapshot();
       server.middlewares.use("/api/evidence/sync", middleware);
     },
-    configurePreviewServer(server) {
+    async configurePreviewServer(server) {
+      await reconcileTaskSnapshot();
       server.middlewares.use("/api/evidence/sync", middleware);
     },
   };

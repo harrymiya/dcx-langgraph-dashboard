@@ -79,6 +79,32 @@ function statusRank(status) {
   return STATUS_RANK.get(status) ?? -1;
 }
 
+export function reconcileEvidenceSnapshot({ tasks, manifest }) {
+  if (!Array.isArray(tasks)) throw new Error("tasks.json 根节点必须是数组");
+  const root = record(manifest, "manifest");
+  const entries = record(root.tasks, "manifest.tasks");
+  const updatedTasks = tasks.map((task) => {
+    const entry = entries[task?.id];
+    if (!entry || !task || typeof task !== "object") return task;
+    const evidence = Array.isArray(entry.evidence) ? entry.evidence.filter((item) => item && typeof item === "object") : [];
+    const latest = evidence[evidence.length - 1];
+    const manifestStatus = entry.status ?? latest?.status;
+    if (!READY_STATUSES.has(manifestStatus) || statusRank(manifestStatus) < statusRank(task.status)) return task;
+    if (!latest || !Array.isArray(latest.checks) || latest.checks.some((check) => check?.exit !== 0)) return task;
+    const commit = latest.commit ?? entry.commit ?? task.commit;
+    const verifiedAt = latest.verified_at ?? entry.verified_at ?? task.verified_at;
+    return {
+      ...task,
+      status: manifestStatus,
+      status_source: "evidence-manifest",
+      ...(commit ? { commit } : {}),
+      ...(verifiedAt ? { verified_at: verifiedAt } : {}),
+      evidence,
+    };
+  });
+  return { tasks: updatedTasks, changed: JSON.stringify(updatedTasks) !== JSON.stringify(tasks) };
+}
+
 export function buildEvidenceUpdate({ tasks, manifest, payload }) {
   const input = record(payload, "请求体");
   const taskId = nonEmptyString(input.taskId, "taskId");
