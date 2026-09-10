@@ -1,8 +1,8 @@
 import { spawn } from "node:child_process";
-import { existsSync } from "node:fs";
+import { existsSync, mkdirSync } from "node:fs";
 import { readFile, rename, writeFile } from "node:fs/promises";
 import type { IncomingMessage, ServerResponse } from "node:http";
-import { resolve } from "node:path";
+import { join, resolve } from "node:path";
 import { defineConfig } from "vite";
 import type { Plugin } from "vite";
 import react from "@vitejs/plugin-react";
@@ -21,6 +21,22 @@ const agentCommands = {
   opencode: "opencode",
   pi: "pi",
   codex: "codex",
+} as const;
+// 各 Agent 在 Konsole 里真正的调用方式（均为跑完即退出的非交互模式，
+// 窗口最后用 `read` 保持，以便查看结果）：
+// - opencode 的 positional 是 project 目录，prompt 必须走 `run [message]`，
+//   否则会被当成目录 lstat（ENAMETOOLONG，且内容里的反引号如
+//   `@dcx/well-log-react` 会触发 /bin/bash 报错）；末尾加 `--` 防止 prompt
+//   首字符为 `-` 时被解析成 flag（已验证 `opencode run -- "prompt"` 可用）。
+// - pi 默认进交互式 TUI（不退出，看起来像“卡住”），必须加 `-p/--print`
+//   才跑完退出；`@xxx` 会被解析为文件引用，加 `--` 让 prompt 只当普通消息处理。
+// - codex 不带子命令就是交互式 TUI（不退出，看起来像“卡住”），非交互必须用
+//   `exec`；`--skip-git-repo-check` 允许在非 git 兜底目录也能启动；末尾 `--`
+//   防止 prompt 首字符为 `-` 时被解析成 flag。
+const agentInvoke = {
+  opencode: 'opencode run --',
+  pi: 'pi -p --',
+  codex: 'codex exec --skip-git-repo-check --',
 } as const;
 
 type AgentKind = keyof typeof agentCommands;
@@ -96,10 +112,28 @@ function createAgentLauncherMiddleware() {
       }
 
       const command = agentCommands[payload.agent];
+      const invoke = agentInvoke[payload.agent];
+      // 落盘日志：Agent 跑一次经常要数分钟（读大文档、跑验证），Konsole 里
+      // 长时间没新输出看起来像“卡住”。tee 一份到 /tmp，前端把路径展示出来，
+      // 用户可另开终端 tail -f 跟踪；日志文件名只用白名单字符。
+      const safeTaskId = payload.taskId.trim().replace(/[^a-zA-Z0-9_.:-]/g, "_");
+      const agentLogDir = resolve(dashboardRoot, "..", ".dcx-agent-logs");
+      let agentLogPath = "";
+      try {
+        mkdirSync(agentLogDir, { recursive: true });
+        agentLogPath = join(agentLogDir, `dcx-${command}-${safeTaskId}-${Date.now()}.log`);
+      } catch {
+        agentLogPath = "";
+      }
       const shellScript = [
-        "printf '\\n[DCX] " + command + " 已启动，任务 " + payload.taskId.replace(/[^a-zA-Z0-9_.:-]/g, "_") + "\\n\\n'",
-        command + ' "$DCX_AGENT_PROMPT"',
-        "agent_status=$?",
+        "printf '\\n[DCX] " + command + " 已启动，任务 " + safeTaskId + "\\n'",
+        agentLogPath
+          ? "printf '[DCX] 日志：" + agentLogPath + "（可 tail -f 跟踪）\\n'"
+          : "printf '[DCX] 日志落盘失败，仅 Konsole 输出\\n'",
+        "printf '[DCX] 任务一般需要数分钟，请勿关闭窗口\\n\\n'",
+        agentLogPath
+          ? invoke + ' "$DCX_AGENT_PROMPT" 2>&1 | tee "$DCX_AGENT_LOG"; agent_status=${PIPESTATUS[0]}'
+          : invoke + ' "$DCX_AGENT_PROMPT"; agent_status=$?',
         "printf '\\n[DCX] Agent 已退出（状态码 %s），按回车关闭窗口。\\n' \"$agent_status\"",
         "read -r",
       ].join("; ");
@@ -114,6 +148,7 @@ function createAgentLauncherMiddleware() {
             ...process.env,
             DCX_AGENT_PROMPT: payload.prompt,
             DCX_AGENT_TASK_ID: payload.taskId,
+            DCX_AGENT_LOG: agentLogPath,
           },
         },
       );
@@ -125,7 +160,11 @@ function createAgentLauncherMiddleware() {
         workspace: payload.workspace ?? "APP18",
         terminal: "konsole",
         pid: child.pid,
-        message: command + " 已在新的 Konsole 窗口启动",
+        ...(agentLogPath ? { log: agentLogPath } : {}),
+        message:
+          command +
+          " 已在新的 Konsole 窗口启动" +
+          (agentLogPath ? "，日志：" + agentLogPath : ""),
       });
     } catch (error) {
       jsonResponse(response, 400, {

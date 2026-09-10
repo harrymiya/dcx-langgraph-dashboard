@@ -106,6 +106,7 @@ export interface AgentLaunchResponse {
   workspace: AgentWorkspace;
   terminal: string;
   pid?: number;
+  log?: string;
   message?: string;
 }
 
