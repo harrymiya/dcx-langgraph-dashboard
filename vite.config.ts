@@ -1,4 +1,5 @@
 import { spawn } from "node:child_process";
+import { timingSafeEqual } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { readFile, rename, writeFile } from "node:fs/promises";
 import type { IncomingMessage, ServerResponse } from "node:http";
@@ -10,6 +11,8 @@ import { resolveAgentWorkspace } from "./scripts/agent-workspaces.mjs";
 import { buildEvidenceUpdate, reconcileEvidenceSnapshot } from "./scripts/evidence-sync.mjs";
 import { terminalPlugin } from "./scripts/terminal-plugin.mjs";
 import { createProjectStore, projectRuntimeRoot } from "./scripts/project-store.mjs";
+import { blockTask, claimNextTask, completeTask, heartbeatTask, releaseTask } from "./scripts/autonomous-task-state.mjs";
+import type { AutonomousTask, AutonomousTaskMutation } from "./scripts/autonomous-task-state.mjs";
 
 const langGraphApi = process.env.LANGGRAPH_API_URL ?? "http://127.0.0.1:8123";
 const agentBoardPort = process.env.AGENTBOARD_PORT ?? "8710";
@@ -24,13 +27,13 @@ const projectStorePromise = createProjectStore({
   seedTasks: JSON.parse(readFileSync(taskSnapshotPath, "utf8")),
   seedProject: {
     id: "default",
-    name: "默认重构项目",
-    description: "仓库内置的 refactor_dag 任务快照",
-    workspace: "APP18",
+    name: "健康服务与 SCRM MVP",
+    description: "jiankang_app_uniapp 的 129 个 LangGraph DAG 任务；以 data.scope 控制 MVP 波次。",
+    workspace: "/home/musk/code/jiankang_app_uniapp",
     managedBy: "agent",
   },
 });
-const evidenceManifestPath = process.env.EVIDENCE_MANIFEST_PATH ?? "/mnt/data/code/dcx-web/dcx-web/.test-local/reports/langgraph-task-evidence.json";
+const evidenceManifestPath = process.env.EVIDENCE_MANIFEST_PATH ?? resolve(process.env.PROJECT_RUNTIME_ROOT ?? join(dashboardRoot, "backend", ".project-runtime"), "evidence-manifest.json");
 const agentCommands = {
   opencode: "opencode",
   pi: "pi",
@@ -158,6 +161,110 @@ function createProjectApiMiddleware() {
     } catch (error) {
       jsonResponse(response, 422, { error: error instanceof Error ? error.message : "项目操作失败" });
     }
+  };
+}
+
+let taskMutationTail = Promise.resolve();
+
+function withTaskMutation(operation: () => Promise<unknown>) {
+  const current = taskMutationTail.then(operation, operation);
+  taskMutationTail = current.then(() => undefined, () => undefined);
+  return current;
+}
+
+function authorizedTaskWriter(request: IncomingMessage): boolean {
+  const expected = process.env.AUTONOMY_API_TOKEN;
+  if (!expected) return false;
+  const header = request.headers.authorization ?? "";
+  const prefix = "Bearer ";
+  if (!header.startsWith(prefix)) return false;
+  const supplied = Buffer.from(header.slice(prefix.length));
+  const configured = Buffer.from(expected);
+  return supplied.length === configured.length && timingSafeEqual(supplied, configured);
+}
+
+function createTaskApiMiddleware() {
+  return async (request: IncomingMessage, response: ServerResponse, _next: () => void) => {
+    const requestUrl = new URL(request.url ?? "/", "http://127.0.0.1");
+    const route = requestUrl.pathname.startsWith("/api/tasks")
+      ? requestUrl.pathname.slice("/api/tasks".length) || "/"
+      : requestUrl.pathname;
+    try {
+      if (request.method === "GET" && route === "/") {
+        const projectId = requestUrl.searchParams.get("projectId") ?? "default";
+        if (!isProjectId(projectId)) {
+          jsonResponse(response, 400, { error: "缺少有效 project_id" });
+          return;
+        }
+        const store = await projectStorePromise;
+        jsonResponse(response, 200, { projectId, tasks: await store.readTasks(projectId) });
+        return;
+      }
+      if (request.method !== "POST") {
+        jsonResponse(response, 405, { error: "任务操作仅支持 GET /api/tasks 和 POST /api/tasks/{claim,heartbeat,complete,fail,release}" });
+        return;
+      }
+      if (!authorizedTaskWriter(request)) {
+        jsonResponse(response, 401, { error: "自主任务写入凭证无效或未配置" });
+        return;
+      }
+      const payload = JSON.parse(await readRequestBody(request)) as Record<string, unknown>;
+      if (!isProjectId(payload.projectId)) {
+        jsonResponse(response, 400, { error: "缺少有效 project_id" });
+        return;
+      }
+      if (typeof payload.workerId !== "string" || !payload.workerId.trim()) {
+        jsonResponse(response, 400, { error: "缺少 workerId" });
+        return;
+      }
+      if (route !== "/claim" && (typeof payload.taskId !== "string" || !payload.taskId.trim())) {
+        jsonResponse(response, 400, { error: "缺少 taskId" });
+        return;
+      }
+      if (["/claim", "/heartbeat"].includes(route) && !Number.isInteger(payload.leaseSeconds)) {
+        jsonResponse(response, 400, { error: "leaseSeconds 必须是整数" });
+        return;
+      }
+      if (route === "/complete" && (typeof payload.status !== "string" || typeof payload.summary !== "string" || typeof payload.report !== "string" || !Array.isArray(payload.checks))) {
+        jsonResponse(response, 400, { error: "完成任务需要 status、summary、report 和 checks" });
+        return;
+      }
+      if (route === "/fail" && (typeof payload.error !== "string" || typeof payload.report !== "string")) {
+        jsonResponse(response, 400, { error: "阻塞任务需要 error 和 report" });
+        return;
+      }
+      const store = await projectStorePromise;
+      let result: Record<string, unknown> | null = null;
+      await withTaskMutation(async () => {
+        await store.updateProjectTasks(payload.projectId as string, (tasks) => {
+          const input = payload as unknown as AutonomousTaskMutation;
+          if (route === "/claim") result = claimNextTask(tasks as AutonomousTask[], input);
+          else if (route === "/heartbeat") result = heartbeatTask(tasks as AutonomousTask[], input);
+          else if (route === "/complete") result = completeTask(tasks as AutonomousTask[], input);
+          else if (route === "/fail") result = blockTask(tasks as AutonomousTask[], input);
+          else if (route === "/release") result = releaseTask(tasks as AutonomousTask[], input);
+          else throw new Error("未知任务操作");
+          return (result as { tasks: unknown[] }).tasks;
+        });
+      });
+      jsonResponse(response, 200, result);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "任务操作失败";
+      jsonResponse(response, error instanceof SyntaxError ? 400 : 409, { error: message });
+    }
+  };
+}
+
+function taskApiPlugin(): Plugin {
+  const middleware = createTaskApiMiddleware();
+  return {
+    name: "dcx-autonomous-task-api",
+    configureServer(server) {
+      server.middlewares.use("/api/tasks", middleware);
+    },
+    configurePreviewServer(server) {
+      server.middlewares.use("/api/tasks", middleware);
+    },
   };
 }
 

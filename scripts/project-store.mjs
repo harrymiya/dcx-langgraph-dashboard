@@ -225,10 +225,45 @@ export async function createProjectStore({ runtimeRoot, seedTasks, seedProject }
     return nextTasks;
   }
 
-  const initialProjects = await readRegistry();
-  for (const project of initialProjects) {
-    if (!existsSync(taskPath(project.id))) await writeTasks(project.id, seedTasks);
+  async function reconcileTaskDefinitions(projectId) {
+    const current = await readTasks(projectId);
+    const currentById = new Map(current.map((task) => [task.id, task]));
+    const runtimeFields = ["status", "status_source", "evidence", "owner", "claimed_at", "lease_expires_at", "autonomous_attempt", "retry_after", "last_error", "last_report", "last_checks", "autonomous_result", "autonomous_failure", "verified_at", "commit", "commits"];
+    const next = seedTasks.map((definition) => {
+      const saved = currentById.get(definition.id);
+      if (!saved) return clone(definition);
+      const task = clone(definition);
+      for (const field of runtimeFields) {
+        if (Object.prototype.hasOwnProperty.call(saved, field)) task[field] = saved[field];
+      }
+      return task;
+    });
+    const knownIds = new Set(seedTasks.map((task) => task.id));
+    for (const saved of current) {
+      if (knownIds.has(saved.id)) continue;
+      const archived = clone(saved);
+      archived.data = { ...(archived.data ?? {}), scope: "MVP后续", mvp_scope_reason: "不在当前权威 DAG 快照；保留旧 ID 与状态，不参与当前任务领取。" };
+      next.push(archived);
+    }
+    await writeTasks(projectId, next);
   }
+
+  let initialProjects = await readRegistry();
+  let registryChanged = false;
+  initialProjects = initialProjects.map((project) => {
+    if (project.id !== "default") return project;
+    const nextProject = {
+      ...project,
+      name: seedProject.name,
+      description: seedProject.description,
+      workspace: seedProject.workspace,
+      updatedAt: now(),
+    };
+    if (JSON.stringify(nextProject) !== JSON.stringify(project)) registryChanged = true;
+    return nextProject;
+  });
+  if (registryChanged) await writeRegistry(initialProjects);
+  for (const project of initialProjects) await reconcileTaskDefinitions(project.id);
 
   return {
     root,

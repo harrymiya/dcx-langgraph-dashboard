@@ -1,0 +1,21 @@
+export type MachineCheck = { command: string; exit_code: number; result: string };
+export type AutonomousTask = Record<string, unknown>;
+export type AutonomousTaskMutation = {
+  workerId: string;
+  leaseSeconds: number;
+  taskId: string;
+  now?: Date | string;
+  status: "code-ready" | "contract-ready" | "release-ready";
+  summary: string;
+  report: string;
+  checks: MachineCheck[];
+  changedFiles?: string[];
+  limitations?: string[];
+  error: string;
+  retryAfterSeconds: number;
+};
+export function claimNextTask(tasks: AutonomousTask[], input: { workerId: string; leaseSeconds: number; now?: Date | string }): { tasks: AutonomousTask[]; task: AutonomousTask | null; readyCount: number; blockedCount: number };
+export function heartbeatTask(tasks: AutonomousTask[], input: { taskId: string; workerId: string; leaseSeconds: number; now?: Date | string }): { tasks: AutonomousTask[]; task: AutonomousTask };
+export function completeTask(tasks: AutonomousTask[], input: AutonomousTaskMutation): { tasks: AutonomousTask[]; task: AutonomousTask };
+export function blockTask(tasks: AutonomousTask[], input: AutonomousTaskMutation): { tasks: AutonomousTask[]; task: AutonomousTask };
+export function releaseTask(tasks: AutonomousTask[], input: { taskId: string; workerId: string }): { tasks: AutonomousTask[]; task: AutonomousTask | null };
