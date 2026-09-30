@@ -71,6 +71,11 @@ def build_graph():
                 "scope": task.get("scope", ""),
                 "verify": task.get("verify", ""),
                 "evidence": task.get("evidence", []),
+                "description": task.get("description", ""),
+                "goal": task.get("goal", ""),
+                "acceptance": task.get("acceptance", ""),
+                "implementation": task.get("implementation", ""),
+                "data": task.get("data", {}),
             }
             for field in ("owner", "commit", "commits", "verified_at"):
                 if field in task:
