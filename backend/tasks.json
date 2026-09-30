@@ -257,8 +257,8 @@
     "output": "pages/shell下实施、逐路由映射、route fragment/契约和操作证据；覆盖pages/guide/index,pages/index/index",
     "scope": "pages/shell",
     "verify": "执行 data.targeted_tests 中的自动化检查；写回命令、退出码、机器摘要和制品路径。缺失外部配置时使用合成/沙箱夹具，真实写入保持关闭。",
-    "status": "in-progress",
-    "status_source": "dev-zz-merge-2026-09-30",
+    "status": "planned",
+    "status_source": "markdown-dag-import",
     "ingestion_status": "ingested",
     "description": "实现主壳、首页路由与唯一健康入口",
     "goal": "pages/shell下实施、逐路由映射、route fragment/契约和操作证据；覆盖pages/guide/index,pages/index/index",
@@ -282,7 +282,7 @@
       "targeted_tests": "由 agent 自动执行。冷启/路由、双session独立登出、平台adapter失败和未登录恢复。记录命令、退出码和机器输出。",
       "rollback_or_fallback": "关闭此域flag并路由到经自动检查通过legacy mapp路径；不删除路由/交易事实，未结资金由权威写主对账",
       "risk_level": "高",
-      "source_status": "进行中（dev_zz 已合并，部分能力已验证）",
+      "source_status": "待实施/未开工",
       "product_alignment": {
         "hierarchy": "健康管理 + SCRM 总体方案 > 客户 APP、疗愈师 APP、前台 PC Web 三端原型 > LangGraph 任务逐域实现与验收。",
         "official_prototypes": [
@@ -297,7 +297,7 @@
         "task_scope": "承接健康管理、SCRM、客户侧 mapp 合入、必要平台适配和两站隔离；任务导入、原型和文档不等于正式功能实现。"
       },
       "delivery_wave": "I0-边界与基础",
-      "automated_result": "手机端 dev_zz 四入口壳、首页/健康/我的路由与页面注册已合入 dev_lirui；完整双会话、平台回退和所有来源路由验收仍未完成。",
+      "automated_result": "机器可读结果：执行命令、退出码、摘要、测试/构建/契约制品路径及未配置能力的安全降级说明。",
       "prototype_reference": {
         "path": "docs/prototypes/customer-miniapp-prototype.html",
         "screen_keys": [
@@ -307,30 +307,7 @@
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
       }
     },
-    "evidence": [
-      {
-        "id": "dev-zz-merge-2026-09-30",
-        "type": "merge-status",
-        "date": "2026-09-30",
-        "summary": "手机端 dev_zz 四入口壳、首页/健康/我的路由与页面注册已合入 dev_lirui；完整双会话、平台回退和所有来源路由验收仍未完成。",
-        "branches": {
-          "phone": "dev_lirui <- origin/dev_zz",
-          "admin": "dev_lirui <- origin/dev_zz"
-        },
-        "verification": "手机端 Node 258/258、Python 33/33、设计 Token 与 diff 检查通过；管理端 consumer/message 517/517、BFF 验证码链路 17/17 通过；Compose YAML 与环境变量占位语法静态检查通过。",
-        "boundary": "in-progress 不表示完整 MVP 已完成或已经生产发布。",
-        "commits": {
-          "phone": "7af3337",
-          "admin": "5b1cc0d"
-        },
-        "limitations": "本机无 Docker，未运行 docker compose config；供应商原始 API 文档保留行尾空白格式警告。"
-      }
-    ],
-    "commits": {
-      "phone": "7af3337",
-      "admin": "5b1cc0d"
-    },
-    "verified_at": "2026-09-30"
+    "evidence": []
   },
   {
     "id": "FND-04",
@@ -2273,8 +2250,8 @@
     "output": "pages/account/profile下实施、逐路由映射、route fragment/契约和操作证据；覆盖pages/user/index,pages/users/user_info/index,pages/users/user_profile/index,pages/users/user_setting/index,pages/users/user_phone/index,pages/users/user_pwd_edit/index,pages/users/login/index,pages/users/wechat_login/index,pages/users/app_login/index,pages/users/more_function/index",
     "scope": "pages/account/profile",
     "verify": "执行 data.targeted_tests 中的自动化检查；写回命令、退出码、机器摘要和制品路径。缺失外部配置时使用合成/沙箱夹具，真实写入保持关闭。",
-    "status": "in-progress",
-    "status_source": "dev-zz-merge-2026-09-30",
+    "status": "planned",
+    "status_source": "markdown-dag-import",
     "ingestion_status": "ingested",
     "description": "迁移客户资料、账户和安全设置",
     "goal": "pages/account/profile下实施、逐路由映射、route fragment/契约和操作证据；覆盖pages/user/index,pages/users/user_info/index,pages/users/user_profile/index,pages/users/user_setting/index,pages/users/user_phone/index,pages/users/user_pwd_edit/index,pages/users/login/index,pages/users/wechat_login/index,pages/users/app_login/index,pages/users/more_function/index",
@@ -2298,7 +2275,7 @@
       "targeted_tests": "由 agent 自动执行。OAuth/DeepLink参数、WebView allowlist、定位拒绝与替代路径。记录命令、退出码和机器输出。",
       "rollback_or_fallback": "关闭此域flag并路由到经自动检查通过legacy mapp路径；不删除路由/交易事实，未结资金由权威写主对账",
       "risk_level": "高",
-      "source_status": "进行中（dev_zz 已合并，部分能力已验证）",
+      "source_status": "待实施/未开工",
       "product_alignment": {
         "hierarchy": "健康管理 + SCRM 总体方案 > 客户 APP、疗愈师 APP、前台 PC Web 三端原型 > LangGraph 任务逐域实现与验收。",
         "official_prototypes": [
@@ -2314,7 +2291,7 @@
       },
       "delivery_wave": "MVP后续",
       "mvp_scope_reason": "此客户侧 MAPP 原生页面迁移不属于健康服务 + SCRM MVP；MVP 保留对应原路由并由既有 MAPP 承载。路由事实和客户 APP 原型引用继续保留，后续可按该任务独立实施。",
-      "automated_result": "长期资料、我的承接页、通用设置、通知和关于页面已合入；商城账户、安全设置及全部 legacy 个人中心路由尚未完整迁移。",
+      "automated_result": "机器可读结果：执行命令、退出码、摘要、测试/构建/契约制品路径及未配置能力的安全降级说明。",
       "prototype_reference": {
         "path": "docs/prototypes/customer-miniapp-prototype.html",
         "screen_keys": [
@@ -2324,30 +2301,7 @@
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
       }
     },
-    "evidence": [
-      {
-        "id": "dev-zz-merge-2026-09-30",
-        "type": "merge-status",
-        "date": "2026-09-30",
-        "summary": "长期资料、我的承接页、通用设置、通知和关于页面已合入；商城账户、安全设置及全部 legacy 个人中心路由尚未完整迁移。",
-        "branches": {
-          "phone": "dev_lirui <- origin/dev_zz",
-          "admin": "dev_lirui <- origin/dev_zz"
-        },
-        "verification": "手机端 Node 258/258、Python 33/33、设计 Token 与 diff 检查通过；管理端 consumer/message 517/517、BFF 验证码链路 17/17 通过；Compose YAML 与环境变量占位语法静态检查通过。",
-        "boundary": "in-progress 不表示完整 MVP 已完成或已经生产发布。",
-        "commits": {
-          "phone": "7af3337",
-          "admin": "5b1cc0d"
-        },
-        "limitations": "本机无 Docker，未运行 docker compose config；供应商原始 API 文档保留行尾空白格式警告。"
-      }
-    ],
-    "commits": {
-      "phone": "7af3337",
-      "admin": "5b1cc0d"
-    },
-    "verified_at": "2026-09-30"
+    "evidence": []
   },
   {
     "id": "USR-02",
@@ -2684,8 +2638,8 @@
     "output": "features/health/navigation-bridge下实施、逐路由映射、route fragment/契约和操作证据；覆盖pages/index/index,pages/user/index",
     "scope": "features/health/navigation-bridge",
     "verify": "执行 data.targeted_tests 中的自动化检查；写回命令、退出码、机器摘要和制品路径。缺失外部配置时使用合成/沙箱夹具，真实写入保持关闭。",
-    "status": "in-progress",
-    "status_source": "dev-zz-merge-2026-09-30",
+    "status": "planned",
+    "status_source": "markdown-dag-import",
     "ingestion_status": "ingested",
     "description": "接入健康唯一入口并保留商城/我的 legacy 路径",
     "goal": "features/health/navigation-bridge下实施、逐路由映射、route fragment/契约和操作证据；覆盖pages/index/index,pages/user/index",
@@ -2709,9 +2663,9 @@
       "targeted_tests": "由 agent 自动执行。Commerce token调用Wish拒绝、Wish logout不清Commerce、只读跨域引用。记录命令、退出码和机器输出。",
       "rollback_or_fallback": "关闭此域flag并路由到经自动检查通过legacy mapp路径；不删除路由/交易事实，未结资金由权威写主对账",
       "risk_level": "高",
-      "source_status": "进行中（dev_zz 已合并，部分能力已验证）",
+      "source_status": "待实施/未开工",
       "delivery_wave": "I1-健康服务纵切",
-      "automated_result": "健康唯一入口及基础路由桥已合入；商城/我的继续 legacy 承载，完整 Commerce/Wish 会话隔离验收尚未完成。",
+      "automated_result": "机器可读结果：执行命令、退出码、摘要、测试/构建/契约制品路径及未配置能力的安全降级说明。",
       "prototype_reference": {
         "path": "docs/prototypes/customer-miniapp-prototype.html",
         "screen_keys": [
@@ -2722,30 +2676,7 @@
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
       }
     },
-    "evidence": [
-      {
-        "id": "dev-zz-merge-2026-09-30",
-        "type": "merge-status",
-        "date": "2026-09-30",
-        "summary": "健康唯一入口及基础路由桥已合入；商城/我的继续 legacy 承载，完整 Commerce/Wish 会话隔离验收尚未完成。",
-        "branches": {
-          "phone": "dev_lirui <- origin/dev_zz",
-          "admin": "dev_lirui <- origin/dev_zz"
-        },
-        "verification": "手机端 Node 258/258、Python 33/33、设计 Token 与 diff 检查通过；管理端 consumer/message 517/517、BFF 验证码链路 17/17 通过；Compose YAML 与环境变量占位语法静态检查通过。",
-        "boundary": "in-progress 不表示完整 MVP 已完成或已经生产发布。",
-        "commits": {
-          "phone": "7af3337",
-          "admin": "5b1cc0d"
-        },
-        "limitations": "本机无 Docker，未运行 docker compose config；供应商原始 API 文档保留行尾空白格式警告。"
-      }
-    ],
-    "commits": {
-      "phone": "7af3337",
-      "admin": "5b1cc0d"
-    },
-    "verified_at": "2026-09-30"
+    "evidence": []
   },
   {
     "id": "HWI-02",
@@ -4020,8 +3951,8 @@
     "output": "独立token audience/scope/session、短效exchange ticket、撤销与audit",
     "scope": "DFP-Wish: exts/wish/auth/exchange",
     "verify": "执行 data.targeted_tests 中的自动化检查；写回命令、退出码、机器摘要和制品路径。缺失外部配置时使用合成/沙箱夹具，真实写入保持关闭。",
-    "status": "in-progress",
-    "status_source": "dev-zz-merge-2026-09-30",
+    "status": "planned",
+    "status_source": "markdown-dag-import",
     "ingestion_status": "ingested",
     "description": "实现独立Wish session与MAPP身份exchange",
     "goal": "独立token audience/scope/session、短效exchange ticket、撤销与audit",
@@ -4045,34 +3976,11 @@
       "targeted_tests": "由 agent 自动执行。伪造/重放/过期/错误audience，双session logout隔离。记录命令、退出码和机器输出。",
       "rollback_or_fallback": "关闭exchange回Wish独立登录；不跨域清存储",
       "risk_level": "高",
-      "source_status": "进行中（dev_zz 已合并，部分能力已验证）",
+      "source_status": "待实施/未开工",
       "delivery_wave": "I0-边界与基础",
-      "automated_result": "管理端 dev_zz 自有验证码、登录即注册、商城 token 回归链路已合入；完整 exchange 撤销、错误 audience 和双会话退出验收仍未完成。"
+      "automated_result": "机器可读结果：执行命令、退出码、摘要、测试/构建/契约制品路径及未配置能力的安全降级说明。"
     },
-    "evidence": [
-      {
-        "id": "dev-zz-merge-2026-09-30",
-        "type": "merge-status",
-        "date": "2026-09-30",
-        "summary": "管理端 dev_zz 自有验证码、登录即注册、商城 token 回归链路已合入；完整 exchange 撤销、错误 audience 和双会话退出验收仍未完成。",
-        "branches": {
-          "phone": "dev_lirui <- origin/dev_zz",
-          "admin": "dev_lirui <- origin/dev_zz"
-        },
-        "verification": "手机端 Node 258/258、Python 33/33、设计 Token 与 diff 检查通过；管理端 consumer/message 517/517、BFF 验证码链路 17/17 通过；Compose YAML 与环境变量占位语法静态检查通过。",
-        "boundary": "in-progress 不表示完整 MVP 已完成或已经生产发布。",
-        "commits": {
-          "phone": "7af3337",
-          "admin": "5b1cc0d"
-        },
-        "limitations": "本机无 Docker，未运行 docker compose config；供应商原始 API 文档保留行尾空白格式警告。"
-      }
-    ],
-    "commits": {
-      "phone": "7af3337",
-      "admin": "5b1cc0d"
-    },
-    "verified_at": "2026-09-30"
+    "evidence": []
   },
   {
     "id": "API-03",
@@ -4131,8 +4039,8 @@
     "output": "真实profile/健康record读写/代理关系/字段投影/撤回API；增加已参与项目/活动记录和健康报告引用的授权读取。",
     "scope": "DFP-Wish: health/family/consent endpoints",
     "verify": "执行 data.targeted_tests 中的自动化检查；写回命令、退出码、机器摘要和制品路径。缺失外部配置时使用合成/沙箱夹具，真实写入保持关闭。",
-    "status": "in-progress",
-    "status_source": "dev-zz-merge-2026-09-30",
+    "status": "planned",
+    "status_source": "markdown-dag-import",
     "ingestion_status": "ingested",
     "description": "实现健康资料、家人关系与目的授权API",
     "goal": "真实profile/健康record读写/代理关系/字段投影/撤回API；增加已参与项目/活动记录和健康报告引用的授权读取。",
@@ -4156,34 +4064,11 @@
       "targeted_tests": "由 agent 自动执行。真实持久化/无权家属或员工拒绝/撤回立即生效/健康跨站拒绝；撤权后报告访问被拒；商品和住宿订单不会产生健康参与事实。记录命令、退出码和机器输出。",
       "rollback_or_fallback": "关未验证写入口仅只读，保留记录",
       "risk_level": "高",
-      "source_status": "进行中（dev_zz 已合并，部分能力已验证）",
+      "source_status": "待实施/未开工",
       "delivery_wave": "I1-健康服务纵切",
-      "automated_result": "已有健康档案、家人名册、体重/运动和 profile 基础真实读写证据；目的授权、撤回、跨站拒绝和报告字段投影仍未完成。"
+      "automated_result": "机器可读结果：执行命令、退出码、摘要、测试/构建/契约制品路径及未配置能力的安全降级说明。"
     },
-    "evidence": [
-      {
-        "id": "dev-zz-merge-2026-09-30",
-        "type": "merge-status",
-        "date": "2026-09-30",
-        "summary": "已有健康档案、家人名册、体重/运动和 profile 基础真实读写证据；目的授权、撤回、跨站拒绝和报告字段投影仍未完成。",
-        "branches": {
-          "phone": "dev_lirui <- origin/dev_zz",
-          "admin": "dev_lirui <- origin/dev_zz"
-        },
-        "verification": "手机端 Node 258/258、Python 33/33、设计 Token 与 diff 检查通过；管理端 consumer/message 517/517、BFF 验证码链路 17/17 通过；Compose YAML 与环境变量占位语法静态检查通过。",
-        "boundary": "in-progress 不表示完整 MVP 已完成或已经生产发布。",
-        "commits": {
-          "phone": "7af3337",
-          "admin": "5b1cc0d"
-        },
-        "limitations": "本机无 Docker，未运行 docker compose config；供应商原始 API 文档保留行尾空白格式警告。"
-      }
-    ],
-    "commits": {
-      "phone": "7af3337",
-      "admin": "5b1cc0d"
-    },
-    "verified_at": "2026-09-30"
+    "evidence": []
   },
   {
     "id": "API-05",
@@ -4786,8 +4671,8 @@
     "output": "保护原login.uvue/network/client.uts；独立模块集成；健康正文不进Commerce；增加已参与项目/活动记录、历史详情和报告受控引用读取。",
     "scope": "现有health profile/weight/exercise子域",
     "verify": "执行 data.targeted_tests 中的自动化检查；写回命令、退出码、机器摘要和制品路径。缺失外部配置时使用合成/沙箱夹具，真实写入保持关闭。",
-    "status": "in-progress",
-    "status_source": "dev-zz-merge-2026-09-30",
+    "status": "planned",
+    "status_source": "markdown-dag-import",
     "ingestion_status": "ingested",
     "description": "接通现有健康档案、体重运动真实读写",
     "goal": "保护原login.uvue/network/client.uts；独立模块集成；健康正文不进Commerce；增加已参与项目/活动记录、历史详情和报告受控引用读取。",
@@ -4811,7 +4696,7 @@
       "targeted_tests": "由 agent 自动执行。新增合成记录后重启确认保存并验证家人权限；验证本人/代理授权、报告撤权、无记录状态和订单排除规则。记录命令、退出码和机器输出。",
       "rollback_or_fallback": "关闭新增健康写入口但保留旧健康记录和授权审计",
       "risk_level": "高",
-      "source_status": "进行中（dev_zz 已合并，部分能力已验证）",
+      "source_status": "待实施/未开工",
       "product_alignment": {
         "hierarchy": "健康管理 + SCRM 总体方案 > 客户 APP、疗愈师 APP、前台 PC Web 三端原型 > LangGraph 任务逐域实现与验收。",
         "official_prototypes": [
@@ -4826,7 +4711,7 @@
         "task_scope": "承接健康管理、SCRM、客户侧 mapp 合入、必要平台适配和两站隔离；任务导入、原型和文档不等于正式功能实现。"
       },
       "delivery_wave": "I1-健康服务纵切",
-      "automated_result": "健康档案、家人、体重、运动、长期资料客户端已合入，并有部分真实 BFF 读写闭环证据；项目历史、报告授权和全量权限场景仍未完成。",
+      "automated_result": "机器可读结果：执行命令、退出码、摘要、测试/构建/契约制品路径及未配置能力的安全降级说明。",
       "prototype_reference": {
         "path": "docs/prototypes/customer-miniapp-prototype.html",
         "screen_keys": [
@@ -4837,30 +4722,7 @@
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
       }
     },
-    "evidence": [
-      {
-        "id": "dev-zz-merge-2026-09-30",
-        "type": "merge-status",
-        "date": "2026-09-30",
-        "summary": "健康档案、家人、体重、运动、长期资料客户端已合入，并有部分真实 BFF 读写闭环证据；项目历史、报告授权和全量权限场景仍未完成。",
-        "branches": {
-          "phone": "dev_lirui <- origin/dev_zz",
-          "admin": "dev_lirui <- origin/dev_zz"
-        },
-        "verification": "手机端 Node 258/258、Python 33/33、设计 Token 与 diff 检查通过；管理端 consumer/message 517/517、BFF 验证码链路 17/17 通过；Compose YAML 与环境变量占位语法静态检查通过。",
-        "boundary": "in-progress 不表示完整 MVP 已完成或已经生产发布。",
-        "commits": {
-          "phone": "7af3337",
-          "admin": "5b1cc0d"
-        },
-        "limitations": "本机无 Docker，未运行 docker compose config；供应商原始 API 文档保留行尾空白格式警告。"
-      }
-    ],
-    "commits": {
-      "phone": "7af3337",
-      "admin": "5b1cc0d"
-    },
-    "verified_at": "2026-09-30"
+    "evidence": []
   },
   {
     "id": "HLT-07",
@@ -4874,8 +4736,8 @@
     "output": "pages/health/messages",
     "scope": "预约状态和服务提醒入口",
     "verify": "执行 data.targeted_tests 中的自动化检查；写回命令、退出码、机器摘要和制品路径。缺失外部配置时使用合成/沙箱夹具，真实写入保持关闭。",
-    "status": "in-progress",
-    "status_source": "dev-zz-merge-2026-09-30",
+    "status": "planned",
+    "status_source": "markdown-dag-import",
     "ingestion_status": "ingested",
     "description": "实现服务提醒、状态消息与安全深链",
     "goal": "pages/health/messages",
@@ -4899,7 +4761,7 @@
       "targeted_tests": "由 agent 自动执行。重复/失败/退订竞态/恶意deep link。记录命令、退出码和机器输出。",
       "rollback_or_fallback": "关新消息入口，预约状态可查",
       "risk_level": "中",
-      "source_status": "进行中（dev_zz 已合并，部分能力已验证）",
+      "source_status": "待实施/未开工",
       "product_alignment": {
         "hierarchy": "健康管理 + SCRM 总体方案 > 客户 APP、疗愈师 APP、前台 PC Web 三端原型 > LangGraph 任务逐域实现与验收。",
         "official_prototypes": [
@@ -4914,7 +4776,7 @@
         "task_scope": "承接健康管理、SCRM、客户侧 mapp 合入、必要平台适配和两站隔离；任务导入、原型和文档不等于正式功能实现。"
       },
       "delivery_wave": "I1-健康服务纵切",
-      "automated_result": "通知/设置页面与短信发送基础设施已合入；预约状态消息、安全深链、退订和失败重试闭环仍未完成。",
+      "automated_result": "机器可读结果：执行命令、退出码、摘要、测试/构建/契约制品路径及未配置能力的安全降级说明。",
       "prototype_reference": {
         "path": "docs/prototypes/customer-miniapp-prototype.html",
         "screen_keys": [
@@ -4924,30 +4786,7 @@
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
       }
     },
-    "evidence": [
-      {
-        "id": "dev-zz-merge-2026-09-30",
-        "type": "merge-status",
-        "date": "2026-09-30",
-        "summary": "通知/设置页面与短信发送基础设施已合入；预约状态消息、安全深链、退订和失败重试闭环仍未完成。",
-        "branches": {
-          "phone": "dev_lirui <- origin/dev_zz",
-          "admin": "dev_lirui <- origin/dev_zz"
-        },
-        "verification": "手机端 Node 258/258、Python 33/33、设计 Token 与 diff 检查通过；管理端 consumer/message 517/517、BFF 验证码链路 17/17 通过；Compose YAML 与环境变量占位语法静态检查通过。",
-        "boundary": "in-progress 不表示完整 MVP 已完成或已经生产发布。",
-        "commits": {
-          "phone": "7af3337",
-          "admin": "5b1cc0d"
-        },
-        "limitations": "本机无 Docker，未运行 docker compose config；供应商原始 API 文档保留行尾空白格式警告。"
-      }
-    ],
-    "commits": {
-      "phone": "7af3337",
-      "admin": "5b1cc0d"
-    },
-    "verified_at": "2026-09-30"
+    "evidence": []
   },
   {
     "id": "SCR-01",
@@ -6716,8 +6555,8 @@
     "output": "isolated real API/DB evidence, versions, auth/scope/route blockers",
     "scope": "docs/migration/integration/real-service-evidence",
     "verify": "执行 data.targeted_tests 中的自动化检查；写回命令、退出码、机器摘要和制品路径。缺失外部配置时使用合成/沙箱夹具，真实写入保持关闭。",
-    "status": "in-progress",
-    "status_source": "dev-zz-merge-2026-09-30",
+    "status": "planned",
+    "status_source": "markdown-dag-import",
     "ingestion_status": "ingested",
     "description": "真实联调 MVP 健康服务与 SCRM 闭环",
     "goal": "isolated real API/DB evidence, versions, auth/scope/route blockers",
@@ -6741,7 +6580,7 @@
       "targeted_tests": "由 agent 自动执行。通过隔离环境 API/UI/contract tests 验证身份授权→健康目录→预约→Wish运营→服务记录/SCRM/服务账闭环、跨站拒绝、双账本边界和失败回滚；商城/我的验证 legacy route continuity。",
       "rollback_or_fallback": "关integration flags；仅清理合成数据",
       "risk_level": "高",
-      "source_status": "进行中（dev_zz 已合并，部分能力已验证）",
+      "source_status": "待实施/未开工",
       "product_alignment": {
         "hierarchy": "健康管理 + SCRM 总体方案 > 客户 APP、疗愈师 APP、前台 PC Web 三端原型 > LangGraph 任务逐域实现与验收。",
         "official_prototypes": [
@@ -6756,7 +6595,7 @@
         "task_scope": "承接健康管理、SCRM、客户侧 mapp 合入、必要平台适配和两站隔离；任务导入、原型和文档不等于正式功能实现。"
       },
       "delivery_wave": "I3-集成与发布",
-      "automated_result": "已完成健康记录基础纵切和认证短信链路的局部真实联调；目录→预约→履约→SCRM→服务账完整 MVP 闭环仍未完成。",
+      "automated_result": "机器可读结果：执行命令、退出码、摘要、测试/构建/契约制品路径及未配置能力的安全降级说明。",
       "prototype_reference": {
         "path": "docs/prototypes/customer-miniapp-prototype.html",
         "screen_keys": [
@@ -6769,30 +6608,7 @@
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
       }
     },
-    "evidence": [
-      {
-        "id": "dev-zz-merge-2026-09-30",
-        "type": "merge-status",
-        "date": "2026-09-30",
-        "summary": "已完成健康记录基础纵切和认证短信链路的局部真实联调；目录→预约→履约→SCRM→服务账完整 MVP 闭环仍未完成。",
-        "branches": {
-          "phone": "dev_lirui <- origin/dev_zz",
-          "admin": "dev_lirui <- origin/dev_zz"
-        },
-        "verification": "手机端 Node 258/258、Python 33/33、设计 Token 与 diff 检查通过；管理端 consumer/message 517/517、BFF 验证码链路 17/17 通过；Compose YAML 与环境变量占位语法静态检查通过。",
-        "boundary": "in-progress 不表示完整 MVP 已完成或已经生产发布。",
-        "commits": {
-          "phone": "7af3337",
-          "admin": "5b1cc0d"
-        },
-        "limitations": "本机无 Docker，未运行 docker compose config；供应商原始 API 文档保留行尾空白格式警告。"
-      }
-    ],
-    "commits": {
-      "phone": "7af3337",
-      "admin": "5b1cc0d"
-    },
-    "verified_at": "2026-09-30"
+    "evidence": []
   },
   {
     "id": "REL-06",
