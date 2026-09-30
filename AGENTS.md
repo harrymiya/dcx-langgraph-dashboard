@@ -7,28 +7,30 @@
 产品架构同时使用四个维度：
 
 1. **领域**：客户档案与授权、健康记录、服务目录与预约、履约/SOP/服务记录、SCRM/回访/触达、健康服务账分别定义边界、聚合和唯一写主；Commerce/MER 独立负责商城事实。
-2. **分层**：客户端页面/状态 → feature/repository → APP BFF 或管理端 BFF → Wish API/application service → DDD domain → repository/UoW/事务 → DB/Outbox/Event → read model/audit。
-3. **纵向闭环**：每个独立模块必须把手机端入口、管理端工作域、API/BFF、DDD、schema/repository/事务、事件/通知、读模型/审计、测试和回退串成一条可独立验收的链。
+2. **分层**：客户 APP 页面/状态 → feature/repository → DFP Wish APP BFF；管理端工作台页面 → DFP Wish Admin BFF；两条渠道均进入同一 Wish API/application service → DDD domain → repository/UoW/事务 → Wish DB/Outbox/Event → read model/audit。BFF 是 DFP Wish 内的渠道适配层，不是独立业务后端。
+3. **纵向闭环**：每个独立模块必须把 APP 手机端入口、管理端工作域、对应 BFF、Wish API/DDD、schema/repository/事务、事件/通知、读模型/审计、测试和回退串成一条可独立验收的链。
 4. **横向集成**：只有纵向模块闭环后，才安排身份授权、tenant/site、客户关系、消息、Commerce 引用、预约—履约—服务账和发布验收等跨域集成。
+
+客户小程序业务并入 APP 手机端。小程序/MAPP 只作为历史迁移来源或短期兼容 adapter；可以保留历史路由、深链、外链的登记与安全回退，不得把它描述成正式业务后端，也不得在其中新增业务能力。新健康/SCRM/预约/履约/服务账业务统一经过 Wish APP BFF/Admin BFF、Wish API/application service 与 DDD 数据层。管理端只是同一套 Wish 后台的运营工作台。Commerce/MER 继续独立维护商城事实，Wish 只通过受控只读引用与之协作。
 
 禁止把任务按“手机端一批、管理端一批、后台一批”拆成无法独立验收的横向孤岛。一个模块可以包含多个 DAG 节点，但节点必须通过依赖把纵向链串起来；跨模块任务只能依赖相关模块闭环完成。
 
 ## 纵向模块任务映射
 
-| 模块 | Wish/API 与数据 | 手机端/客户端 | 管理端 | 后置横向集成 |
+| 模块 | Wish API/DDD 与数据 | APP/BFF | 管理工作台 | 后置横向集成 |
 | --- | --- | --- | --- | --- |
-| 客户档案与授权 | `API-04`、`SCR-01`、`SCR-02`、`DB-05` | `HLT-06`、资料/授权入口 | `WADM-11` | `SEC-*`、`REL-*` |
-| 健康服务与预约 | `API-05`、`API-06`、`DB-04` | `HLT-01`、`HLT-03`、`HLT-04` | `WADM-04`、`WADM-12` | `HLT-07`、通知/发布验收 |
-| 履约与服务记录 | `API-08`、服务记录相关 `SCR-*` | 疗愈师任务/服务记录任务 | `WADM-13` | `REL-*`、审计验收 |
-| SCRM 与客户跟进 | `API-08`、`API-09`、`SCR-03`、`SCR-04`、`SCR-07`、`SCR-08` | 授权后的提醒/状态 | `WADM-05`、`WADM-14` | 消息、通知、回访回归 |
-| 健康服务账 | `API-07`、`SCR-05`、`SCR-06`、`DB-05` | 服务卡/账状态 | `WADM-15` | Commerce 只读引用、对账、发布验收 |
+| 客户档案与授权 | `API-04`、`SCR-01`、`SCR-02`、`DB-05` | `APPBFF-01`、`HLT-06`、资料/授权入口 | `WADM-11` | `SEC-*`、`REL-*` |
+| 健康服务与预约 | `API-05`、`API-06`、`DB-04`、`OPS-01/02/04/05/07` | `APPBFF-01`、`HLT-01`、`HLT-03`、`HLT-04` | `WADM-04`、`WADM-12` | `HLT-07`、通知/发布验收 |
+| 履约与服务记录 | `API-08`、`SCR-03`、`DB-05`、`API-09` | `APPBFF-01`、疗愈师任务/服务记录入口 | `WADM-13` | `REL-*`、审计验收 |
+| SCRM 与客户跟进 | `API-08`、`API-09`、`SCR-01..04`、`SCR-07/08` | `APPBFF-01`、`HLT-07` | `WADM-05`、`WADM-14` | 消息、通知、回访回归 |
+| 健康服务账 | `API-07`、`SCR-05/06`、`DB-05` | `APPBFF-01`、服务卡/账状态入口 | `WADM-15` | Commerce 只读引用、对账、发布验收 |
 | 权限与审计 | `API-03`、`API-10`、`SEC-*` | 客户端只消费授权结果 | `WADM-16` | 全链路拒绝审计、恢复验收 |
 
-映射是架构规划，不构成实现证据。若某模块的客户端、BFF、DDD、数据、事件或测试节点缺失，应新增或调整 `planned` 任务，不能用页面壳、合并提交或单个 BFF 测试替代闭环。
+`APPBFF-01` 是 APP 渠道适配任务，具体拥有 `exts/wish_app/api/` 路由、共享 BFF contract 和 Wish application-service gateway；它不拥有 Wish 领域事实、schema 或 Admin BFF。Admin BFF 和运营工作域由 `WADM-*` 在同一 DFP Wish 服务内实现。映射是架构规划，不构成实现证据。若某模块的客户端、BFF、DDD、数据、事件或测试节点缺失，应新增或调整 `planned` 任务，不能用页面壳、合并提交或单个 BFF 测试替代闭环。
 
 ## 任务字段与状态
 
-每个任务必须有唯一 `id`、目标、范围、`deps`、`delivery_wave`、`target_paths_or_modules`、`file_claims`、`targeted_tests` 和 `rollback_or_fallback`。共享 API 契约、schema、导航和事件 envelope 必须指定唯一写入任务。
+每个任务必须有唯一 `id`、目标、范围、`deps`、`delivery_wave`、`target_paths_or_modules`、`file_claims`、`targeted_tests` 和 `rollback_or_fallback`。共享 API 契约、schema、导航和事件 envelope 必须指定唯一写入任务。`deps` 是 DAG 唯一依赖源；如保留 `data.depends_on` 展示字段，必须与 `deps` 完全一致，不得用 `ROOT` 等未知哨兵代替空依赖。
 
 所有新增设计任务默认 `planned`。没有任务级 owner、领取记录、commit、自动化测试命令与退出码、制品路径和验收结果，不得标记 `in-progress` 或 `done`。`merge-status` 只能证明合并发生，不能证明业务任务完成。
 
@@ -40,7 +42,7 @@
 - 管理端订单、消息/广播、协议/同意、合规、App 发布、运营成员和用户查询是既有兼容能力，保留并做回归保护。
 - 健康预约的目录、容量、房间/设备/服务角色可用性、资源冲突和候补属于主线履约约束；不因此建设员工排班、班次、请假、调班或员工日历。
 - 员工排班管理、物料/库存/仓库、绩效/提成、日常运营 KPI、收银工作台和商户经营管理排除在本期任务图之外。
-- 手机端总体方案是架构上位基线；DAG 是其子集。小程序仅作为历史迁移来源、legacy 复用和配置边界，不作为本阶段目标设计层。
+- 手机端总体方案是架构上位基线；客户小程序业务合入 APP。小程序/MAPP 仅作为历史迁移来源、短期兼容 adapter 和外链配置边界，不作为本阶段目标设计层或正式业务后端。
 
 ## 验收规则
 

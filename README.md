@@ -9,7 +9,7 @@
 - 开发环境通过 Vite /langgraph 代理访问项目内的 http://127.0.0.1:8123
 - 开发/预览环境通过 Vite /api/agents/launch 在本机打开 Konsole，并在所选工作目录启动 Agent CLI
 
-当前项目内置 141 个业务节点（95 个 MVP 必须、46 个 MVP 后续）；LangGraph API 会额外返回 `__start__`、`__end__`
+当前项目内置 142 个业务节点（96 个 MVP 必须、46 个 MVP 后续）；LangGraph API 会额外返回 `__start__`、`__end__`
 两个控制节点。页面会根据接口响应实时计算数量。
 
 ![Refactor Control Room 演示](docs/demo.png)
