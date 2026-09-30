@@ -500,7 +500,7 @@ function evidenceSyncPlugin(): Plugin {
 }
 
 export default defineConfig({
-  plugins: [react(), projectApiPlugin(), agentLauncherPlugin(), evidenceSyncPlugin(), terminalPlugin()],
+  plugins: [react(), projectApiPlugin(), taskApiPlugin(), agentLauncherPlugin(), evidenceSyncPlugin(), terminalPlugin()],
   server: {
     host: "0.0.0.0",
     port: frontendPort,
