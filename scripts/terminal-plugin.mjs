@@ -1,13 +1,15 @@
-import { existsSync } from "node:fs";
+import { existsSync, statSync } from "node:fs";
 import { resolve } from "node:path";
+import { expandHome } from "./agent-workspaces.mjs";
 
 /**
  * terminalPlugin — 页内多 Tab 命令行的 PTY 后端（成熟方案：node-pty + ws + xterm.js）。
  *
  * - 仅监听 127.0.0.1 的 Vite dev/preview 服务，前端通过相对路径连接，
  *   不暴露新端口：ws(s)://<host>/terminal-ws?cwd=APP18&cols=120&rows=30
- * - cwd 白名单：APP18/APP19/APP20（见 scripts/agent-workspaces.mjs）+ 本仓库根目录。
- *   传绝对路径时必须落在白名单目录内，防止任意目录执行。
+ * - cwd 不做目录白名单：预设名 APP18/APP19/APP20（见 scripts/agent-workspaces.mjs）
+ *   会被展开成对应路径，其他输入按路径处理（绝对路径直接用，相对路径相对仓库根目录，
+ *   支持 ~ 开头）。只有“目录不存在/不是目录”才会拒绝。
  * - 每个 WS 连接对应一个 /bin/bash PTY；WS 关闭即 kill PTY；PTY 退出即通知前端。
  *
  * 简洁 JSON 协议（文本帧）：
@@ -29,21 +31,22 @@ function clampInt(value, fallback, min, max) {
   return Math.min(max, Math.max(min, number));
 }
 
+function isDirectory(dir) {
+  try {
+    return statSync(dir).isDirectory();
+  } catch {
+    return false;
+  }
+}
+
 export function resolveTerminalCwd(raw, agentWorkspaces, dashboardRoot) {
-  const allowed = [
-    ...Object.values(agentWorkspaces),
-    dashboardRoot,
-  ].map((dir) => resolve(dir));
-  if (typeof raw !== "string" || !raw.trim()) return allowed[0];
+  const fallback = resolve(Object.values(agentWorkspaces)[0] ?? dashboardRoot);
+  if (typeof raw !== "string" || !raw.trim()) return fallback;
   const key = raw.trim();
   if (Object.prototype.hasOwnProperty.call(agentWorkspaces, key)) {
     return resolve(agentWorkspaces[key]);
   }
-  const candidate = resolve(dashboardRoot, key);
-  if (allowed.some((dir) => candidate === dir || candidate.startsWith(dir + "/"))) {
-    return candidate;
-  }
-  return null;
+  return resolve(dashboardRoot, expandHome(key));
 }
 
 export function terminalPlugin() {
@@ -107,8 +110,8 @@ export function terminalPlugin() {
       }
       const params = url.searchParams;
       const cwd = resolveTerminalCwd(params.get("cwd"), agentWorkspaces, dashboardRoot);
-      if (!cwd || !existsSync(cwd)) {
-        ws.send(JSON.stringify({ type: "error", message: "工作目录不在 APP18/APP19/APP20 白名单中或不存在" }));
+      if (!isDirectory(cwd)) {
+        ws.send(JSON.stringify({ type: "error", message: `工作目录不存在或不是目录：${cwd}` }));
         ws.close(1008, "invalid cwd");
         return;
       }

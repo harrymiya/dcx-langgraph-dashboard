@@ -21,7 +21,19 @@ import {
 } from "lucide-react";
 import type { AgentKind } from "./types";
 
-export type TerminalWorkspace = "APP18" | "APP19" | "APP20";
+// 工作目录不再限制白名单：预设名与任意绝对/相对路径都可以。
+export type TerminalWorkspace = string;
+
+// 常用目录快捷方式，仅作为输入提示（datalist），不做限制。
+const WORKSPACE_PRESETS = ["APP18", "APP19", "APP20"];
+
+function workspaceLabel(workspace: string): string {
+  const trimmed = workspace.trim();
+  if (!trimmed) return "默认";
+  if (WORKSPACE_PRESETS.includes(trimmed)) return trimmed;
+  const segments = trimmed.replace(/[/\\]+$/, "").split(/[/\\]/);
+  return segments[segments.length - 1] || trimmed;
+}
 
 export interface OpenAgentTerminalRequest {
   agent: AgentKind;
@@ -108,7 +120,7 @@ function loadHeight(): number {
 
 function terminalWsUrl(workspace: TerminalWorkspace): string {
   const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-  return `${protocol}//${window.location.host}/terminal-ws?cwd=${workspace}&cols=120&rows=30`;
+  return `${protocol}//${window.location.host}/terminal-ws?cwd=${encodeURIComponent(workspace)}&cols=120&rows=30`;
 }
 
 const XTERM_THEMES = {
@@ -202,7 +214,7 @@ function TerminalView({ tab, active, theme, onStatus, registerTerm }: TerminalVi
       resizeTimer = window.setTimeout(sendResize, 120);
     };
 
-    term.writeln(`\x1b[90m[连接 ${tab.workspace} 中…]\x1b[0m`);
+    term.writeln(`\x1b[90m[连接 ${workspaceLabel(tab.workspace)} 中…]\x1b[0m`);
     onStatus(tab.id, "connecting");
     try {
       socket = new WebSocket(terminalWsUrl(tab.workspace));
@@ -320,7 +332,7 @@ const TerminalPanel = forwardRef<TerminalPanelHandle, TerminalPanelProps>(functi
   const [tabs, setTabs] = useState<TerminalTab[]>(() => [
     {
       id: nextTabId("shell"),
-      title: `shell·${defaultWorkspace}`,
+      title: `shell·${workspaceLabel(defaultWorkspace)}`,
       workspace: defaultWorkspace,
       agent: null,
       taskId: null,
@@ -390,7 +402,7 @@ const TerminalPanel = forwardRef<TerminalPanelHandle, TerminalPanelProps>(functi
       const id = nextTabId("shell");
       return appendTab({
         id,
-        title: `shell·${target}`,
+        title: `shell·${workspaceLabel(target)}`,
         workspace: target,
         agent: null,
         taskId: null,
@@ -521,13 +533,26 @@ const TerminalPanel = forwardRef<TerminalPanelHandle, TerminalPanelProps>(functi
           ))}
         </div>
         <label className="terminal-workspace">
-          <select value={newWorkspace} onChange={(event) => setNewWorkspace(event.target.value as TerminalWorkspace)} aria-label="新终端工作目录">
-            <option value="APP18">APP18</option>
-            <option value="APP19">APP19</option>
-            <option value="APP20">APP20</option>
-          </select>
+          <input
+            list="terminal-workspace-presets"
+            value={newWorkspace}
+            onChange={(event) => setNewWorkspace(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key !== "Enter") return;
+              event.preventDefault();
+              openShell(newWorkspace);
+            }}
+            placeholder="任意目录，如 ~/code/foo"
+            aria-label="新终端工作目录"
+            spellCheck={false}
+          />
+          <datalist id="terminal-workspace-presets">
+            {WORKSPACE_PRESETS.map((preset) => (
+              <option key={preset} value={preset} />
+            ))}
+          </datalist>
         </label>
-        <button type="button" className="terminal-new" onClick={() => openShell(newWorkspace)} title={`在 ${newWorkspace} 新开终端`}>
+        <button type="button" className="terminal-new" onClick={() => openShell(newWorkspace)} title={`在 ${newWorkspace || "默认目录"} 新开终端`}>
           <Plus size={14} />
           新终端
         </button>

@@ -59,6 +59,7 @@ interface AgentBoardProps {
   onProjectsChange?: (projects: Project[]) => void;
 }
 
+// 常用目录预设，仅作为输入快捷方式；工作目录本身不限制白名单。
 const WORKSPACE_OPTIONS: AgentWorkspace[] = ["APP18", "APP19", "APP20"];
 
 function formatTrashTime(value?: string) {
@@ -354,10 +355,17 @@ export default function AgentBoard({
           <label>描述
             <input value={newDescription} onChange={(event) => setNewDescription(event.target.value)} placeholder="可选，一句话说明用途" />
           </label>
-          <label>白名单工作区
-            <select value={newWorkspace} onChange={(event) => setNewWorkspace(event.target.value as AgentWorkspace)}>
-              {WORKSPACE_OPTIONS.map((workspace) => <option key={workspace} value={workspace}>{workspace}</option>)}
-            </select>
+          <label>工作目录
+            <input
+              list="project-workspace-presets"
+              value={newWorkspace}
+              onChange={(event) => setNewWorkspace(event.target.value)}
+              placeholder="任意目录，如 ~/code/foo"
+              spellCheck={false}
+            />
+            <datalist id="project-workspace-presets">
+              {WORKSPACE_OPTIONS.map((workspace) => <option key={workspace} value={workspace} />)}
+            </datalist>
           </label>
           <div className="project-create-actions">
             <button type="button" className="project-btn primary" disabled={creating} onClick={() => void handleCreate()}>

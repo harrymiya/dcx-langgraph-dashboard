@@ -202,7 +202,7 @@ function createAgentLauncherMiddleware() {
       }
       const agentWorkspace = resolveAgentWorkspace(payload.workspace);
       if (!agentWorkspace) {
-        jsonResponse(response, 400, { error: "工作项目不在 APP18/APP19/APP20 白名单中" });
+        jsonResponse(response, 400, { error: "工作目录无效" });
         return;
       }
       if (!existsSync(agentWorkspace)) {

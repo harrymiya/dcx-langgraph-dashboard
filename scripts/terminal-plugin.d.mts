@@ -4,6 +4,6 @@ export function resolveTerminalCwd(
   raw: unknown,
   agentWorkspaces: Record<string, string>,
   dashboardRoot: string,
-): string | null;
+): string;
 
 export function terminalPlugin(): Plugin;

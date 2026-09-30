@@ -71,11 +71,18 @@ const AGENT_META: Record<AgentKind, { label: string; hint: string }> = {
   codex: { label: "Codex", hint: "适合带门禁验证完成实现" },
 };
 
-const AGENT_WORKSPACE_META: Record<AgentWorkspace, { label: string; path: string }> = {
-  APP18: { label: "APP18", path: "/mnt/data/code/dcx-web/dcx-web" },
-  APP19: { label: "APP19", path: "/mnt/data/code/dcx/dcx-web" },
-  APP20: { label: "APP20", path: "/mnt/data/code/well-log-platform" },
+// 常用目录预设，仅作为输入快捷方式；工作目录本身不限制白名单。
+const AGENT_WORKSPACE_PRESETS: Record<string, string> = {
+  APP18: "/mnt/data/code/dcx-web/dcx-web",
+  APP19: "/mnt/data/code/dcx/dcx-web",
+  APP20: "/mnt/data/code/well-log-platform",
 };
+
+function resolveWorkspaceInput(value: string): string {
+  const trimmed = value.trim();
+  if (!trimmed) return "APP18";
+  return AGENT_WORKSPACE_PRESETS[trimmed] ?? trimmed;
+}
 
 function inferAgentWorkspace(task: DagTask): AgentWorkspace {
   if (task.project?.includes("APP19")) return "APP19";
@@ -1089,7 +1096,7 @@ export default function App() {
   const projectWorkspace = selectedProject?.workspace;
   const selectedWorkspace = selectedTask
     ? workspaceByTask[selectedTask.id] ?? inferAgentWorkspace(selectedTask)
-    : (projectWorkspace === "APP19" || projectWorkspace === "APP20" ? projectWorkspace : "APP18");
+    : (projectWorkspace?.trim() || "APP18");
 
   useEffect(() => {
     if (!selectedTask || !selectedAgent) {
@@ -1153,7 +1160,7 @@ export default function App() {
 
   const selectWorkspace = (workspace: AgentWorkspace) => {
     if (!selectedTask || launchingAgent) return;
-    setWorkspaceByTask((current) => ({ ...current, [selectedTask.id]: workspace }));
+    setWorkspaceByTask((current) => ({ ...current, [selectedTask.id]: resolveWorkspaceInput(workspace) }));
   };
 
   const buildInjectedPrompt = () => {
@@ -1571,22 +1578,24 @@ export default function App() {
                   选择处理 Agent / 工作项目 <span>3</span>
                 </div>
                 <div className="agent-workspace-row">
-                  <label htmlFor="agent-workspace-select">白名单项目</label>
-                  <select
+                  <label htmlFor="agent-workspace-select">工作目录</label>
+                  <input
                     id="agent-workspace-select"
+                    list="agent-workspace-presets"
                     value={selectedWorkspace}
-                    onChange={(event) => selectWorkspace(event.target.value as AgentWorkspace)}
+                    onChange={(event) => selectWorkspace(event.target.value)}
                     disabled={launchingAgent !== null}
-                  >
-                    {(Object.keys(AGENT_WORKSPACE_META) as AgentWorkspace[]).map((workspace) => (
-                      <option key={workspace} value={workspace}>
-                        {AGENT_WORKSPACE_META[workspace].label}
-                      </option>
+                    placeholder="任意目录，如 ~/code/foo"
+                    spellCheck={false}
+                  />
+                  <datalist id="agent-workspace-presets">
+                    {Object.keys(AGENT_WORKSPACE_PRESETS).map((preset) => (
+                      <option key={preset} value={preset} />
                     ))}
-                  </select>
+                  </datalist>
                 </div>
                 <p className="agent-note workspace-note">
-                  仅允许 APP18、APP19、APP20 白名单目录；当前路径：{AGENT_WORKSPACE_META[selectedWorkspace].path}
+                  不限制白名单，可填任意绝对/相对路径；当前工作目录：{resolveWorkspaceInput(selectedWorkspace)}
                 </p>
                 <div className="agent-options" role="radiogroup" aria-label="选择处理 Agent">
                   {(Object.keys(AGENT_META) as AgentKind[]).map((kind) => (

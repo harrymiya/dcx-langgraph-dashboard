@@ -1268,7 +1268,7 @@ button {
   font-weight: 700;
 }
 
-.agent-workspace-row select {
+.agent-workspace-row input {
   min-width: 0;
   height: 31px;
   padding: 0 8px;
@@ -1280,7 +1280,7 @@ button {
   outline: 0;
 }
 
-.agent-workspace-row select:focus {
+.agent-workspace-row input:focus {
   border-color: rgba(103, 232, 249, 0.5);
   box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.08);
 }
@@ -2013,7 +2013,7 @@ body[data-theme="light"] .agent-workspace-row label {
   color: #0e7490;
 }
 
-body[data-theme="light"] .agent-workspace-row select {
+body[data-theme="light"] .agent-workspace-row input {
   color: #334155;
   background: rgba(241, 245, 249, 0.78);
   border-color: rgba(100, 116, 139, 0.2);
@@ -2277,7 +2277,8 @@ body[data-theme="light"] .agent-empty {
   background: rgba(239, 68, 68, 0.16);
 }
 
-.terminal-workspace select {
+.terminal-workspace input {
+  width: 168px;
   height: 26px;
   padding: 0 6px;
   color: #cbd5e1;
@@ -2288,9 +2289,8 @@ body[data-theme="light"] .agent-empty {
   outline: 0;
 }
 
-.terminal-workspace select option {
-  background: #0f172a;
-  color: #e2e8f0;
+.terminal-workspace input:focus {
+  border-color: rgba(103, 232, 249, 0.5);
 }
 
 .terminal-new {
@@ -2395,15 +2395,10 @@ body[data-theme="light"] .terminal-tab.active {
   border-color: rgba(14, 165, 233, 0.35);
 }
 
-body[data-theme="light"] .terminal-workspace select {
+body[data-theme="light"] .terminal-workspace input {
   color: #334155;
   background: rgba(255, 255, 255, 0.8);
   border-color: rgba(100, 116, 139, 0.25);
-}
-
-body[data-theme="light"] .terminal-workspace select option {
-  background: #ffffff;
-  color: #1e293b;
 }
 
 body[data-theme="light"] .terminal-body {

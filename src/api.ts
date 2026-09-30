@@ -260,7 +260,8 @@ export interface AgentLaunchResponse {
   message?: string;
 }
 
-export type AgentWorkspace = "APP18" | "APP19" | "APP20";
+// 工作目录不再限制白名单：预设名（APP18/APP19/APP20）与任意绝对/相对路径都可以。
+export type AgentWorkspace = string;
 
 export function launchAgent(payload: AgentLaunchRequest): Promise<AgentLaunchResponse> {
   return requestLocal<AgentLaunchResponse>("/api/agents/launch", {

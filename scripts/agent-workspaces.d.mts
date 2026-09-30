@@ -6,4 +6,6 @@ export const AGENT_WORKSPACES: Readonly<{
 
 export type AgentWorkspace = keyof typeof AGENT_WORKSPACES;
 
+export function expandHome(input: string): string;
+
 export function resolveAgentWorkspace(value?: unknown): string | undefined;
