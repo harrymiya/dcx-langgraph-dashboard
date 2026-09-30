@@ -44,13 +44,30 @@ export function taskMatchesFilter(
   const normalizedQuery = query.trim().toLowerCase();
   const queryMatch =
     normalizedQuery.length === 0 ||
-    [task.id, task.label, task.group, task.type, JSON.stringify(task.data)]
-      .join(" ")
-      .toLowerCase()
-      .includes(normalizedQuery);
+    buildTaskHaystack(task).includes(normalizedQuery);
   const statusMatch =
     filter === "all" ||
     task.status === filter;
+  return queryMatch && statusMatch;
+}
+
+// 检索索引：136 个节点的 data 字段不小，每次按键都 JSON.stringify 全量扫描
+// 会让输入法级卡顿。tasks 变化时预计算一次小写 haystack，过滤只做 includes。
+export function buildTaskHaystack(task: DagTask): string {
+  return [task.id, task.label, task.group, task.type, JSON.stringify(task.data)]
+    .join(" ")
+    .toLowerCase();
+}
+
+export function taskMatchesFilterWithHaystack(
+  task: DagTask,
+  haystack: string,
+  query: string,
+  filter: TaskFilter,
+): boolean {
+  const normalizedQuery = query.trim().toLowerCase();
+  const queryMatch = normalizedQuery.length === 0 || haystack.includes(normalizedQuery);
+  const statusMatch = filter === "all" || task.status === filter;
   return queryMatch && statusMatch;
 }
 

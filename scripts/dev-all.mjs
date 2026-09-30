@@ -13,7 +13,7 @@ const isWindows = process.platform === "win32";
 const executableSuffix = isWindows ? ".cmd" : "";
 const pythonInVenv = join(virtualEnvironment, isWindows ? "Scripts" : "bin", "python" + (isWindows ? ".exe" : ""));
 const langgraphInVenv = join(virtualEnvironment, isWindows ? "Scripts" : "bin", "langgraph" + executableSuffix);
-const frontendPort = process.env.FRONTEND_PORT ?? "5175";
+const frontendPort = process.env.FRONTEND_PORT ?? "5171";
 const backendPort = process.env.LANGGRAPH_PORT ?? "8123";
 const agentBoardPort = process.env.AGENTBOARD_PORT ?? "8710";
 
@@ -99,7 +99,7 @@ function ensureLangGraph() {
     : null;
   if (configured) return configured;
 
-  if (existsSync(langgraphInVenv)) return langgraphInVenv;
+  if (existsSync(langgraphInVenv) && existsSync(pythonInVenv)) return langgraphInVenv;
 
   const systemLangGraph = findExecutable("langgraph");
   if (systemLangGraph) return systemLangGraph;
@@ -173,6 +173,7 @@ async function main() {
     // AGENTBOARD_PORT 会导致自定义端口时前端仍代理到默认 8710。
     AGENTBOARD_PORT: agentBoardPort,
     AGENTBOARD_API_URL: process.env.AGENTBOARD_API_URL ?? `http://127.0.0.1:${agentBoardPort}`,
+    PROJECT_RUNTIME_ROOT: process.env.PROJECT_RUNTIME_ROOT ?? join(backendRoot, ".project-runtime"),
     PYTHONUNBUFFERED: "1",
   };
 

@@ -31,6 +31,7 @@ import {
   checkBackend,
   displayApiUrl,
   launchAgent,
+  listProjects,
   loadGraphDefinition,
   runLangGraph,
   syncTaskEvidence,
@@ -39,10 +40,11 @@ import type { AgentWorkspace, EvidenceReadyStatus } from "./api";
 import AgentBoard, { type Agent, type AgentBoardSnapshot } from "./AgentBoard";
 import TerminalPanel, { type TerminalPanelHandle } from "./TerminalPanel";
 import {
+  buildTaskHaystack,
   groupForNode,
   relatedTaskIds,
   STATUS_META,
-  taskMatchesFilter,
+  taskMatchesFilterWithHaystack,
   WORKFLOW_STATUSES,
 } from "./graph";
 import type { TaskFilter } from "./graph";
@@ -56,6 +58,7 @@ import type {
   GraphNode,
   LiveTaskRecord,
   AgentKind,
+  Project,
 } from "./types";
 
 type Theme = "dark" | "light";
@@ -483,17 +486,27 @@ function DagCanvas({
     height: layout.height,
     transform: "scale(" + scale + ")",
   };
+  // layout/scale 用 ref 承接：自动滚动只应在 selectedId 变化（用户点击/搜索导航）
+  // 时触发。之前 deps 是 [layout, selectedId]，而 layout 每次同步任务都会重建，
+  // 导致每 10s 无故 smooth 滚动一次，画布乱跳且浪费主线程。
+  const layoutRef = useRef(layout);
+  layoutRef.current = layout;
+  const scaleRef = useRef(scale);
+  scaleRef.current = scale;
 
   useEffect(() => {
     if (!selectedId) return;
-    const position = layout.positions.get(selectedId);
-    const viewport = viewportRef.current;
-    if (!position || !viewport) return;
+    const targetId = selectedId;
 
     // 选中节点后把它移到视口中央，筛选结果位于画布较远处时也能直接看到。
     const frame = window.requestAnimationFrame(() => {
-      const nodeCenterX = (position.x + position.width / 2) * scale;
-      const nodeCenterY = (position.y + position.height / 2) * scale;
+      const currentLayout = layoutRef.current;
+      const currentScale = scaleRef.current;
+      const position = currentLayout.positions.get(targetId);
+      const viewport = viewportRef.current;
+      if (!position || !viewport) return;
+      const nodeCenterX = (position.x + position.width / 2) * currentScale;
+      const nodeCenterY = (position.y + position.height / 2) * currentScale;
       viewport.scrollTo({
         left: nodeCenterX - viewport.clientWidth / 2,
         top: nodeCenterY - viewport.clientHeight / 2,
@@ -502,7 +515,7 @@ function DagCanvas({
     });
 
     return () => window.cancelAnimationFrame(frame);
-  }, [layout, selectedId]);
+  }, [selectedId]);
 
   const handleWheel = useCallback((event: globalThis.WheelEvent) => {
     // 画布内滚轮直接缩放；阻止默认滚动，确保只改变 DAG 画布的 scale。
@@ -720,8 +733,12 @@ function EmptyState({ message }: { message: string }) {
 
 function AgentDagLinks({ agents, taskVersion, bindings }: { agents: Agent[]; taskVersion: string; bindings: Record<string, string> }) {
   const [lines, setLines] = useState<Array<{ id: string; x1: number; y1: number; x2: number; y2: number }>>([]);
+  // 上一次提交的签名：DOM 测量结果不变时不 setState，阻断“测量→渲染→测量”循环。
+  const linesSignatureRef = useRef("");
   useEffect(() => {
-    const update = () => {
+    let disposed = false;
+    let frame = 0;
+    const compute = () => {
       const workspace = document.querySelector<HTMLElement>(".workspace-linked");
       if (!workspace) return;
       const root = workspace.getBoundingClientRect();
@@ -757,32 +774,66 @@ function AgentDagLinks({ agents, taskVersion, bindings }: { agents: Agent[]; tas
         if (!target || !source) return [];
         const from = source.getBoundingClientRect();
         const to = target.getBoundingClientRect();
-        let x2 = to.left - root.left;
-        let y2 = to.top + to.height / 2 - root.top;
+        // 坐标取整：亚像素抖动（缩放/滚动过渡帧）会让每次测量都产生新数组，
+        // 导致每秒无意义重渲染；取整后静止状态签名稳定，直接跳过 setState。
+        let x2 = Math.round(to.left - root.left);
+        let y2 = Math.round(to.top + to.height / 2 - root.top);
         if (hasViewport && (x2 < borderLeft || x2 > borderRight || y2 < borderTop || y2 > borderBottom)) {
-          x2 = Math.min(Math.max(x2, borderLeft), borderRight);
-          y2 = Math.min(Math.max(y2, borderTop), borderBottom);
+          x2 = Math.round(Math.min(Math.max(x2, borderLeft), borderRight));
+          y2 = Math.round(Math.min(Math.max(y2, borderTop), borderBottom));
         }
-        return [{ id: String(agent.agent), x1: from.right - root.left, y1: from.top + from.height / 2 - root.top, x2, y2 }];
+        return [{
+          id: String(agent.agent),
+          x1: Math.round(from.right - root.left),
+          y1: Math.round(from.top + from.height / 2 - root.top),
+          x2,
+          y2,
+        }];
       });
-      setLines(next);
+      // JSON 签名比对：静止时跳过 setState，避免叠加在 CSS 虚线动画上的持续重排。
+      const signature = JSON.stringify(next);
+      if (signature !== linesSignatureRef.current) {
+        linesSignatureRef.current = signature;
+        setLines(next);
+      }
     };
-    update();
-    const observer = new ResizeObserver(update);
+    // rAF 合流：wheel 缩放/滚动/窗口 resize 会高频触发，收敛到一帧一次测量。
+    // 之前是同步测量 + 全文档 capture 期 scroll 监听（含终端滚动），主线程直接被打满。
+    const schedule = () => {
+      if (frame) return;
+      frame = window.requestAnimationFrame(() => {
+        frame = 0;
+        if (!disposed) compute();
+      });
+    };
+    schedule();
     const workspace = document.querySelector<HTMLElement>(".workspace-linked");
+    const observer = new ResizeObserver(schedule);
     if (workspace) observer.observe(workspace);
     const viewport = workspace?.querySelector<HTMLElement>(".canvas-scroll");
-    if (viewport) observer.observe(viewport);
-    const handleViewportScroll = () => update();
+    const handleViewportScroll = () => schedule();
     viewport?.addEventListener("scroll", handleViewportScroll, { passive: true });
-    window.addEventListener("resize", update);
-    window.addEventListener("scroll", update, true);
-    return () => { observer.disconnect(); viewport?.removeEventListener("scroll", handleViewportScroll); window.removeEventListener("resize", update); window.removeEventListener("scroll", update, true); };
+    window.addEventListener("resize", schedule);
+    return () => {
+      disposed = true;
+      if (frame) window.cancelAnimationFrame(frame);
+      observer.disconnect();
+      viewport?.removeEventListener("scroll", handleViewportScroll);
+      window.removeEventListener("resize", schedule);
+    };
   }, [agents, taskVersion, bindings]);
   return <svg className="agent-dag-links" aria-hidden="true"><defs><marker id="agent-link-arrow" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0,0 L7,3.5 L0,7" /></marker></defs>{lines.map((line) => { const bend = Math.max(24, (line.x2 - line.x1) * .35); return <path key={line.id} d={`M ${line.x1} ${line.y1} C ${line.x1 + bend} ${line.y1}, ${line.x2 - bend} ${line.y2}, ${line.x2} ${line.y2}`} />; })}</svg>;
 }
 
 export default function App() {
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [selectedProjectId, setSelectedProjectId] = useState(() => {
+    try {
+      return localStorage.getItem("refactor-control-room-project") ?? "default";
+    } catch {
+      return "default";
+    }
+  });
   const [tasks, setTasks] = useState<DagTask[]>([]);
   const [edges, setEdges] = useState<GraphEdge[]>([]);
   const [backend, setBackend] = useState<BackendStatus>({
@@ -794,6 +845,23 @@ export default function App() {
   const [filter, setFilter] = useState<TaskFilter>("all");
   const [query, setQuery] = useState("");
   const [scale, setScale] = useState(0.82);
+  // 滚轮缩放节流：一次 wheel 手势产生几十个事件，直接 setScale 会连带
+  // AgentDagLinks 做几十次全量 DOM 测量。用 rAF 把一帧内的请求合并为最后一次。
+  const scaleFrameRef = useRef(0);
+  const pendingScaleRef = useRef<number | null>(null);
+  const handleZoom = useCallback((nextScale: number) => {
+    pendingScaleRef.current = clampScale(nextScale);
+    if (scaleFrameRef.current) return;
+    scaleFrameRef.current = window.requestAnimationFrame(() => {
+      scaleFrameRef.current = 0;
+      const next = pendingScaleRef.current;
+      pendingScaleRef.current = null;
+      if (next != null) setScale(next);
+    });
+  }, []);
+  useEffect(() => () => {
+    if (scaleFrameRef.current) window.cancelAnimationFrame(scaleFrameRef.current);
+  }, []);
   const [isLoading, setIsLoading] = useState(true);
   const [isRunning, setIsRunning] = useState(false);
   const [error, setError] = useState("");
@@ -829,11 +897,94 @@ export default function App() {
     localStorage.setItem("refactor-control-room-theme", theme);
   }, [theme]);
 
-  const refresh = useCallback(async () => {
+  const isActiveProject = (project: Project) => project.status === "active";
+
+  useEffect(() => {
+    let active = true;
+    void listProjects()
+      .then((nextProjects) => {
+        if (!active) return;
+        setProjects(nextProjects);
+        // 回收站兼容：archived/trashed 都视为已删除，不可作为当前 DAG 上下文。
+        if (!nextProjects.some((project) => project.id === selectedProjectId && isActiveProject(project))) {
+          setSelectedProjectId(nextProjects.find((project) => isActiveProject(project))?.id ?? "default");
+        }
+      })
+      .catch((loadError) => {
+        if (active) setError(loadError instanceof Error ? loadError.message : "项目列表加载失败");
+      });
+    return () => { active = false; };
+  }, [selectedProjectId]);
+
+  const handleProjectsChange = useCallback((nextProjects: Project[]) => {
+    setProjects(nextProjects);
+  }, []);
+
+  const selectedProject = projects.find((project) => project.id === selectedProjectId) ?? null;
+
+  const selectProject = (projectId: string) => {
+    setSelectedProjectId(projectId);
+    setSelectedId(null);
+    setQuery("");
+    setFilter("all");
+    try {
+      localStorage.setItem("refactor-control-room-project", projectId);
+    } catch {
+      // Storage disabled: keep the selection for the current session.
+    }
+  };
+
+  // 稳定回调：AgentBoard 侧已用 ref 承接（effect 不再依赖引用身份），这里再用
+  // useCallback 固定引用。绑定推导需要读最新 pending/bindings，用 ref 镜像
+  // 避免闭包过期或在 updater 里嵌套 setState。
+  const pendingAgentTasksRef = useRef<string[]>([]);
+  pendingAgentTasksRef.current = pendingAgentTasks;
+  const agentBindingsRef = useRef<Record<string, string>>({});
+  agentBindingsRef.current = agentBindings;
+  const handleAgentsChange = useCallback((agents: AgentBoardSnapshot) => {
+    setAgentSnapshot(agents);
+    const boundTaskIds = new Set(Object.values(agentBindingsRef.current));
+    const pending = pendingAgentTasksRef.current.filter((taskId) => !boundTaskIds.has(taskId));
+    if (!pending.length) return;
+    const next = { ...agentBindingsRef.current };
+    const unbound = agents.filter((agent) => !next[String(agent.agent ?? "")]);
+    // 每个 agent 只序列化一次；之前是 pending × unbound 双重循环里重复 stringify。
+    const haystacks = unbound.map(
+      (agent) => [agent, JSON.stringify(agent).toLowerCase()] as const,
+    );
+    pending.forEach((taskId) => {
+      const needle = taskId.toLowerCase();
+      const match = haystacks.find(([, text]) => text.includes(needle));
+      if (match?.[0]?.agent) next[String(match[0].agent)] = taskId;
+    });
+    if (Object.keys(next).length !== Object.keys(agentBindingsRef.current).length) {
+      setAgentBindings(next);
+    }
+  }, []);
+
+  // refresh 并发控制：runs/wait 是服务端长轮询，一次可能跑十几秒。
+  // 之前每 10s 无条件开新请求，慢请求会堆成多个 in-flight（每个都抱着 136 节点的
+  // 大 JSON），内存和连接一起涨，最终把标签页拖崩。这里做到：慢请求未归时跳过
+  // 本轮；手动/切换项目时强制刷新并中止上一轮。
+  const refreshInFlightRef = useRef(false);
+  const refreshAbortRef = useRef<AbortController | null>(null);
+  const lastGraphPayloadRef = useRef("");
+
+  const refresh = useCallback(async (options?: { force?: boolean }) => {
+    const force = options?.force ?? false;
+    if (document.hidden && !force) return;
+    if (refreshInFlightRef.current) {
+      if (!force) return;
+      refreshAbortRef.current?.abort();
+    }
+    const controller = new AbortController();
+    refreshAbortRef.current = controller;
+    refreshInFlightRef.current = true;
     setError("");
     setIsRunning(true);
     try {
-      const backendStatus = await checkBackend();
+      const backendStatus = await checkBackend(controller.signal);
+      if (controller.signal.aborted) return;
       setBackend(backendStatus);
       if (!backendStatus.connected || !backendStatus.assistantId) {
         throw new Error(backendStatus.error ?? "LangGraph 服务不可用");
@@ -843,44 +994,87 @@ export default function App() {
         assistant_id: backendStatus.assistantId,
         graph_id: backendStatus.graphId ?? "refactor_dag",
       };
-      setAssistant(currentAssistant);
+      setAssistant((current) =>
+        current?.assistant_id === currentAssistant.assistant_id && current?.graph_id === currentAssistant.graph_id
+          ? current
+          : currentAssistant,
+      );
 
-      const definition = await loadGraphDefinition(currentAssistant.assistant_id);
-      setEdges(definition.edges);
+      const definition = await loadGraphDefinition(currentAssistant.assistant_id, controller.signal);
+      if (controller.signal.aborted) return;
 
       let liveRecords: LiveTaskRecord[] = [];
       try {
-        liveRecords = await runLangGraph(currentAssistant.assistant_id);
+        liveRecords = await runLangGraph(currentAssistant.assistant_id, selectedProjectId, controller.signal);
       } catch (runError) {
+        if (controller.signal.aborted) return;
         setError(
           "图结构已从 LangGraph 加载，但本次运行状态同步失败：" +
             (runError instanceof Error ? runError.message : "未知错误"),
         );
       }
+      if (controller.signal.aborted) return;
 
-      setTasks(materializeTasks(definition, liveRecords));
+      // 载荷无变化时复用旧引用：否则每次轮询都重建 136 个任务对象，
+      // DagCanvas 重排布局、AgentDagLinks 全量 DOM 测量，稳态下也在空转烧 CPU。
+      const payloadSignature = JSON.stringify({
+        edges: definition.edges,
+        live: liveRecords,
+        assistant: currentAssistant,
+      });
+      if (payloadSignature !== lastGraphPayloadRef.current) {
+        lastGraphPayloadRef.current = payloadSignature;
+        setEdges(definition.edges);
+        setTasks(materializeTasks(definition, liveRecords));
+      }
       setLastSync(new Date().toISOString());
     } catch (loadError) {
+      if (controller.signal.aborted) return;
       setError(loadError instanceof Error ? loadError.message : "LangGraph 加载失败");
     } finally {
+      if (refreshAbortRef.current === controller) {
+        refreshAbortRef.current = null;
+        refreshInFlightRef.current = false;
+      }
       setIsLoading(false);
       setIsRunning(false);
     }
-  }, []);
+  }, [selectedProjectId]);
 
   useEffect(() => {
-    void refresh();
+    void refresh({ force: true });
+    // 10s 全量同步（含新建 thread + runs/wait 长轮询）是后端和前端的双重压力，
+    // 图状态分钟级精度足够；降到 30s，后台标签页暂停。
     const timer = window.setInterval(() => {
       void refresh();
-    }, 10_000);
-    return () => window.clearInterval(timer);
+    }, 30_000);
+    const handleVisibility = () => {
+      if (!document.hidden) void refresh();
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", handleVisibility);
+      refreshAbortRef.current?.abort();
+    };
   }, [refresh]);
 
   const businessTasks = useMemo(() => tasks.filter((task) => !task.isControl), [tasks]);
   const counts = useMemo(() => statusCounts(tasks), [tasks]);
+  // 检索索引：tasks 变化时预计算一次，输入/筛选只做 includes，避免每次按键
+  // 对 136 个节点重复 JSON.stringify（见 graph.ts buildTaskHaystack）。
+  const searchIndex = useMemo(
+    () => new Map(tasks.map((task) => [task.id, buildTaskHaystack(task)] as const)),
+    [tasks],
+  );
+  const matchesCurrentFilter = useCallback(
+    (task: DagTask, queryText: string, statusFilter: TaskFilter) =>
+      taskMatchesFilterWithHaystack(task, searchIndex.get(task.id) ?? "", queryText, statusFilter),
+    [searchIndex],
+  );
   const matchedTasks = useMemo(
-    () => tasks.filter((task) => taskMatchesFilter(task, query, filter)),
-    [filter, query, tasks],
+    () => tasks.filter((task) => matchesCurrentFilter(task, query, filter)),
+    [filter, matchesCurrentFilter, query, tasks],
   );
   const matchedIds = useMemo(() => new Set(matchedTasks.map((task) => task.id)), [matchedTasks]);
   const selectedTask = tasks.find((task) => task.id === selectedId) ?? null;
@@ -892,9 +1086,10 @@ export default function App() {
     : [];
   const releaseReadyCount = businessTasks.filter((task) => task.status === "release-ready").length;
   const selectedAgent = selectedTask ? agentByTask[selectedTask.id] ?? null : null;
+  const projectWorkspace = selectedProject?.workspace;
   const selectedWorkspace = selectedTask
     ? workspaceByTask[selectedTask.id] ?? inferAgentWorkspace(selectedTask)
-    : "APP18";
+    : (projectWorkspace === "APP19" || projectWorkspace === "APP20" ? projectWorkspace : "APP18");
 
   useEffect(() => {
     if (!selectedTask || !selectedAgent) {
@@ -912,7 +1107,7 @@ export default function App() {
     setQuery(nextQuery);
     if (!nextQuery.trim()) return;
 
-    const nextMatches = tasks.filter((task) => taskMatchesFilter(task, nextQuery, filter));
+    const nextMatches = tasks.filter((task) => matchesCurrentFilter(task, nextQuery, filter));
     setSelectedId(nextMatches[0]?.id ?? null);
   };
 
@@ -930,7 +1125,7 @@ export default function App() {
       return;
     }
 
-    const nextMatches = tasks.filter((task) => taskMatchesFilter(task, query, nextFilter));
+    const nextMatches = tasks.filter((task) => matchesCurrentFilter(task, query, nextFilter));
     if (!nextMatches.length) {
       setFilter(nextFilter);
       setSelectedId(null);
@@ -994,7 +1189,7 @@ export default function App() {
     handler.openAgentTerminal({
       agent: kind,
       taskId: task.id,
-      prompt: buildInjectedPrompt(),
+      prompt: `${buildInjectedPrompt()}\n项目上下文：${selectedProjectId}`,
       workspace: selectedWorkspace,
     });
     setAgentLaunchMessage(`${AGENT_META[kind].label} 已在下方命令行新开 Tab（${selectedWorkspace} · ${task.id}），正在启动…`);
@@ -1017,8 +1212,9 @@ export default function App() {
       const result = await launchAgent({
         agent: kind,
         taskId: task.id,
-        prompt: buildInjectedPrompt(),
+        prompt: `${buildInjectedPrompt()}\n项目上下文：${selectedProjectId}`,
         workspace: selectedWorkspace,
+        projectId: selectedProjectId,
       });
       setAgentLaunchMessage(result.message ?? `${AGENT_META[kind].label} 已在 ${selectedWorkspace} 启动`);
       if (result.pid && task.id) setAgentTaskByPid((current) => ({ ...current, [String(result.pid)]: task.id }));
@@ -1039,11 +1235,15 @@ export default function App() {
     setEvidenceSyncError("");
     setSyncingEvidence(true);
     try {
-      const result = await syncTaskEvidence({ taskId: task.id, status: evidenceStatus });
+      const result = await syncTaskEvidence({
+        taskId: task.id,
+        status: evidenceStatus,
+        projectId: selectedProjectId,
+      });
       setEvidenceSyncMessage(
         `${result.status} 已同步，证据 ${result.evidenceCount} 条，commit ${result.commit}`,
       );
-      await refresh();
+      await refresh({ force: true });
     } catch (syncError) {
       setEvidenceSyncError(syncError instanceof Error ? syncError.message : "证据同步失败");
     } finally {
@@ -1072,6 +1272,20 @@ export default function App() {
     document.addEventListener("fullscreenchange", handleFullscreenChange);
     return () => document.removeEventListener("fullscreenchange", handleFullscreenChange);
   }, []);
+
+  // Agent 连线绑定：之前是 JSX 内联对象，每次渲染新引用，导致 AgentDagLinks
+  // 的 effect 每渲染必重跑（重新订阅 observer + 全量 DOM 测量）。memo 后只有
+  // 快照/绑定真正变化时才重算。
+  const agentDagBindings = useMemo(() => ({
+    ...Object.fromEntries(
+      Object.entries(agentTaskByPid).map(([pid, taskId]) => [
+        String(agentSnapshot.find((agent) => String(agent.pid) === pid)?.agent ?? pid),
+        taskId,
+      ]),
+    ),
+    ...agentBindings,
+  }), [agentSnapshot, agentTaskByPid, agentBindings]);
+  const agentDagTaskVersion = `${tasks.length}:${Math.round(scale * 100)}:${selectedId ?? ""}`;
 
   const filterItems: Array<{ id: TaskFilter; label: string; count: number; color?: string }> = [
     { id: "all", label: "全部", count: businessTasks.length },
@@ -1112,7 +1326,7 @@ export default function App() {
             <span className="connection-dot" />
             {backend.connected ? "LangGraph 已连接" : "LangGraph 未连接"}
           </span>
-          <button className="button button-ghost" type="button" onClick={() => void refresh()} disabled={isRunning}>
+          <button className="button button-ghost" type="button" onClick={() => void refresh({ force: true })} disabled={isRunning}>
             <RefreshCw size={15} className={isRunning ? "spin" : ""} />
             {isRunning ? "同步中" : "重新同步"}
           </button>
@@ -1150,20 +1364,7 @@ export default function App() {
       <StatusProgress tasks={tasks} counts={counts} />
 
       <section className="workspace workspace-linked">
-        <AgentBoard onAgentsChange={(agents) => {
-          setAgentSnapshot(agents);
-          const pending = pendingAgentTasks.filter((taskId) => !Object.values(agentBindings).includes(taskId));
-          const next = { ...agentBindings };
-          const unbound = agents.filter((agent) => !next[String(agent.agent ?? "")]);
-          pending.forEach((taskId) => {
-            const match = unbound.find((agent) => {
-              const text = JSON.stringify(agent).toLowerCase();
-              return text.includes(taskId.toLowerCase());
-            });
-            if (match?.agent) next[String(match.agent)] = taskId;
-          });
-          if (Object.keys(next).length !== Object.keys(agentBindings).length) setAgentBindings(next);
-        }} />
+        <AgentBoard projects={projects} selectedProjectId={selectedProjectId} onProjectSelect={selectProject} onProjectsChange={handleProjectsChange} onAgentsChange={handleAgentsChange} />
         <div ref={graphPanelRef} className="graph-panel">
           <div className="panel-header">
             <div className="panel-heading">
@@ -1265,7 +1466,7 @@ export default function App() {
               selectedId={selectedId}
               matchedIds={matchedIds}
               onSelect={setSelectedId}
-              onZoom={setScale}
+              onZoom={handleZoom}
               scale={scale}
             />
           ) : (
@@ -1524,7 +1725,7 @@ export default function App() {
             </div>
           )}
         </aside>
-        <AgentDagLinks agents={agentSnapshot} bindings={{ ...Object.fromEntries(Object.entries(agentTaskByPid).map(([pid, taskId]) => [String(agentSnapshot.find((agent) => String(agent.pid) === pid)?.agent ?? pid), taskId])), ...agentBindings }} taskVersion={`${tasks.length}:${scale}:${selectedId ?? ""}`} />
+        <AgentDagLinks agents={agentSnapshot} bindings={agentDagBindings} taskVersion={agentDagTaskVersion} />
       </section>
 
       <footer className="footer-note">

@@ -66,6 +66,10 @@ const TERMINAL_COLLAPSED_KEY = "refactor-terminal-collapsed";
 const MIN_HEIGHT = 160;
 const MAX_HEIGHT = 560;
 const DEFAULT_HEIGHT = 232;
+// Tab 上限：每个 Tab 常驻一个 xterm 实例 + 一条 WebSocket + 一个服务端 PTY，
+// 无上限开下去内存和连接线性增长，是“越用越卡最后崩”的直接来源之一。
+// 后端 MAX_TERMINALS=12，前端留余量 cap 到 8，超限时淘汰最早的非活跃 Tab。
+const MAX_TABS = 8;
 
 function utf8ToB64(input: string): string {
   const bytes = new TextEncoder().encode(input);
@@ -339,6 +343,25 @@ const TerminalPanel = forwardRef<TerminalPanelHandle, TerminalPanelProps>(functi
   const dragRef = useRef({ dragging: false, startY: 0, startHeight: 0 });
 
   const currentActiveId = activeId ?? tabs[0]?.id ?? null;
+  const activeIdRef = useRef<string | null>(null);
+  activeIdRef.current = currentActiveId;
+
+  // 追加 Tab（含上限淘汰）：必须走函数式更新读最新 tabs，避免闭包里拿到过期数组。
+  const appendTab = useCallback(
+    (tab: TerminalTab) => {
+      setTabs((current) => {
+        if (current.length < MAX_TABS) return [...current, tab];
+        const active = activeIdRef.current;
+        const victimIndex = current.findIndex((item) => item.id !== active);
+        const next = current.filter((_, index) => index !== (victimIndex >= 0 ? victimIndex : 0));
+        return [...next, tab];
+      });
+      setActiveId(tab.id);
+      setCollapsed(false);
+      return tab.id;
+    },
+    [],
+  );
 
   useEffect(() => {
     setNewWorkspace(defaultWorkspace);
@@ -365,45 +388,33 @@ const TerminalPanel = forwardRef<TerminalPanelHandle, TerminalPanelProps>(functi
     (workspace?: TerminalWorkspace): string => {
       const target = workspace ?? defaultWorkspace;
       const id = nextTabId("shell");
-      setTabs((current) => [
-        ...current,
-        {
-          id,
-          title: `shell·${target}`,
-          workspace: target,
-          agent: null,
-          taskId: null,
-          pendingCommand: null,
-          sessionKey: 0,
-          status: "connecting",
-        },
-      ]);
-      setActiveId(id);
-      setCollapsed(false);
-      return id;
+      return appendTab({
+        id,
+        title: `shell·${target}`,
+        workspace: target,
+        agent: null,
+        taskId: null,
+        pendingCommand: null,
+        sessionKey: 0,
+        status: "connecting",
+      });
     },
-    [defaultWorkspace],
+    [appendTab, defaultWorkspace],
   );
 
   const openAgentTerminal = useCallback((request: OpenAgentTerminalRequest): string => {
     const id = nextTabId("agent");
-    setTabs((current) => [
-      ...current,
-      {
-        id,
-        title: `${request.agent}·${request.taskId}`,
-        workspace: request.workspace,
-        agent: request.agent,
-        taskId: request.taskId,
-        pendingCommand: buildAgentCommand(request.agent, request.taskId, request.prompt),
-        sessionKey: 0,
-        status: "connecting",
-      },
-    ]);
-    setActiveId(id);
-    setCollapsed(false);
-    return id;
-  }, []);
+    return appendTab({
+      id,
+      title: `${request.agent}·${request.taskId}`,
+      workspace: request.workspace,
+      agent: request.agent,
+      taskId: request.taskId,
+      pendingCommand: buildAgentCommand(request.agent, request.taskId, request.prompt),
+      sessionKey: 0,
+      status: "connecting",
+    });
+  }, [appendTab]);
 
   useImperativeHandle(ref, () => ({ openAgentTerminal, openShell }), [openAgentTerminal, openShell]);
 
@@ -446,11 +457,8 @@ const TerminalPanel = forwardRef<TerminalPanelHandle, TerminalPanelProps>(functi
       dragRef.current.dragging = false;
       window.removeEventListener("mousemove", handleMove);
       window.removeEventListener("mouseup", handleUp);
-      try {
-        localStorage.setItem(TERMINAL_HEIGHT_KEY, String(height));
-      } catch {
-        // 忽略持久化失败
-      }
+      // 高度持久化由下面的 [height] effect 负责；之前这里直接写闭包里的旧 height，
+      // 会把拖拽前的值覆写回去。只需通知 xterm 重新 fit。
       window.dispatchEvent(new Event("resize"));
     };
     window.addEventListener("mousemove", handleMove);

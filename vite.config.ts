@@ -1,5 +1,5 @@
 import { spawn } from "node:child_process";
-import { existsSync, mkdirSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import { readFile, rename, writeFile } from "node:fs/promises";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { join, resolve } from "node:path";
@@ -9,15 +9,27 @@ import react from "@vitejs/plugin-react";
 import { resolveAgentWorkspace } from "./scripts/agent-workspaces.mjs";
 import { buildEvidenceUpdate, reconcileEvidenceSnapshot } from "./scripts/evidence-sync.mjs";
 import { terminalPlugin } from "./scripts/terminal-plugin.mjs";
+import { createProjectStore, projectRuntimeRoot } from "./scripts/project-store.mjs";
 
 const langGraphApi = process.env.LANGGRAPH_API_URL ?? "http://127.0.0.1:8123";
 const agentBoardPort = process.env.AGENTBOARD_PORT ?? "8710";
 const agentBoardApi = process.env.AGENTBOARD_API_URL ?? `http://127.0.0.1:${agentBoardPort}`;
-const frontendPort = Number(process.env.FRONTEND_PORT ?? 5175);
+const frontendPort = Number(process.env.FRONTEND_PORT ?? 5171);
 const terminalPath = "/usr/bin/konsole";
 const maxPromptBytes = 64 * 1024;
 const dashboardRoot = resolve(process.cwd());
 const taskSnapshotPath = resolve(dashboardRoot, "backend/tasks.json");
+const projectStorePromise = createProjectStore({
+  runtimeRoot: projectRuntimeRoot(dashboardRoot, process.env.PROJECT_RUNTIME_ROOT),
+  seedTasks: JSON.parse(readFileSync(taskSnapshotPath, "utf8")),
+  seedProject: {
+    id: "default",
+    name: "默认重构项目",
+    description: "仓库内置的 refactor_dag 任务快照",
+    workspace: "APP18",
+    managedBy: "agent",
+  },
+});
 const evidenceManifestPath = process.env.EVIDENCE_MANIFEST_PATH ?? "/mnt/data/code/dcx-web/dcx-web/.test-local/reports/langgraph-task-evidence.json";
 const agentCommands = {
   opencode: "opencode",
@@ -65,6 +77,90 @@ function isAgentKind(value: unknown): value is AgentKind {
   return typeof value === "string" && value in agentCommands;
 }
 
+function isProjectId(value: unknown): value is string {
+  return typeof value === "string" && /^[a-zA-Z0-9][a-zA-Z0-9_-]{0,63}$/.test(value);
+}
+
+function createProjectApiMiddleware() {
+  return async (request: IncomingMessage, response: ServerResponse, _next: () => void) => {
+    const rawPath = new URL(request.url ?? "/", "http://127.0.0.1").pathname;
+    const route = rawPath === "/"
+      ? "/api/projects"
+      : rawPath.startsWith("/api/projects")
+        ? rawPath
+        : "/api/projects" + rawPath;
+    try {
+      const store = await projectStorePromise;
+      if (request.method === "GET" && route === "/api/projects") {
+        jsonResponse(response, 200, await store.listProjects());
+        return;
+      }
+      // 清空回收站：必须放在通用 :id 路由之前，避免 "trash" 被当成项目 ID。
+      if (request.method === "POST" && route === "/api/projects/trash/empty") {
+        jsonResponse(response, 200, await store.emptyTrash());
+        return;
+      }
+      const trashMatch = route.match(/^\/api\/projects\/([^/]+)\/trash$/);
+      if (request.method === "POST" && trashMatch) {
+        jsonResponse(response, 200, await store.trashProject(decodeURIComponent(trashMatch[1])));
+        return;
+      }
+      const restoreMatch = route.match(/^\/api\/projects\/([^/]+)\/restore$/);
+      if (request.method === "POST" && restoreMatch) {
+        jsonResponse(response, 200, await store.restoreProject(decodeURIComponent(restoreMatch[1])));
+        return;
+      }
+      const projectMatch = route.match(/^\/api\/projects\/([^/]+)$/);
+      if ((request.method === "PATCH" || request.method === "PUT") && projectMatch) {
+        const payload = JSON.parse(await readRequestBody(request)) as Record<string, unknown>;
+        jsonResponse(response, 200, await store.updateProject(decodeURIComponent(projectMatch[1]), {
+          ...(typeof payload.name === "string" ? { name: payload.name } : {}),
+          ...(typeof payload.description === "string" ? { description: payload.description } : {}),
+          ...(typeof payload.workspace === "string" ? { workspace: payload.workspace } : {}),
+        }));
+        return;
+      }
+      if (request.method === "DELETE" && projectMatch) {
+        // 彻底删除：仅允许回收站内项目，删除后不可恢复。
+        jsonResponse(response, 200, await store.deleteProject(decodeURIComponent(projectMatch[1])));
+        return;
+      }
+      const archiveMatch = route.match(/^\/api\/projects\/([^/]+)\/archive$/);
+      if (request.method === "POST" && archiveMatch) {
+        // 兼容旧客户端：archive 等价于移入回收站。
+        jsonResponse(response, 200, await store.archiveProject(decodeURIComponent(archiveMatch[1])));
+        return;
+      }
+      if (request.method === "POST" && route === "/api/projects") {
+        const payload = JSON.parse(await readRequestBody(request)) as Record<string, unknown>;
+        if (!isProjectId(payload.id)) {
+          jsonResponse(response, 400, { error: "项目 ID 只能使用字母、数字、- 或 _" });
+          return;
+        }
+        if (typeof payload.name !== "string" || !payload.name.trim()) {
+          jsonResponse(response, 400, { error: "项目名称不能为空" });
+          return;
+        }
+        const description = typeof payload.description === "string" ? payload.description : undefined;
+        const workspace = typeof payload.workspace === "string" ? payload.workspace : undefined;
+        const sourceProjectId = typeof payload.sourceProjectId === "string" ? payload.sourceProjectId : undefined;
+        const project = await store.createProject({
+          id: payload.id,
+          name: payload.name,
+          description,
+          workspace,
+          sourceProjectId,
+        });
+        jsonResponse(response, 201, project);
+        return;
+      }
+      jsonResponse(response, 404, { error: "项目接口不存在" });
+    } catch (error) {
+      jsonResponse(response, 422, { error: error instanceof Error ? error.message : "项目操作失败" });
+    }
+  };
+}
+
 function createAgentLauncherMiddleware() {
   return async (request: IncomingMessage, response: ServerResponse, _next: () => void) => {
     if (request.method === "OPTIONS") {
@@ -82,6 +178,7 @@ function createAgentLauncherMiddleware() {
         taskId?: unknown;
         prompt?: unknown;
         workspace?: unknown;
+        projectId?: unknown;
       };
       if (!isAgentKind(payload.agent)) {
         jsonResponse(response, 400, { error: "不支持的 Agent 类型" });
@@ -89,6 +186,10 @@ function createAgentLauncherMiddleware() {
       }
       if (typeof payload.taskId !== "string" || !payload.taskId.trim()) {
         jsonResponse(response, 400, { error: "缺少任务节点 ID" });
+        return;
+      }
+      if (!isProjectId(payload.projectId)) {
+        jsonResponse(response, 400, { error: "缺少有效 project_id" });
         return;
       }
       if (typeof payload.prompt !== "string" || !payload.prompt.trim()) {
@@ -129,6 +230,7 @@ function createAgentLauncherMiddleware() {
       }
       const shellScript = [
         "printf '\\n[DCX] " + command + " 已启动，任务 " + safeTaskId + "\\n'",
+        "printf '[DCX] 项目：" + payload.projectId + "\\n'",
         agentLogPath
           ? "printf '[DCX] 日志：" + agentLogPath + "（可 tail -f 跟踪）\\n'"
           : "printf '[DCX] 日志落盘失败，仅 Konsole 输出\\n'",
@@ -150,6 +252,7 @@ function createAgentLauncherMiddleware() {
             ...process.env,
             DCX_AGENT_PROMPT: payload.prompt,
             DCX_AGENT_TASK_ID: payload.taskId,
+            DCX_PROJECT_ID: payload.projectId,
             DCX_AGENT_LOG: agentLogPath,
           },
         },
@@ -159,6 +262,7 @@ function createAgentLauncherMiddleware() {
         ok: true,
         agent: payload.agent,
         taskId: payload.taskId,
+        projectId: payload.projectId,
         workspace: payload.workspace ?? "APP18",
         terminal: "konsole",
         pid: child.pid,
@@ -189,19 +293,31 @@ function agentLauncherPlugin(): Plugin {
   };
 }
 
+function projectApiPlugin(): Plugin {
+  const middleware = createProjectApiMiddleware();
+  return {
+    name: "dcx-project-api",
+    configureServer(server) {
+      server.middlewares.use("/api/projects", middleware);
+    },
+    configurePreviewServer(server) {
+      server.middlewares.use("/api/projects", middleware);
+    },
+  };
+}
+
 async function readJsonFile(path: string): Promise<unknown> {
   return JSON.parse(await readFile(path, "utf8"));
 }
 
 async function reconcileTaskSnapshot() {
   try {
-    const tasks = await readJsonFile(taskSnapshotPath) as Array<Record<string, unknown>>;
+    const store = await projectStorePromise;
+    const tasks = await store.readTasks("default") as Array<Record<string, unknown>>;
     const manifest = await readJsonFile(evidenceManifestPath) as Record<string, unknown>;
     const result = reconcileEvidenceSnapshot({ tasks, manifest });
     if (!result.changed) return;
-    const temporaryPath = taskSnapshotPath + ".reconcile.writing";
-    await writeFile(temporaryPath, JSON.stringify(result.tasks) + "\n", "utf8");
-    await rename(temporaryPath, taskSnapshotPath);
+    await store.writeTasks("default", result.tasks);
   } catch {
     // Evidence is optional in local development; retain the last valid task snapshot.
   }
@@ -221,16 +337,19 @@ function createEvidenceSyncMiddleware() {
 
     try {
       const payload = JSON.parse(await readRequestBody(request));
-      const tasks = await readJsonFile(taskSnapshotPath);
+      if (!isProjectId(payload?.projectId)) {
+        jsonResponse(response, 400, { error: "缺少有效 project_id" });
+        return;
+      }
+      const store = await projectStorePromise;
+      const tasks = await store.readTasks(payload.projectId);
       const manifest = await readJsonFile(evidenceManifestPath);
       const result = buildEvidenceUpdate({
         tasks: tasks as Array<Record<string, unknown>>,
         manifest: manifest as Record<string, unknown>,
         payload,
       });
-      const temporaryPath = taskSnapshotPath + ".writing";
-      await writeFile(temporaryPath, JSON.stringify(result.tasks) + "\n", "utf8");
-      await rename(temporaryPath, taskSnapshotPath);
+      await store.writeTasks(payload.projectId, result.tasks);
       jsonResponse(response, 200, {
         ok: true,
         taskId: result.taskId,
@@ -274,9 +393,9 @@ function evidenceSyncPlugin(): Plugin {
 }
 
 export default defineConfig({
-  plugins: [react(), agentLauncherPlugin(), evidenceSyncPlugin(), terminalPlugin()],
+  plugins: [react(), projectApiPlugin(), agentLauncherPlugin(), evidenceSyncPlugin(), terminalPlugin()],
   server: {
-    host: "127.0.0.1",
+    host: "0.0.0.0",
     port: frontendPort,
     strictPort: true,
     proxy: {
@@ -295,7 +414,7 @@ export default defineConfig({
     },
   },
   preview: {
-    host: "127.0.0.1",
+    host: "0.0.0.0",
     port: 4175,
     strictPort: true,
   },

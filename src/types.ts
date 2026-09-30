@@ -62,6 +62,24 @@ export interface BackendStatus {
   error?: string;
 }
 
+export interface Project {
+  id: string;
+  name: string;
+  description?: string;
+  workspace?: string;
+  status: "active" | "archived" | "trashed";
+  managedBy: "agent";
+  sourceProjectId?: string;
+  taskCount?: number;
+  createdAt?: string;
+  updatedAt?: string;
+  trashedAt?: string;
+}
+
+export function isProjectInTrash(project: Project): boolean {
+  return project.status === "trashed" || project.status === "archived";
+}
+
 export interface Assistant {
   assistant_id: string;
   graph_id: string;

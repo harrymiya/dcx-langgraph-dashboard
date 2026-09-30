@@ -9,5 +9,6 @@ langgraph.pid
 backend/.venv/
 backend/.langgraph_api/
 backend/.test-local/
+backend/.project-runtime/
 __pycache__/
 *.pyc
