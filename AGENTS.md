@@ -92,3 +92,15 @@ Wish API/application/DDD 只为明确属于 Wish 的业务解析 principal 与�
 ## 验收规则
 
 设计阶段只做文档、任务和依赖校验，不实施业务代码。未来实施必须按纵向模块逐项领取和验收，使用隔离环境、合成数据和自动化测试；真实健康数据、支付、消息、生产发布和外部系统写入必须有独立授权与门禁。任务状态、机器结果和报告写回 `backend/tasks.json`，不以 Markdown 叙述替代机器证据。
+
+## 上位方案覆盖登记与校验
+
+总体方案、MAPP 页面迁移清单和跨项目架构是 DAG 的上位来源；DAG 必须覆盖其中的可执行事项、现状保留项、明确排除项和架构边界，不能把“已有 35 个迁移任务 + 13 个 Wish 任务”当成全量覆盖结论。唯一机器登记位于 `backend/tasks.json` 的 `GOV-01.data.overall_plan_coverage.requirements_registry`。每个 registry 项必须填写唯一 `source_id`、来源文件和章节、合法 `coverage_status`、非空 `mapped_task_ids`、`client`、`backend_target`、`migration_lane`；每个任务的 `data.source_of_truth`、`data.source_item_ids`、`data.coverage_status` 也必须非空并与 registry 双向一致。状态只允许 `planned`、`current-state-retained`、`out-of-scope-with-reason`；范围外项必须说明理由。`current-state-retained` 表示来源文档要求保留该基线，不代表已验证运行；任务和登记均不构成功能实现证据。
+
+修改任务、来源或映射后执行：
+
+```sh
+python scripts/validate_plan_coverage.py --source-root /home/agent/code/jiankang_app_uniapp
+```
+
+校验必须维持 143 个 planned 任务、97/46 范围统计、唯一 ID、有效依赖、`data.depends_on == deps`、无环、registry 与任务双向覆盖，以及 35 个 MAPP 迁移任务和 13 个 Wish 原生任务的边界。若上游来源仓库不在默认路径，应显式传入其仓库根目录，以校验迁移任务的 MP 页面 ID 与清单逐项相等。

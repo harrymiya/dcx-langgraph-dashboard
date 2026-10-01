@@ -144,3 +144,17 @@ APP 已登录 session
 ## 校验口径
 
 任务图校验应确认全部 **143** 个任务状态为 `planned`，ID 唯一，`deps` 全部存在且无环，`data.depends_on` 与 `deps` 一致；MVP 统计由 `data.scope == "MVP必须"` 计算，后续统计由 `data.scope == "MVP后续"` 计算。迁移任务必须使用独占 `formal-app-migration`、声明 `backend_target: MAPP server`，且不依赖 Wish APP BFF/DDD；明确属于 Wish 的任务使用 `wish-formal-business`。其他迁移边界的 `data.migration_lane` 可为 `legacy-compatibility-fallback` 或 `cross-cutting-security-gate`。新增任务必须有唯一 `file_claims`、可执行 `targeted_tests` 和任务级 `rollback_or_fallback`；新增数据不填写 owner、commit、evidence 或 verified_at。
+
+## 上位方案全量覆盖 registry
+
+手机端总体设计是 DAG 的上位基线。DAG 需要追踪总体方案、迁移清单和跨项目架构中的可执行事项、当前保留项、明确范围外项及架构约束类别；35 个 `formal-app-migration` 页面任务和 13 个 Wish 原生任务只是其中两类，不构成完整覆盖声明。
+
+机器登记唯一位于 `backend/tasks.json` 的 `GOV-01.data.overall_plan_coverage.requirements_registry`。每项必须有唯一 `source_id`、`source_file`、`source_section`、`coverage_status`、`mapped_task_ids`、`client`、`backend_target` 和 `migration_lane`；每个任务必须在 `data` 中写入非空 `source_of_truth`、`source_item_ids` 和 `coverage_status`。允许的覆盖状态为 `planned`、`current-state-retained`、`out-of-scope-with-reason`，范围外条目须给出 `coverage_reason`。`current-state-retained` 仅表示来源文档要求保留该基线，不表示运行时已验证。registry 和任务映射必须完全双向，不得出现未映射项、孤立任务或来源为空的通用任务。
+
+在仓库根目录执行以下校验；若来源项目不在默认目录，传入上游仓库根目录：
+
+```sh
+python scripts/validate_plan_coverage.py --source-root /home/agent/code/jiankang_app_uniapp
+```
+
+脚本检查 registry 非空、来源/状态/泳道字段、任务映射双向完整、143 个任务均为 planned、97/46 范围统计、ID 唯一、依赖存在且 `data.depends_on` 与 `deps` 一致、DAG 无环、35/13 两条后端泳道边界，以及可用时 35 个迁移任务的 MP 页面 ID 与上游清单精确相等。登记状态和脚本通过只证明覆盖与结构校验，不证明业务实现。

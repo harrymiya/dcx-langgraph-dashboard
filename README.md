@@ -16,6 +16,14 @@
 
 指定小程序页面选择性迁入 APP：只有 35 个清单任务 `COM-01..06`、`ORD-01..05`、`MEM-01..10`、`CNT-01..07`、`USR-01..06`、`MER-01` 属于 `formal-app-migration`，只迁移 APP 前端页面/入口，链路为 `APP 页面/入口 -> MAPP server -> 原有业务数据/服务`。范围登记在 `backend/tasks.json` 的 `GOV-01.data.migration_scope_policy`；任务级来源页 ID 与手机端迁移清单逐项对应。未选客户路由继续由原小程序客户端调用 MAPP server；员工/商户工作台和范围外记录保留清单标注的既有入口。APP 首页三个第三方小程序按钮只拉起外部小程序，不进入迁移任务。13 个 Wish 原生任务 `APPBFF-01`、`HLT-01..07`、`HWI-01..05` 单独走 `APP -> Wish APP BFF -> Wish API/application service -> DDD`，不接 MAPP server。`IDN-01` 的一次性 bridge 只用于需要续接身份的未迁移历史 route，不改变正式迁入页面直连 MAPP server 的边界。所有目标架构均为设计/未实现；管理员登录与认证不属于本阶段。
 
+总体方案是 DAG 的上位基线，143 个任务必须通过 `backend/tasks.json` 中 `GOV-01.data.overall_plan_coverage.requirements_registry` 覆盖全部可执行事项、保留项、范围外事项和架构约束类别。每个 registry 项与任务的 `source_item_ids` 双向登记来源，不能仅凭 35 个页面迁移任务和 13 个 Wish 原生任务宣称全量覆盖。修改 registry、来源映射或任务依赖后运行：
+
+```sh
+python scripts/validate_plan_coverage.py --source-root /home/agent/code/jiankang_app_uniapp
+```
+
+该命令校验来源覆盖、任务状态与数量、依赖一致性和无环，并在上游仓库可用时逐项核对 35 个任务的 MP 页面 ID。
+
 ![Refactor Control Room 演示](docs/demo.png)
 
 上图展示了完整 DAG、状态筛选、画布聚焦和右侧节点详情面板。节点与状态数量均来自 LangGraph API，不依赖前端硬编码的任务列表。
