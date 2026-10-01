@@ -158,3 +158,17 @@ python scripts/validate_plan_coverage.py --source-root /home/agent/code/jiankang
 ```
 
 脚本检查 registry 非空、来源/状态/泳道字段、任务映射双向完整、143 个任务均为 planned、97/46 范围统计、ID 唯一、依赖存在且 `data.depends_on` 与 `deps` 一致、DAG 无环、35/13 两条后端泳道边界，以及可用时 35 个迁移任务的 MP 页面 ID 与上游清单精确相等。登记状态和脚本通过只证明覆盖与结构校验，不证明业务实现。
+
+## WADM-00 管理端兼容基线登记（既有能力，不验收）
+
+| # | 既有能力 | 位置 | 本轮 |
+|---|---|---|---|
+| 1 | 订单 | apps/wish-adm/src/app/(modules)/orders | 保留兼容，不改造 |
+| 2 | 消息/广播 | apps/wish-adm/src/app/(modules)/messages | 保留兼容 |
+| 3 | 协议/同意 | apps/wish-adm/src/app/(modules)/agreements | 只读引用 |
+| 4 | 合规 | apps/wish-adm/src/app/(modules)/compliance | 保留 |
+| 5 | App发布 | apps/wish-adm/src/app/(modules)/app-releases | 保留 |
+| 6 | 运营成员 | apps/wish-adm/src/app/(modules)/operators | 保留 |
+| 7 | 用户查询 | exts/wish_adm/api/users_router.py | 只读，不扩权 |
+
+六个前台业务域（客户档案/健康记录/预约/履约/SCRM/服务账）纵向支撑管理端同名工作域；交付边界以各 WADM 任务 file_claim 为准。明确排除：管理员认证改造、排班/库存/绩效/收银/商户经营。

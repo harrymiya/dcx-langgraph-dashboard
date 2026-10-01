@@ -1,0 +1,3 @@
+legacy_table,legacy_field,canonical_entity,canonical_field,write_master,evidence
+legacy_customer,mobile,customer,phone,Wish,unverified/synthetic
+legacy_order,order_no,commerce_order,order_no,Commerce/MER,unverified/synthetic
