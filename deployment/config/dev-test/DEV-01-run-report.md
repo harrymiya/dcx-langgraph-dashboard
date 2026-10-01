@@ -18,3 +18,7 @@
 - 无。未知值全部合成/沙箱，真实写入关闭。
 
 ## commit 与推送（提交后补）
+
+## 推送结果实录
+- commit：`3739978 DEV-01: isolated dev/test env matrix, secret injection example, fail-closed validation (6 tests green)`
+- `git push origin main`：失败。原文：`git@github.com: Permission denied (publickey). fatal: 无法读取远程仓库。 请确认您有正确的访问权限并且仓库存在。`（本机无 github 写权限，未伪造成功）
