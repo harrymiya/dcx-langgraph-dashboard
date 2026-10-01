@@ -561,7 +561,8 @@
       "FND-01",
       "FND-03",
       "FND-08",
-      "UX-04"
+      "UX-04",
+      "IDN-01"
     ],
     "project": "jiankang_app_uniapp / DFP Wish / 健康服务与 SCRM MVP",
     "output": "pages/commerce/catalog下实施、逐路由映射、route fragment/契约和操作证据；覆盖pages/goods_cate/index,pages/goods/goods_list/index",
@@ -579,7 +580,7 @@
       "title": "迁移商城入口、商品分类与列表",
       "workstream": "商城核心",
       "scope": "MVP后续",
-      "depends_on": "FND-01,FND-03,FND-08,UX-04",
+      "depends_on": "FND-01,FND-03,FND-08,UX-04,IDN-01",
       "parallel_group": "PG-COM",
       "recommended_agent_role": "商城功能 UTS 工程师",
       "source_requirements": "mapp merge §§2-5; inventory 对应route; DAG 02；客户 APP 原型参考：docs/prototypes/customer-miniapp-prototype.html；界面：shop, shop-categories",
@@ -624,7 +625,9 @@
   {
     "id": "COM-02",
     "section": "完整MVP实施DAG / 商城核心",
-    "deps": [],
+    "deps": [
+      "IDN-01"
+    ],
     "project": "jiankang_app_uniapp / DFP Wish / 健康服务与 SCRM MVP",
     "output": "pages/commerce/search下实施、逐路由映射、route fragment/契约和操作证据；覆盖pages/goods/search_goods_list/index,pages/goods/coupon_goods_list/index,pages/goods/goods_search/index",
     "scope": "pages/commerce/search",
@@ -641,7 +644,7 @@
       "title": "迁移商品搜索与筛选结果",
       "workstream": "商城核心",
       "scope": "MVP后续",
-      "depends_on": "",
+      "depends_on": "IDN-01",
       "parallel_group": "PG-COM",
       "recommended_agent_role": "商城功能 UTS 工程师",
       "source_requirements": "mapp merge §§2-5; inventory 对应route; DAG 02；客户 APP 原型参考：docs/prototypes/customer-miniapp-prototype.html；界面：shop-search, shop-products",
@@ -686,7 +689,9 @@
   {
     "id": "COM-03",
     "section": "完整MVP实施DAG / 商城核心",
-    "deps": [],
+    "deps": [
+      "IDN-01"
+    ],
     "project": "jiankang_app_uniapp / DFP Wish / 健康服务与 SCRM MVP",
     "output": "pages/commerce/product下实施、逐路由映射、route fragment/契约和操作证据；覆盖pages/goods/goods_details/index",
     "scope": "pages/commerce/product",
@@ -703,7 +708,7 @@
       "title": "迁移商品与服务商品详情",
       "workstream": "商城核心",
       "scope": "MVP后续",
-      "depends_on": "",
+      "depends_on": "IDN-01",
       "parallel_group": "PG-COM",
       "recommended_agent_role": "商城功能 UTS 工程师",
       "source_requirements": "mapp merge §§2-5; inventory 对应route; DAG 02；客户 APP 原型参考：docs/prototypes/customer-miniapp-prototype.html；界面：shop-products",
@@ -748,7 +753,8 @@
     "id": "COM-04",
     "section": "完整MVP实施DAG / 商城核心",
     "deps": [
-      "FND-01"
+      "FND-01",
+      "IDN-01"
     ],
     "project": "jiankang_app_uniapp / DFP Wish / 健康服务与 SCRM MVP",
     "output": "pages/commerce/cart下实施、逐路由映射、route fragment/契约和操作证据；覆盖pages/order_addcart/order_addcart,pages/goods/in_addcart/index",
@@ -766,7 +772,7 @@
       "title": "迁移购物车与加购状态",
       "workstream": "商城核心",
       "scope": "MVP后续",
-      "depends_on": "FND-01",
+      "depends_on": "FND-01,IDN-01",
       "parallel_group": "PG-COM",
       "recommended_agent_role": "商城功能 UTS 工程师",
       "source_requirements": "mapp merge §§2-5; inventory 对应route; DAG 02；客户 APP 原型参考：docs/prototypes/customer-miniapp-prototype.html；界面：shop-cart",
@@ -810,7 +816,9 @@
   {
     "id": "COM-05",
     "section": "完整MVP实施DAG / 商城核心",
-    "deps": [],
+    "deps": [
+      "IDN-01"
+    ],
     "project": "jiankang_app_uniapp / DFP Wish / 健康服务与 SCRM MVP",
     "output": "pages/commerce/checkout下实施、逐路由映射、route fragment/契约和操作证据；覆盖pages/goods/order_confirm/index",
     "scope": "pages/commerce/checkout",
@@ -827,7 +835,7 @@
       "title": "迁移确认订单与商城结算",
       "workstream": "商城核心",
       "scope": "MVP后续",
-      "depends_on": "",
+      "depends_on": "IDN-01",
       "parallel_group": "PG-COM",
       "recommended_agent_role": "商城功能 UTS 工程师",
       "source_requirements": "mapp merge §§2-5; inventory 对应route; DAG 02；客户 APP 原型参考：docs/prototypes/customer-miniapp-prototype.html；界面：shop-confirm, shop-payment",
@@ -873,7 +881,8 @@
     "id": "COM-06",
     "section": "完整MVP实施DAG / 商城核心",
     "deps": [
-      "FND-01"
+      "FND-01",
+      "IDN-01"
     ],
     "project": "jiankang_app_uniapp / DFP Wish / 健康服务与 SCRM MVP",
     "output": "pages/commerce/saved下实施、逐路由映射、route fragment/契约和操作证据；覆盖pages/goods/browsing_history/index,pages/goods/user_goods_collection/index,pages/goods/user_merchant_collection/index",
@@ -891,7 +900,7 @@
       "title": "迁移收藏和浏览历史",
       "workstream": "商城核心",
       "scope": "MVP后续",
-      "depends_on": "FND-01",
+      "depends_on": "FND-01,IDN-01",
       "parallel_group": "PG-COM",
       "recommended_agent_role": "商城功能 UTS 工程师",
       "source_requirements": "mapp merge §§2-5; inventory 对应route; DAG 02；客户 APP 原型参考：docs/prototypes/customer-miniapp-prototype.html；界面：shop-favorites",
@@ -938,7 +947,8 @@
     "deps": [
       "FND-01",
       "FND-03",
-      "UX-04"
+      "UX-04",
+      "IDN-01"
     ],
     "project": "jiankang_app_uniapp / DFP Wish / 健康服务与 SCRM MVP",
     "output": "pages/commerce/orders下实施、逐路由映射、route fragment/契约和操作证据；覆盖pages/goods/order_list/index,pages/goods/order_details/index,pages/goods/virtual_order_details/index",
@@ -956,7 +966,7 @@
       "title": "迁移商城订单列表与详情",
       "workstream": "订单/支付/售后",
       "scope": "MVP后续",
-      "depends_on": "FND-01,FND-03,UX-04",
+      "depends_on": "FND-01,FND-03,UX-04,IDN-01",
       "parallel_group": "PG-ORD",
       "recommended_agent_role": "订单/支付/售后领域工程师",
       "source_requirements": "mapp merge §§2-3,6; inventory对应route; DAG 03；客户 APP 原型参考：docs/prototypes/customer-miniapp-prototype.html；界面：shop-orders, shop-order-detail",
@@ -1004,7 +1014,8 @@
     "deps": [
       "FND-01",
       "FND-05",
-      "GOV-02"
+      "GOV-02",
+      "IDN-01"
     ],
     "project": "jiankang_app_uniapp / DFP Wish / 健康服务与 SCRM MVP",
     "output": "pages/commerce/payment下实施、逐路由映射、route fragment/契约和操作证据；覆盖pages/goods/order_payment/index,pages/goods/order_pay_status/index,pages/goods/alipay_return/alipay_return,pages/goods/alipay_invoke/index",
@@ -1022,7 +1033,7 @@
       "title": "迁移支付启动、回跳与结果处理",
       "workstream": "订单/支付/售后",
       "scope": "MVP后续",
-      "depends_on": "FND-01,FND-05,GOV-02",
+      "depends_on": "FND-01,FND-05,GOV-02,IDN-01",
       "parallel_group": "PG-ORD",
       "recommended_agent_role": "订单/支付/售后领域工程师",
       "source_requirements": "mapp merge §§2-3,6; inventory对应route; DAG 03；客户 APP 原型参考：docs/prototypes/customer-miniapp-prototype.html；界面：shop-payment",
@@ -1067,7 +1078,8 @@
     "id": "ORD-03",
     "section": "完整MVP实施DAG / 订单/支付/售后",
     "deps": [
-      "FND-05"
+      "FND-05",
+      "IDN-01"
     ],
     "project": "jiankang_app_uniapp / DFP Wish / 健康服务与 SCRM MVP",
     "output": "pages/commerce/logistics下实施、逐路由映射、route fragment/契约和操作证据；覆盖pages/goods/order_logistics/index,pages/goods/goods_logistics/index,pages/goods/send_record/index",
@@ -1085,7 +1097,7 @@
       "title": "迁移客户物流和发货记录",
       "workstream": "订单/支付/售后",
       "scope": "MVP后续",
-      "depends_on": "FND-05",
+      "depends_on": "FND-05,IDN-01",
       "parallel_group": "PG-ORD",
       "recommended_agent_role": "订单/支付/售后领域工程师",
       "source_requirements": "mapp merge §§2-3,6; inventory对应route; DAG 03；客户 APP 原型参考：docs/prototypes/customer-miniapp-prototype.html；界面：shop-logistics",
@@ -1129,7 +1141,9 @@
   {
     "id": "ORD-04",
     "section": "完整MVP实施DAG / 订单/支付/售后",
-    "deps": [],
+    "deps": [
+      "IDN-01"
+    ],
     "project": "jiankang_app_uniapp / DFP Wish / 健康服务与 SCRM MVP",
     "output": "pages/commerce/after-sales下实施、逐路由映射、route fragment/契约和操作证据；覆盖pages/goods/refund_details/index,pages/goods/user_return_list/index,pages/goods/goods_return/index,pages/goods/after_sales_type/index,pages/goods/returns_and_refunds/index",
     "scope": "pages/commerce/after-sales",
@@ -1146,7 +1160,7 @@
       "title": "迁移客户退款、退货和售后流程",
       "workstream": "订单/支付/售后",
       "scope": "MVP后续",
-      "depends_on": "",
+      "depends_on": "IDN-01",
       "parallel_group": "PG-ORD",
       "recommended_agent_role": "订单/支付/售后领域工程师",
       "source_requirements": "mapp merge §§2-3,6; inventory对应route; DAG 03；客户 APP 原型参考：docs/prototypes/customer-miniapp-prototype.html；界面：shop-after-sales",
@@ -1190,7 +1204,9 @@
   {
     "id": "ORD-05",
     "section": "完整MVP实施DAG / 订单/支付/售后",
-    "deps": [],
+    "deps": [
+      "IDN-01"
+    ],
     "project": "jiankang_app_uniapp / DFP Wish / 健康服务与 SCRM MVP",
     "output": "pages/commerce/reviews下实施、逐路由映射、route fragment/契约和操作证据；覆盖pages/goods/goods_comment_con/index,pages/goods/evaluation_list/index,pages/goods/goods_comment_list/index",
     "scope": "pages/commerce/reviews",
@@ -1207,7 +1223,7 @@
       "title": "迁移订单评价和商品评分",
       "workstream": "订单/支付/售后",
       "scope": "MVP后续",
-      "depends_on": "",
+      "depends_on": "IDN-01",
       "parallel_group": "PG-ORD",
       "recommended_agent_role": "订单/支付/售后领域工程师",
       "source_requirements": "mapp merge §§2-3,6; inventory对应route; DAG 03；客户 APP 原型参考：docs/prototypes/customer-miniapp-prototype.html；界面：shop-order-detail",
@@ -1254,7 +1270,8 @@
     "deps": [
       "FND-01",
       "FND-03",
-      "UX-04"
+      "UX-04",
+      "IDN-01"
     ],
     "project": "jiankang_app_uniapp / DFP Wish / 健康服务与 SCRM MVP",
     "output": "pages/commerce/member/level下实施、逐路由映射、route fragment/契约和操作证据；覆盖pages/goods/user_grade/index,pages/goods/exp_record/index,pages/goods/level_rule/index",
@@ -1272,7 +1289,7 @@
       "title": "迁移会员等级、成长值与规则",
       "workstream": "会员/营销/钱包",
       "scope": "MVP后续",
-      "depends_on": "FND-01,FND-03,UX-04",
+      "depends_on": "FND-01,FND-03,UX-04,IDN-01",
       "parallel_group": "PG-MEM",
       "recommended_agent_role": "会员/营销/账务工程师",
       "source_requirements": "mapp merge §§2-3,6; inventory对应route; DAG 04；客户 APP 原型参考：docs/prototypes/customer-miniapp-prototype.html；界面：my-membership",
@@ -1316,7 +1333,9 @@
   {
     "id": "MEM-02",
     "section": "完整MVP实施DAG / 会员/营销/钱包",
-    "deps": [],
+    "deps": [
+      "IDN-01"
+    ],
     "project": "jiankang_app_uniapp / DFP Wish / 健康服务与 SCRM MVP",
     "output": "pages/commerce/member/plan下实施、逐路由映射、route fragment/契约和操作证据；覆盖pages/activity/vip_paid/index,pages/activity/vip_paid_benefits/index,pages/activity/vip_levels/index,pages/activity/vip_benefits/index,pages/activity/member_activation/index,pages/activity/member_activation/cardQuery,pages/activity/member_activation/cardPreview,pages/activity/member_activation/cardBind,pages/activity/member_activation/cardSuccess,pages/activity/vip_order_record/index",
     "scope": "pages/commerce/member/plan",
@@ -1333,7 +1352,7 @@
       "title": "迁移付费会员、权益和购买记录",
       "workstream": "会员/营销/钱包",
       "scope": "MVP后续",
-      "depends_on": "",
+      "depends_on": "IDN-01",
       "parallel_group": "PG-MEM",
       "recommended_agent_role": "会员/营销/账务工程师",
       "source_requirements": "mapp merge §§2-3,6; inventory对应route; DAG 04；客户 APP 原型参考：docs/prototypes/customer-miniapp-prototype.html；界面：my-membership",
@@ -1379,7 +1398,8 @@
     "section": "完整MVP实施DAG / 会员/营销/钱包",
     "deps": [
       "FND-01",
-      "FND-03"
+      "FND-03",
+      "IDN-01"
     ],
     "project": "jiankang_app_uniapp / DFP Wish / 健康服务与 SCRM MVP",
     "output": "pages/commerce/coupons下实施、逐路由映射、route fragment/契约和操作证据；覆盖pages/users/user_coupon/index,pages/activity/couponList/index",
@@ -1397,7 +1417,7 @@
       "title": "迁移优惠券与领券中心",
       "workstream": "会员/营销/钱包",
       "scope": "MVP后续",
-      "depends_on": "FND-01,FND-03",
+      "depends_on": "FND-01,FND-03,IDN-01",
       "parallel_group": "PG-MEM",
       "recommended_agent_role": "会员/营销/账务工程师",
       "source_requirements": "mapp merge §§2-3,6; inventory对应route; DAG 04；客户 APP 原型参考：docs/prototypes/customer-miniapp-prototype.html；界面：my-coupons",
@@ -1443,7 +1463,8 @@
     "section": "完整MVP实施DAG / 会员/营销/钱包",
     "deps": [
       "FND-01",
-      "FND-03"
+      "FND-03",
+      "IDN-01"
     ],
     "project": "jiankang_app_uniapp / DFP Wish / 健康服务与 SCRM MVP",
     "output": "pages/commerce/points下实施、逐路由映射、route fragment/契约和操作证据；覆盖pages/merchant/user_integral/index,pages/activity/points_mall/index,pages/activity/goods_points/index",
@@ -1461,7 +1482,7 @@
       "title": "迁移积分明细与积分商城",
       "workstream": "会员/营销/钱包",
       "scope": "MVP后续",
-      "depends_on": "FND-01,FND-03",
+      "depends_on": "FND-01,FND-03,IDN-01",
       "parallel_group": "PG-MEM",
       "recommended_agent_role": "会员/营销/账务工程师",
       "source_requirements": "mapp merge §§2-3,6; inventory对应route; DAG 04；客户 APP 原型参考：docs/prototypes/customer-miniapp-prototype.html；界面：my-points",
@@ -1506,7 +1527,8 @@
     "id": "MEM-05",
     "section": "完整MVP实施DAG / 会员/营销/钱包",
     "deps": [
-      "FND-01"
+      "FND-01",
+      "IDN-01"
     ],
     "project": "jiankang_app_uniapp / DFP Wish / 健康服务与 SCRM MVP",
     "output": "pages/commerce/gift-cards下实施、逐路由映射、route fragment/契约和操作证据；覆盖pages/activity/giftCard/index,pages/activity/giftCard/detail,pages/activity/giftCard/my,pages/activity/giftCard/myDetail,pages/activity/giftCard/activate,pages/activity/giftCard/order,pages/activity/giftCard/record,pages/activity/giftCard/exchange,pages/activity/giftCard/exchange_confirm",
@@ -1524,7 +1546,7 @@
       "title": "迁移商城礼品卡全流程",
       "workstream": "会员/营销/钱包",
       "scope": "MVP后续",
-      "depends_on": "FND-01",
+      "depends_on": "FND-01,IDN-01",
       "parallel_group": "PG-MEM",
       "recommended_agent_role": "会员/营销/账务工程师",
       "source_requirements": "mapp merge §§2-3,6; inventory对应route; DAG 04；客户 APP 原型参考：docs/prototypes/customer-miniapp-prototype.html；界面：my-gift-cards",
@@ -1570,7 +1592,8 @@
     "section": "完整MVP实施DAG / 会员/营销/钱包",
     "deps": [
       "FND-01",
-      "FND-03"
+      "FND-03",
+      "IDN-01"
     ],
     "project": "jiankang_app_uniapp / DFP Wish / 健康服务与 SCRM MVP",
     "output": "pages/commerce/member/check-in下实施、逐路由映射、route fragment/契约和操作证据；覆盖pages/users/member_qrcode/index,pages/users/user_sgin_info/index,pages/merchant/user_sgin/index,pages/merchant/user_sgin_list/index",
@@ -1588,7 +1611,7 @@
       "title": "迁移会员二维码与签到",
       "workstream": "会员/营销/钱包",
       "scope": "MVP后续",
-      "depends_on": "FND-01,FND-03",
+      "depends_on": "FND-01,FND-03,IDN-01",
       "parallel_group": "PG-MEM",
       "recommended_agent_role": "会员/营销/账务工程师",
       "source_requirements": "mapp merge §§2-3,6; inventory对应route; DAG 04；客户 APP 原型参考：docs/prototypes/customer-miniapp-prototype.html；界面：my-membership",
@@ -1634,7 +1657,8 @@
     "section": "完整MVP实施DAG / 会员/营销/钱包",
     "deps": [
       "FND-01",
-      "GOV-02"
+      "GOV-02",
+      "IDN-01"
     ],
     "project": "jiankang_app_uniapp / DFP Wish / 健康服务与 SCRM MVP",
     "output": "pages/commerce/wallet下实施、逐路由映射、route fragment/契约和操作证据；覆盖pages/users/user_money/index,pages/users/user_bill/index,pages/users/user_transferOut/index,pages/users/user_payment/index",
@@ -1652,7 +1676,7 @@
       "title": "迁移商城钱包、充值与账单",
       "workstream": "会员/营销/钱包",
       "scope": "MVP后续",
-      "depends_on": "FND-01,GOV-02",
+      "depends_on": "FND-01,GOV-02,IDN-01",
       "parallel_group": "PG-MEM",
       "recommended_agent_role": "会员/营销/账务工程师",
       "source_requirements": "mapp merge §§2-3,6; inventory对应route; DAG 04；客户 APP 原型参考：docs/prototypes/customer-miniapp-prototype.html；界面：my-balance",
@@ -1698,7 +1722,8 @@
     "section": "完整MVP实施DAG / 会员/营销/钱包",
     "deps": [
       "FND-01",
-      "FND-03"
+      "FND-03",
+      "IDN-01"
     ],
     "project": "jiankang_app_uniapp / DFP Wish / 健康服务与 SCRM MVP",
     "output": "pages/commerce/referral下实施、逐路由映射、route fragment/契约和操作证据；覆盖pages/users/user_spread_user/index,pages/users/user_spread_code/index,pages/users/promoter-list/index,pages/users/promoter-apply/index,pages/users/promoter-order/index,pages/users/promoter_rank/index",
@@ -1716,7 +1741,7 @@
       "title": "迁移推广员、推广码和订单归因",
       "workstream": "会员/营销/钱包",
       "scope": "MVP后续",
-      "depends_on": "FND-01,FND-03",
+      "depends_on": "FND-01,FND-03,IDN-01",
       "parallel_group": "PG-MEM",
       "recommended_agent_role": "会员/营销/账务工程师",
       "source_requirements": "mapp merge §§2-3,6; inventory对应route; DAG 04；客户 APP 原型参考：docs/prototypes/customer-miniapp-prototype.html；界面：my-commission",
@@ -1762,7 +1787,8 @@
     "section": "完整MVP实施DAG / 会员/营销/钱包",
     "deps": [
       "FND-01",
-      "FND-03"
+      "FND-03",
+      "IDN-01"
     ],
     "project": "jiankang_app_uniapp / DFP Wish / 健康服务与 SCRM MVP",
     "output": "pages/commerce/activities下实施、逐路由映射、route fragment/契约和操作证据；覆盖pages/activity/goods_seckill/index,pages/activity/mer-good-seckill/index,pages/activity/goods_group/index,pages/activity/status/index,pages/activity/small_page/index,pages/activity/index,pages/activity/detail,pages/activity/lucky_wheel/index,pages/activity/prize_record/index,pages/activity/redeem/index",
@@ -1780,7 +1806,7 @@
       "title": "迁移秒杀、拼团、抽奖与兑换活动",
       "workstream": "会员/营销/钱包",
       "scope": "MVP后续",
-      "depends_on": "FND-01,FND-03",
+      "depends_on": "FND-01,FND-03,IDN-01",
       "parallel_group": "PG-MEM",
       "recommended_agent_role": "会员/营销/账务工程师",
       "source_requirements": "mapp merge §§2-3,6; inventory对应route; DAG 04；客户 APP 原型参考：docs/prototypes/customer-miniapp-prototype.html；界面：shop, shop-content",
@@ -1828,7 +1854,8 @@
     "deps": [
       "FND-03",
       "FND-08",
-      "UX-04"
+      "UX-04",
+      "IDN-01"
     ],
     "project": "jiankang_app_uniapp / DFP Wish / 健康服务与 SCRM MVP",
     "output": "pages/content/news下实施、逐路由映射、route fragment/契约和操作证据；覆盖pages/goods/news_list/index,pages/goods/news_details/index",
@@ -1846,7 +1873,7 @@
       "title": "迁移资讯列表与文章详情",
       "workstream": "内容/直播/发现",
       "scope": "MVP后续",
-      "depends_on": "FND-03,FND-08,UX-04",
+      "depends_on": "FND-03,FND-08,UX-04,IDN-01",
       "parallel_group": "PG-CNT",
       "recommended_agent_role": "内容/直播跨端工程师",
       "source_requirements": "mapp merge §§2,5; overall §§18-19; inventory route；客户 APP 原型参考：docs/prototypes/customer-miniapp-prototype.html；界面：shop-content",
@@ -1893,7 +1920,8 @@
     "deps": [
       "FND-01",
       "FND-03",
-      "FND-08"
+      "FND-08",
+      "IDN-01"
     ],
     "project": "jiankang_app_uniapp / DFP Wish / 健康服务与 SCRM MVP",
     "output": "pages/content/discovery/profile下实施、逐路由映射、route fragment/契约和操作证据；覆盖pages/discover/discover_search_list/index,pages/discover/discover_user/index,pages/discover/discover_follow/index,pages/discover/discover_note_topic/index",
@@ -1911,7 +1939,7 @@
       "title": "迁移发现搜索、话题、关注和作者页",
       "workstream": "内容/直播/发现",
       "scope": "MVP后续",
-      "depends_on": "FND-01,FND-03,FND-08",
+      "depends_on": "FND-01,FND-03,FND-08,IDN-01",
       "parallel_group": "PG-CNT",
       "recommended_agent_role": "内容/直播跨端工程师",
       "source_requirements": "mapp merge §§2,5; overall §§18-19; inventory route；客户 APP 原型参考：docs/prototypes/customer-miniapp-prototype.html；界面：shop-content, shop-content-detail",
@@ -1957,7 +1985,8 @@
     "id": "CNT-03",
     "section": "完整MVP实施DAG / 内容/直播/发现",
     "deps": [
-      "FND-03"
+      "FND-03",
+      "IDN-01"
     ],
     "project": "jiankang_app_uniapp / DFP Wish / 健康服务与 SCRM MVP",
     "output": "pages/content/discovery/feed下实施、逐路由映射、route fragment/契约和操作证据；覆盖pages/discover/discover_details/index,pages/discover_index/index",
@@ -1975,7 +2004,7 @@
       "title": "迁移发现信息流与内容详情",
       "workstream": "内容/直播/发现",
       "scope": "MVP后续",
-      "depends_on": "FND-03",
+      "depends_on": "FND-03,IDN-01",
       "parallel_group": "PG-CNT",
       "recommended_agent_role": "内容/直播跨端工程师",
       "source_requirements": "mapp merge §§2,5; overall §§18-19; inventory route；客户 APP 原型参考：docs/prototypes/customer-miniapp-prototype.html；界面：shop-content-detail",
@@ -2020,7 +2049,8 @@
     "id": "CNT-04",
     "section": "完整MVP实施DAG / 内容/直播/发现",
     "deps": [
-      "FND-01"
+      "FND-01",
+      "IDN-01"
     ],
     "project": "jiankang_app_uniapp / DFP Wish / 健康服务与 SCRM MVP",
     "output": "pages/content/discovery/publish下实施、逐路由映射、route fragment/契约和操作证据；覆盖pages/discover/discover_release/index",
@@ -2038,7 +2068,7 @@
       "title": "迁移发现内容发布",
       "workstream": "内容/直播/发现",
       "scope": "MVP后续",
-      "depends_on": "FND-01",
+      "depends_on": "FND-01,IDN-01",
       "parallel_group": "PG-CNT",
       "recommended_agent_role": "内容/直播跨端工程师",
       "source_requirements": "mapp merge §§2,5; overall §§18-19; inventory route；客户 APP 原型参考：docs/prototypes/customer-miniapp-prototype.html；界面：shop-content",
@@ -2084,7 +2114,8 @@
     "section": "完整MVP实施DAG / 内容/直播/发现",
     "deps": [
       "FND-05",
-      "FND-08"
+      "FND-08",
+      "IDN-01"
     ],
     "project": "jiankang_app_uniapp / DFP Wish / 健康服务与 SCRM MVP",
     "output": "pages/content/video下实施、逐路由映射、route fragment/契约和操作证据；覆盖pages/discover/discover_video/routineVideo/index,pages/discover/discover_video/appVideo/index",
@@ -2102,7 +2133,7 @@
       "title": "迁移短视频和 nvue 播放页",
       "workstream": "内容/直播/发现",
       "scope": "MVP后续",
-      "depends_on": "FND-05,FND-08",
+      "depends_on": "FND-05,FND-08,IDN-01",
       "parallel_group": "PG-CNT",
       "recommended_agent_role": "内容/直播跨端工程师",
       "source_requirements": "mapp merge §§2,5; overall §§18-19; inventory route；客户 APP 原型参考：docs/prototypes/customer-miniapp-prototype.html；界面：shop-content-detail",
@@ -2149,7 +2180,8 @@
     "deps": [
       "FND-01",
       "FND-05",
-      "FND-08"
+      "FND-08",
+      "IDN-01"
     ],
     "project": "jiankang_app_uniapp / DFP Wish / 健康服务与 SCRM MVP",
     "output": "pages/content/live下实施、逐路由映射、route fragment/契约和操作证据；覆盖pages/users/live_center/index,pages/users/live_apply/index,pages/users/live_apply/record,pages/users/video_bind/index,pages/users/live_pre/index,pages/users/live_pre/create,pages/users/account_manage/index,pages/activity/liveBroadcast/index",
@@ -2167,7 +2199,7 @@
       "title": "迁移直播中心、创作者申请和预告",
       "workstream": "内容/直播/发现",
       "scope": "MVP后续",
-      "depends_on": "FND-01,FND-05,FND-08",
+      "depends_on": "FND-01,FND-05,FND-08,IDN-01",
       "parallel_group": "PG-CNT",
       "recommended_agent_role": "内容/直播跨端工程师",
       "source_requirements": "mapp merge §§2,5; overall §§18-19; inventory route；客户 APP 原型参考：docs/prototypes/customer-miniapp-prototype.html；界面：shop-content",
@@ -2213,7 +2245,8 @@
     "section": "完整MVP实施DAG / 内容/直播/发现",
     "deps": [
       "FND-05",
-      "FND-08"
+      "FND-08",
+      "IDN-01"
     ],
     "project": "jiankang_app_uniapp / DFP Wish / 健康服务与 SCRM MVP",
     "output": "features/platform/live-container下实施、逐路由映射、route fragment/契约和操作证据；覆盖pages/webview/webview",
@@ -2231,7 +2264,7 @@
       "title": "迁移直播间 WebView/播放器容器",
       "workstream": "内容/直播/发现",
       "scope": "MVP后续",
-      "depends_on": "FND-05,FND-08",
+      "depends_on": "FND-05,FND-08,IDN-01",
       "parallel_group": "PG-CNT",
       "recommended_agent_role": "内容/直播跨端工程师",
       "source_requirements": "mapp merge §§2,5; overall §§18-19; inventory route；客户 APP 原型参考：docs/prototypes/customer-miniapp-prototype.html；界面：shop-content-detail",
@@ -2278,7 +2311,8 @@
     "deps": [
       "FND-01",
       "FND-03",
-      "UX-04"
+      "UX-04",
+      "IDN-01"
     ],
     "project": "jiankang_app_uniapp / DFP Wish / 健康服务与 SCRM MVP",
     "output": "pages/account/profile下实施、逐路由映射、route fragment/契约和操作证据；覆盖pages/user/index,pages/users/user_info/index,pages/users/user_profile/index,pages/users/user_setting/index,pages/users/user_phone/index,pages/users/user_pwd_edit/index,pages/users/login/index,pages/users/wechat_login/index,pages/users/app_login/index,pages/users/more_function/index",
@@ -2296,7 +2330,7 @@
       "title": "迁移客户资料、账户和安全设置",
       "workstream": "用户服务/平台适配",
       "scope": "MVP后续",
-      "depends_on": "FND-01,FND-03,UX-04",
+      "depends_on": "FND-01,FND-03,UX-04,IDN-01",
       "parallel_group": "PG-USR",
       "recommended_agent_role": "用户服务/平台适配工程师",
       "source_requirements": "mapp merge §§2-3,5; overall §§6,17-19; inventory route；客户 APP 原型参考：docs/prototypes/customer-miniapp-prototype.html；界面：my-profile, profile-edit",
@@ -2344,7 +2378,8 @@
     "deps": [
       "FND-01",
       "FND-03",
-      "FND-05"
+      "FND-05",
+      "IDN-01"
     ],
     "project": "jiankang_app_uniapp / DFP Wish / 健康服务与 SCRM MVP",
     "output": "pages/account/messages-support下实施、逐路由映射、route fragment/契约和操作证据；覆盖pages/users/user_notice/index,pages/users/user_notice/detail,pages/service/service/index,pages/service/user_notice/index,pages/service/official/official,pages/service/detail,pages/service/more",
@@ -2362,7 +2397,7 @@
       "title": "迁移消息通知和客户服务",
       "workstream": "用户服务/平台适配",
       "scope": "MVP后续",
-      "depends_on": "FND-01,FND-03,FND-05",
+      "depends_on": "FND-01,FND-03,FND-05,IDN-01",
       "parallel_group": "PG-USR",
       "recommended_agent_role": "用户服务/平台适配工程师",
       "source_requirements": "mapp merge §§2-3,5; overall §§6,17-19; inventory route；客户 APP 原型参考：docs/prototypes/customer-miniapp-prototype.html；界面：my-messages, my-support, my-agreements",
@@ -2411,7 +2446,8 @@
     "deps": [
       "FND-03",
       "FND-05",
-      "FND-08"
+      "FND-08",
+      "IDN-01"
     ],
     "project": "jiankang_app_uniapp / DFP Wish / 健康服务与 SCRM MVP",
     "output": "features/platform/web-content下实施、逐路由映射、route fragment/契约和操作证据；覆盖pages/users/web_page/index,pages/goods/systemIframe/index,pages/goods/agreement_rules/index,pages/goods/agreement_info/index",
@@ -2429,7 +2465,7 @@
       "title": "迁移 Web 内容、表单与协议",
       "workstream": "用户服务/平台适配",
       "scope": "MVP后续",
-      "depends_on": "FND-03,FND-05,FND-08",
+      "depends_on": "FND-03,FND-05,FND-08,IDN-01",
       "parallel_group": "PG-USR",
       "recommended_agent_role": "用户服务/平台适配工程师",
       "source_requirements": "mapp merge §§2-3,5; overall §§6,17-19; inventory route；客户 APP 原型参考：docs/prototypes/customer-miniapp-prototype.html；界面：my-support, agreement-detail",
@@ -2475,7 +2511,8 @@
     "id": "USR-04",
     "section": "完整MVP实施DAG / 用户服务/平台适配",
     "deps": [
-      "FND-05"
+      "FND-05",
+      "IDN-01"
     ],
     "project": "jiankang_app_uniapp / DFP Wish / 健康服务与 SCRM MVP",
     "output": "features/platform/auth-callbacks下实施、逐路由映射、route fragment/契约和操作证据；覆盖pages/users/app_update/app_update,pages/auth/index",
@@ -2493,7 +2530,7 @@
       "title": "迁移 OAuth 回调和 APP 更新",
       "workstream": "用户服务/平台适配",
       "scope": "MVP后续",
-      "depends_on": "FND-05",
+      "depends_on": "FND-05,IDN-01",
       "parallel_group": "PG-USR",
       "recommended_agent_role": "用户服务/平台适配工程师",
       "source_requirements": "mapp merge §§2-3,5; overall §§6,17-19; inventory route；客户 APP 原型参考：docs/prototypes/customer-miniapp-prototype.html；界面：my-security, security-login, security-account",
@@ -2541,7 +2578,8 @@
     "section": "完整MVP实施DAG / 用户服务/平台适配",
     "deps": [
       "FND-01",
-      "FND-03"
+      "FND-03",
+      "IDN-01"
     ],
     "project": "jiankang_app_uniapp / DFP Wish / 健康服务与 SCRM MVP",
     "output": "pages/account/addresses下实施、逐路由映射、route fragment/契约和操作证据；覆盖pages/address/user_address_list/index,pages/address/user_address/index",
@@ -2559,7 +2597,7 @@
       "title": "迁移商城收货地址簿",
       "workstream": "用户服务/平台适配",
       "scope": "MVP后续",
-      "depends_on": "FND-01,FND-03",
+      "depends_on": "FND-01,FND-03,IDN-01",
       "parallel_group": "PG-USR",
       "recommended_agent_role": "用户服务/平台适配工程师",
       "source_requirements": "mapp merge §§2-3,5; overall §§6,17-19; inventory route；客户 APP 原型参考：docs/prototypes/customer-miniapp-prototype.html；界面：my-addresses, address-edit",
@@ -2605,7 +2643,8 @@
     "id": "USR-06",
     "section": "完整MVP实施DAG / 用户服务/平台适配",
     "deps": [
-      "FND-05"
+      "FND-05",
+      "IDN-01"
     ],
     "project": "jiankang_app_uniapp / DFP Wish / 健康服务与 SCRM MVP",
     "output": "features/platform/nearby-services下实施、逐路由映射、route fragment/契约和操作证据；覆盖pages/near/hospital/index,pages/near/school/index",
@@ -2623,7 +2662,7 @@
       "title": "迁移附近医院和学校目录",
       "workstream": "用户服务/平台适配",
       "scope": "MVP后续",
-      "depends_on": "FND-05",
+      "depends_on": "FND-05,IDN-01",
       "parallel_group": "PG-USR",
       "recommended_agent_role": "用户服务/平台适配工程师",
       "source_requirements": "mapp merge §§2-3,5; overall §§6,17-19; inventory route；客户 APP 原型参考：docs/prototypes/customer-miniapp-prototype.html；界面：health-services, service-statuses",
@@ -2672,7 +2711,8 @@
       "GOV-02",
       "FND-03",
       "FND-05",
-      "FND-08"
+      "FND-08",
+      "IDN-01"
     ],
     "project": "jiankang_app_uniapp / DFP Wish / 健康服务与 SCRM MVP",
     "output": "将健康入口和需迁移路由接入客户 APP；健康/SCRM 业务走 Wish APP BFF，尚未迁入的历史路由仅可使用短期兼容 adapter 或审核外链。",
@@ -2690,7 +2730,7 @@
       "title": "接入 APP 健康入口并登记商城/我的历史路由",
       "workstream": "健康/Wish集成",
       "scope": "MVP必须",
-      "depends_on": "GOV-02,FND-03,FND-05,FND-08",
+      "depends_on": "GOV-02,FND-03,FND-05,FND-08,IDN-01",
       "parallel_group": "PG-HWI",
       "recommended_agent_role": "健康/Wish/Commerce 集成工程师",
       "source_requirements": "overall §§3,6,18-19,27; prototype健康/商城/我的; inventory route；客户 APP 原型参考：docs/prototypes/customer-miniapp-prototype.html；界面：home, health-services, shop",
@@ -2727,7 +2767,8 @@
       "FND-03",
       "GOV-02",
       "HLT-04",
-      "WADM-12"
+      "WADM-12",
+      "IDN-01"
     ],
     "project": "jiankang_app_uniapp / DFP Wish / 健康服务与 SCRM MVP",
     "output": "features/health/commerce-service-discovery下实施、逐路由映射、route fragment/契约和操作证据；覆盖pages/goods/vacation_study/index,pages/goods/goods_combination/index",
@@ -2745,7 +2786,7 @@
       "title": "建立商城商品到 Wish 服务发现映射",
       "workstream": "健康/Wish集成",
       "scope": "MVP后续",
-      "depends_on": "HWI-01,FND-03,GOV-02,HLT-04,WADM-12",
+      "depends_on": "HWI-01,FND-03,GOV-02,HLT-04,WADM-12,IDN-01",
       "parallel_group": "PG-HWI",
       "recommended_agent_role": "健康/Wish/Commerce 集成工程师",
       "source_requirements": "overall §§3,6,18-19,27; prototype健康/商城/我的; inventory route",
@@ -2773,7 +2814,8 @@
       "HWI-01",
       "FND-01",
       "HLT-05",
-      "WADM-15"
+      "WADM-15",
+      "IDN-01"
     ],
     "project": "jiankang_app_uniapp / DFP Wish / 健康服务与 SCRM MVP",
     "output": "features/health/commerce-entitlement-bridge下实施、逐路由映射、route fragment/契约和操作证据；覆盖pages/goods/order_confirm/index,pages/goods/order_payment/index,pages/goods/order_pay_status/index,pages/goods/order_details/index,pages/goods/virtual_order_details/index",
@@ -2791,7 +2833,7 @@
       "title": "建立商城订单到 Wish 权益只读交接",
       "workstream": "健康/Wish集成",
       "scope": "MVP后续",
-      "depends_on": "HWI-01,FND-01,HLT-05,WADM-15",
+      "depends_on": "HWI-01,FND-01,HLT-05,WADM-15,IDN-01",
       "parallel_group": "PG-HWI",
       "recommended_agent_role": "健康/Wish/Commerce 集成工程师",
       "source_requirements": "overall §§3,6,18-19,27; prototype健康/商城/我的; inventory route",
@@ -2818,7 +2860,8 @@
     "deps": [
       "HWI-01",
       "HLT-07",
-      "WADM-14"
+      "WADM-14",
+      "IDN-01"
     ],
     "project": "jiankang_app_uniapp / DFP Wish / 健康服务与 SCRM MVP",
     "output": "features/health/campaign-attribution下实施、逐路由映射、route fragment/契约和操作证据；覆盖pages/users/user_spread_code/index,pages/goods/vacation_study/index,pages/activity/small_page/index,pages/discover/discover_details/index",
@@ -2836,7 +2879,7 @@
       "title": "保留活动内容到健康服务来源归因",
       "workstream": "健康/Wish集成",
       "scope": "MVP后续",
-      "depends_on": "HWI-01,HLT-07,WADM-14",
+      "depends_on": "HWI-01,HLT-07,WADM-14,IDN-01",
       "parallel_group": "PG-HWI",
       "recommended_agent_role": "健康/Wish/Commerce 集成工程师",
       "source_requirements": "overall §§3,6,18-19,27; prototype健康/商城/我的; inventory route",
@@ -2866,7 +2909,8 @@
       "GOV-02",
       "API-06",
       "API-08",
-      "APPBFF-01"
+      "APPBFF-01",
+      "IDN-01"
     ],
     "project": "jiankang_app_uniapp / DFP Wish / 健康服务与 SCRM MVP",
     "output": "疗愈师从健康服务任务进入 Wish 工单；跳转携带最小任务上下文并重新校验身份、角色、站点和本次客户授权",
@@ -2884,7 +2928,7 @@
       "title": "提供疗愈师健康服务任务入口与授权跳转",
       "workstream": "健康/Wish集成",
       "scope": "MVP必须",
-      "depends_on": "HWI-01,FND-01,GOV-02,API-06,API-08,APPBFF-01",
+      "depends_on": "HWI-01,FND-01,GOV-02,API-06,API-08,APPBFF-01,IDN-01",
       "parallel_group": "PG-HWI",
       "recommended_agent_role": "健康/Wish/Commerce 集成工程师",
       "source_requirements": "overall §§3,6,18-19,27; prototype健康/商城/我的; inventory route",
@@ -4510,7 +4554,8 @@
       "API-05",
       "GOV-06",
       "APPBFF-01",
-      "OPS-02"
+      "OPS-02",
+      "IDN-01"
     ],
     "project": "jiankang_app_uniapp / DFP Wish / 健康服务与 SCRM MVP",
     "output": "健康唯一一级入口、凤凰谷九项目目录和详情页面；接入 Wish 项目版本与站点接口，并交可运行的自动化 UI/契约检查路径；增加已参与项目/活动记录与授权可见报告入口。",
@@ -4528,7 +4573,7 @@
       "title": "实现健康入口、凤凰谷目录和项目详情",
       "workstream": "健康客户端/SCRM",
       "scope": "MVP必须",
-      "depends_on": "FND-03,UX-05,API-05,GOV-06,APPBFF-01,OPS-02",
+      "depends_on": "FND-03,UX-05,API-05,GOV-06,APPBFF-01,OPS-02,IDN-01",
       "parallel_group": "PG-HLT",
       "recommended_agent_role": "uni-app x health engineer",
       "source_requirements": "overall §§5-8,27-28; Wish backend §16; data §13; wireframe健康/预约/客户管理; prototype健康服务目录；客户 APP 原型参考：docs/prototypes/customer-miniapp-prototype.html；界面：health、health-records、health-services、service-statuses。",
@@ -4576,7 +4621,8 @@
     "deps": [
       "HLT-01",
       "API-05",
-      "APPBFF-01"
+      "APPBFF-01",
+      "IDN-01"
     ],
     "project": "jiankang_app_uniapp / DFP Wish / 健康服务与 SCRM MVP",
     "output": "pages/health/services/location",
@@ -4594,7 +4640,7 @@
       "title": "实现酒店地图位置和房间短时二维码入口",
       "workstream": "健康客户端/SCRM",
       "scope": "MVP后续",
-      "depends_on": "HLT-01,API-05,APPBFF-01",
+      "depends_on": "HLT-01,API-05,APPBFF-01,IDN-01",
       "parallel_group": "PG-HLT",
       "recommended_agent_role": "uni-app x location engineer",
       "source_requirements": "overall §§5-8,27-28; Wish backend §16; data §13; wireframe健康/预约/客户管理 §27; prototype酒店位置地图；客户 APP 原型参考：docs/prototypes/customer-miniapp-prototype.html；界面：health-services",
@@ -4644,7 +4690,8 @@
       "APPBFF-01",
       "API-06",
       "OPS-04",
-      "OPS-05"
+      "OPS-05",
+      "IDN-01"
     ],
     "project": "jiankang_app_uniapp / DFP Wish / 健康服务与 SCRM MVP",
     "output": "客户查看可预约时段并提交预约；服务端原子校验项目资格、房间/设备和必要服务角色资源。",
@@ -4662,7 +4709,7 @@
       "title": "实现健康服务可用时段、预约 hold 与资源冲突恢复",
       "workstream": "健康客户端/SCRM",
       "scope": "MVP必须",
-      "depends_on": "HLT-01,API-05,APPBFF-01,API-06,OPS-04,OPS-05",
+      "depends_on": "HLT-01,API-05,APPBFF-01,API-06,OPS-04,OPS-05,IDN-01",
       "parallel_group": "PG-HLT",
       "recommended_agent_role": "uni-app x booking engineer",
       "source_requirements": "overall §§5-8,27-28; Wish backend §16; data §13; wireframe健康/预约/客户管理 §§27.2-27.3,28.10; prototype联合预约；客户 APP 原型参考：docs/prototypes/customer-miniapp-prototype.html；界面：health-services, health-appointments, service-statuses",
@@ -4715,7 +4762,8 @@
       "APPBFF-01",
       "OPS-05",
       "OPS-06",
-      "SCR-06"
+      "SCR-06",
+      "IDN-01"
     ],
     "project": "jiankang_app_uniapp / DFP Wish / 健康服务与 SCRM MVP",
     "output": "pages/health/appointments and payment；覆盖健康服务时间安排及预约状态入口。",
@@ -4733,7 +4781,7 @@
       "title": "实现预约详情、支付状态、改期取消及候补",
       "workstream": "健康客户端/SCRM",
       "scope": "MVP必须",
-      "depends_on": "HLT-03,API-06,API-07,API-09,APPBFF-01,OPS-05,OPS-06,SCR-06",
+      "depends_on": "HLT-03,API-06,API-07,API-09,APPBFF-01,OPS-05,OPS-06,SCR-06,IDN-01",
       "parallel_group": "PG-HLT",
       "recommended_agent_role": "uni-app x appointment engineer",
       "source_requirements": "overall §§5-8,27-28; Wish backend §16; data §13; wireframe健康/预约/客户管理 §§10,27-28; prototype预约/支付/候补；客户 APP 原型参考：docs/prototypes/customer-miniapp-prototype.html；界面：health、health-appointments、my-appointments、service-statuses。",
@@ -4789,7 +4837,8 @@
       "SCR-01",
       "SCR-02",
       "SCR-05",
-      "SCR-06"
+      "SCR-06",
+      "IDN-01"
     ],
     "project": "jiankang_app_uniapp / DFP Wish / 健康服务与 SCRM MVP",
     "output": "pages/health/rights and consent",
@@ -4807,7 +4856,7 @@
       "title": "实现服务卡预览、授权和健康资料设置",
       "workstream": "健康客户端/SCRM",
       "scope": "MVP必须",
-      "depends_on": "HLT-04,API-04,API-07,API-03,APPBFF-01,SCR-01,SCR-02,SCR-05,SCR-06",
+      "depends_on": "HLT-04,API-04,API-07,API-03,APPBFF-01,SCR-01,SCR-02,SCR-05,SCR-06,IDN-01",
       "parallel_group": "PG-HLT",
       "recommended_agent_role": "health privacy client engineer",
       "source_requirements": "overall §§5-8,27-28; Wish backend §16; data §13; wireframe健康/预约/客户管理 §§17,28.5,28.9; prototype服务卡和授权；客户 APP 原型参考：docs/prototypes/customer-miniapp-prototype.html；界面：health、security-login、my-agreements、service-statuses。",
@@ -4858,7 +4907,8 @@
       "UX-05",
       "APPBFF-01",
       "SCR-01",
-      "SCR-02"
+      "SCR-02",
+      "IDN-01"
     ],
     "project": "jiankang_app_uniapp / DFP Wish / 健康服务与 SCRM MVP",
     "output": "保护原login.uvue/network/client.uts；独立模块集成；健康正文不进Commerce；增加已参与项目/活动记录、历史详情和报告受控引用读取。",
@@ -4876,7 +4926,7 @@
       "title": "接通现有健康档案、体重运动真实读写",
       "workstream": "健康客户端/SCRM",
       "scope": "MVP必须",
-      "depends_on": "API-04,API-03,UX-05,APPBFF-01,SCR-01,SCR-02",
+      "depends_on": "API-04,API-03,UX-05,APPBFF-01,SCR-01,SCR-02,IDN-01",
       "parallel_group": "PG-HLT",
       "recommended_agent_role": "health client engineer",
       "source_requirements": "overall §§5-8,27-28; Wish backend §16; data §13; wireframe健康/预约/客户管理 §§5-6,17; prototype个人/家庭档案；客户 APP 原型参考：docs/prototypes/customer-miniapp-prototype.html；界面：health-basics、health-records、service-statuses。",
@@ -4929,7 +4979,8 @@
       "SCR-04",
       "OPS-08",
       "WADM-05",
-      "WADM-14"
+      "WADM-14",
+      "IDN-01"
     ],
     "project": "jiankang_app_uniapp / DFP Wish / 健康服务与 SCRM MVP",
     "output": "pages/health/messages",
@@ -4947,7 +4998,7 @@
       "title": "实现服务提醒、状态消息与安全深链",
       "workstream": "健康客户端/SCRM",
       "scope": "MVP必须",
-      "depends_on": "HLT-04,API-09,API-03,APPBFF-01,SCR-04,OPS-08,WADM-05,WADM-14",
+      "depends_on": "HLT-04,API-09,API-03,APPBFF-01,SCR-04,OPS-08,WADM-05,WADM-14,IDN-01",
       "parallel_group": "PG-HLT",
       "recommended_agent_role": "health messaging engineer",
       "source_requirements": "overall §§5-8,27-28; Wish backend §16; data §13; wireframe健康/预约/客户管理 §§11,27-28; prototype通知；客户 APP 原型参考：docs/prototypes/customer-miniapp-prototype.html；界面：my-messages, service-statuses",
@@ -6031,7 +6082,8 @@
       "GOV-05",
       "GOV-03",
       "FND-05",
-      "IDN-01"
+      "IDN-01",
+      "APPBFF-01"
     ],
     "project": "jiankang_app_uniapp / DFP Wish / 健康服务与 SCRM MVP",
     "output": "健康 MVP Deep Link、历史 MAPP adapter、IDN-01 一次性 migration session bridge 与旧 token 服务端一次性兑换/立即失效的威胁模型、allowlist、参数过滤和自动化负向场景；不建设 MAPP 后端业务。",
@@ -6050,7 +6102,7 @@
       "title": "检查 MVP Deep Link 与历史 MAPP 兼容适配安全",
       "workstream": "安全/测试",
       "scope": "MVP必须",
-      "depends_on": "GOV-05,GOV-03,FND-05,IDN-01",
+      "depends_on": "GOV-05,GOV-03,FND-05,IDN-01,APPBFF-01",
       "parallel_group": "PG-SEC",
       "recommended_agent_role": "mobile security engineer",
       "source_requirements": "overall §§17,20,26; backend §§6,10-11; data §§6,10,13; mapp §§5,10; special inventory",
@@ -6060,7 +6112,7 @@
       "inputs": "overall §§17,20,26; backend §§6,10-11; data §§6,10,13; mapp §§5,10; special inventory；依赖任务交付、版本化规则和合成夹具；未知值使用合成/沙箱数据；相关真实写入或公开发布保持关闭，其他工作继续",
       "deliverables": "健康 MVP Deep Link、历史 MAPP adapter、IDN-01 一次性 migration session bridge 与旧 token 服务端一次性兑换/立即失效的威胁模型、allowlist、参数过滤和自动化负向场景；不建设 MAPP 后端业务。",
       "implementation_notes_or_constraints": "检查 APP Deep Link、历史 MAPP 容器/短期 adapter 与外链安全；仅历史路由可进入兼容 adapter，新的健康/SCRM/商城业务分别进入 Wish 或 Commerce/MER 正式服务。",
-      "targeted_tests": "由 agent 自动执行。覆盖伪造 scheme、恶意 host、参数注入、错误来源容器、敏感值泄漏和未授权回跳；覆盖 bridge 重放、过期、撤销、旧小程序 token 服务端一次性交换后立即失效且复用被拒、错误 audience/route 和拒绝审计脱敏。",
+      "targeted_tests": "由 agent 自动执行。覆盖伪造 scheme、恶意 host、参数注入、错误来源容器、敏感值泄漏和未授权回跳；覆盖 bridge 重放、过期、撤销、旧小程序 token 服务端一次性交换后立即失效且复用被拒、错误 audience/route 和拒绝审计脱敏。 验证正式客户业务请求仅通过 APP -> APP BFF -> Wish API/application service -> DDD -> Wish 数据层处理，拒绝新业务请求进入 legacy MAPP 后端或写主；",
       "rollback_or_fallback": "停止不安全的 Deep Link/compat adapter 并回到 APP 安全页；尚未迁入的历史 route 仅可暂时禁用或走审核外链，不切换业务后端。",
       "risk_level": "高",
       "source_status": "待实施/未开工",
@@ -7184,7 +7236,8 @@
     "deps": [
       "FND-03",
       "FND-08",
-      "UX-04"
+      "UX-04",
+      "IDN-01"
     ],
     "project": "jiankang_app_uniapp / DFP Wish / 健康服务与 SCRM MVP",
     "output": "客户从商城查看门店目录、分类和详情的迁移映射、页面状态与返回行为；仅保留客户自助浏览。",
@@ -7202,7 +7255,7 @@
       "title": "迁移客户侧商城门店目录与详情",
       "workstream": "商城核心",
       "scope": "MVP后续",
-      "depends_on": "FND-03,FND-08,UX-04",
+      "depends_on": "FND-03,FND-08,UX-04,IDN-01",
       "parallel_group": "PG-COM",
       "recommended_agent_role": "商城客户侧页面工程师",
       "source_requirements": "mapp 163 路由清单中的客户侧商城门店目录/详情；总体方案客户 APP 商城入口。",
@@ -7239,7 +7292,9 @@
   {
     "id": "MEM-09",
     "section": "完整MVP实施DAG / 会员/营销/钱包",
-    "deps": [],
+    "deps": [
+      "IDN-01"
+    ],
     "project": "jiankang_app_uniapp / DFP Wish / 健康服务与 SCRM MVP",
     "output": "客户在“我的”查看本人推广关系、关联订单状态和奖励记录的路由及状态映射；仅展示权威来源状态。",
     "scope": "features/membership/promotion-reward-history",
@@ -7256,7 +7311,7 @@
       "title": "迁移客户个人推广奖励与归因记录",
       "workstream": "会员/营销/钱包",
       "scope": "MVP后续",
-      "depends_on": "",
+      "depends_on": "IDN-01",
       "parallel_group": "PG-MEM",
       "recommended_agent_role": "会员与客户自助页面工程师",
       "source_requirements": "mapp 163 路由清单中客户个人中心的推广关系/奖励状态；总体方案客户授权与归因边界。；客户 APP 原型参考：docs/prototypes/customer-miniapp-prototype.html；界面：my-commission",

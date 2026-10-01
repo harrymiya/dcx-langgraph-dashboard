@@ -10,7 +10,11 @@
 - 开发/预览环境通过 Vite /api/agents/launch 在本机打开 Konsole，并在所选工作目录启动 Agent CLI
 
 当前项目内置 143 个业务节点（97 个 MVP 必须、46 个 MVP 后续）；LangGraph API 会额外返回 `__start__`、`__end__`
-两个控制节点。页面会根据接口响应实时计算数量。
+两个控制节点。当前 143 项均为 `planned` 设计任务；DAG 与验收场景不代表业务已经实现。页面会根据接口响应实时计算数量。
+
+## 任务图架构边界
+
+小程序中迁入 APP 的客户能力属于正式 APP 业务，进入 `formal-app-migration` 泳道，主链为 `APP -> APP BFF -> Wish API/application service -> DDD -> Wish 数据层`。客户只在 APP 登录一次；`IDN-01` 定义 opaque、短期、一次性且限定 audience、route、origin 的 migration session bridge。历史页面、旧小程序后端、原小程序管理端配置和兼容运营端只作迁移来源、短期 adapter 或受控回退，不得成为正式后端、登录入口或写主。Wish 统一解析客户身份和授权上下文；失败、过期、重放、撤销或越权时 fail closed 并脱敏审计。管理员登录与认证不属于本阶段。
 
 ![Refactor Control Room 演示](docs/demo.png)
 

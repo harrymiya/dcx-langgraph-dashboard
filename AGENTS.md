@@ -9,7 +9,7 @@
 - 小程序现状是微信登录/授权并可进行手机号核验；APP 客户入口是手机号 + 短信验证码。小程序业务并入 APP 后，客户只在 APP 登录一次。
 - `IDN-01` 统一定义 APP customer session 到历史页面/短期兼容 adapter 的 migration session bridge：短期、一次性、opaque、限定 audience/route/origin、服务端原子兑换。bridge 不是独立登录、长期 token 或通用业务授权。
 - 旧小程序后端不独立登录、不重新询问密码/验证码、不签发长期 token、不承载正式新业务；旧 token 仅服务端兑换并立即失效。APP logout 撤销派生 bridge。
-- Wish API/application/DDD 统一解析 principal、tenant/site、subject、relationship、purpose、consent 和 field scope；客户端自报范围不是授权事实。重放、过期、越权、站点不匹配和桥接失败必须 fail closed、审计并回 APP 原生页/明确错误。
+- Wish API/application/DDD 统一解析 principal、tenant/site、subject、relationship、purpose、consent 和 field scope；客户端自报范围不是授权事实。重放、过期、撤销、越权、站点不匹配和桥接失败必须 fail closed、留下脱敏最小审计，并安全回 APP 原生页/明确错误。
 - 每个纵向模块任务必须串起 APP 入口、APP BFF、Wish API/DDD、schema/repository/UoW/事务、Outbox/事件、read model/audit、管理工作域、测试和回退；管理端只能通过 Wish Admin BFF 进入同一 Wish 写主。
 - 管理员登录、认证、session、token 和凭据不在本轮；不得新增或调整 AUTH 任务。所有任务状态保持 `planned`，无任务级 owner、commit、evidence、verified_at 不得标记完成。
 
@@ -23,7 +23,7 @@
 
 `legacy-compatibility-fallback` 是独立的受控回退泳道，仅允许 `GOV-03` 路由登记、`FND-05` 平台适配、`FND-08` 历史小程序 adapter 及其安全验收使用。历史页面、旧小程序后端和原小程序管理端配置/兼容运营端只能作为迁移来源、短期 adapter 或受控回退，不是正式业务后端、登录入口或写主；不得在该泳道新增业务能力、独立登录、长期 token 或新业务 API。正式 APP 业务故障时只能回 APP 原生安全页或审核过的历史外链，不得把正式写主切回 legacy。
 
-`IDN-01` 是共享的 `customer-session-bridge` 设计前置，不是正式业务泳道的替代品；`APPBFF-01` 是正式 APP 主链的唯一渠道适配任务；`TST-05` 与 `SEC-04` 是共享安全门禁。桥接与安全任务必须显式依赖并验证正式主链边界，但不改变纵向模块的 APP、BFF、Wish、数据、事件、管理和回退闭环。
+`IDN-01` 是共享的 `customer-session-bridge` 设计前置，不是正式业务泳道的替代品；`APPBFF-01` 是正式 APP 主链的唯一渠道适配任务；`TST-05` 与 `SEC-04` 是共享安全门禁。所有 `formal-app-migration` 客户业务任务，以及桥接实现/适配任务 `FND-01`、`API-02`、`APPBFF-01`、`FND-08` 和安全验收 `TST-05`、`SEC-04`，必须在 `deps` 中直接依赖 `IDN-01`；`TST-05`、`SEC-04` 还必须直接依赖 `APPBFF-01` 并验证新业务沿正式 Wish 主链处理、不会进入 legacy 写主。`IDN-01` 是该主链的设计前置，由其验收场景验证主链边界，不反向依赖下游 `APPBFF-01`。这些安全门禁不改变纵向模块的 APP、BFF、Wish、数据、事件、管理和回退闭环。
 
 ## 架构拆解原则
 

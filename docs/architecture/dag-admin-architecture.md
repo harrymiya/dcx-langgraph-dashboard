@@ -24,6 +24,8 @@ APP 页面/状态 -> feature/repository -> DFP Wish APP BFF
 
 `backend/tasks.json` 的 `data.migration_lane` 按任务边界标注：`APPBFF-01` 与 `HLT-*`、`COM-*`、`ORD-*`、`MEM-*`、`CNT-*`、`USR-*`、`MER-*`、`HWI-*` 标记为 `formal-app-migration`；`GOV-03`、`FND-05`、`FND-08` 标记为 `legacy-compatibility-fallback`；共享身份契约/实现及安全门禁 `GOV-02`、`GOV-05`、`FND-01`、`API-02`、`API-03`、`IDN-01`、`SEC-*`、`TST-05`、`TST-06` 标记为 `cross-cutting-security-gate`。三个值以外不得新增泳道；没有跨迁移边界的通用平台任务可不填写该字段。
 
+所有 `formal-app-migration` 客户业务任务，以及桥接实现/适配任务 `FND-01`、`API-02`、`APPBFF-01`、`FND-08` 和安全验收 `TST-05`、`SEC-04`，都必须在 `deps` 中直接依赖 `IDN-01`，不得只依靠传递依赖；`TST-05`、`SEC-04` 还必须直接依赖 `APPBFF-01`，验证新业务经 Wish 正式主链处理且不会进入 legacy 写主。`IDN-01` 是设计前置，由自身验收场景核验正式主链边界，不反向依赖下游 APP BFF。
+
 横向集成必须晚于参与模块的纵向闭环，包含身份授权、tenant/site 与客户关系、消息/通知、Commerce 受控只读引用、预约—履约—服务账、发布和恢复验收。`IDN-01` 是共享客户会话桥接契约，不替代模块闭环；`APPBFF-01` 是 APP 主链的唯一渠道适配任务；`TST-05`、`SEC-04` 是共享安全门禁。
 
 ## 客户统一登录与会话桥接设计
@@ -44,9 +46,9 @@ APP 已登录 session
 - Wish API/application/DDD 是唯一身份上下文解析与授权决策点。客户端提交的 principal、tenant/site、subject、relationship、purpose 和 consent 不可信；兑换及敏感操作时复核关系、同意、用途和有效期。
 - APP BFF 只适配 bridge 路由/DTO 并调用 Wish application service，不直连数据库。所有新健康、预约、履约、SCRM 和服务账请求仍走 APP → Wish APP BFF → Wish API/DDD。
 - 旧小程序后端只是历史迁移来源或短期兼容 adapter；它不独立登录、不签发长期 token，也不承载正式业务 API。失败时 bridge/兼容入口 fail closed：APP session 有效则回 APP 原生安全页，失效则回 APP 登录入口，不转到 legacy 登录。
-- APP 退出时撤销该客户尚未兑换的 bridge。退出、bridge 撤销/过期、重放、错误 audience/route、主体/站点/关系/用途/同意越权及 bridge 服务故障都产生最小化审计；日志不含 bridge、健康正文或完整敏感标识。
+- APP 退出时撤销该客户尚未兑换的 bridge。退出、bridge 撤销/过期、重放、错误 audience/route、主体/站点/关系/用途/同意越权及 bridge 服务故障都产生脱敏最小化审计；日志不含 bridge、健康正文或完整敏感标识。
 
-设计节点 `IDN-01` 依赖 `GOV-02`、`GOV-03`、`GOV-05` 和 `API-01`。APP session adapter、Wish bridge API/DDD、APP BFF、legacy adapter 和安全集成测试分别由 `FND-01`、`API-02`、`APPBFF-01`、`FND-08`、`TST-05` 拥有并显式依赖该设计；`API-03` 负责运行时统一 scope/拒绝策略。`IDN-01` 只定义客户 APP session 到历史页面/短期 adapter 的短期、一次性、opaque migration session bridge，不是独立登录、长期 token 或通用业务授权。此客户认证设计不涉及管理端认证，不新增或调整管理员 `AUTH` 任务。
+设计节点 `IDN-01` 依赖 `GOV-02`、`GOV-03`、`GOV-05` 和 `API-01`。APP session adapter、Wish bridge API/DDD、APP BFF、legacy adapter 和安全集成测试分别由 `FND-01`、`API-02`、`APPBFF-01`、`FND-08`、`TST-05` 拥有并显式依赖该设计；全部正式 APP 客户业务任务也直接依赖该共享契约。`API-03` 负责运行时统一 scope/拒绝策略；`TST-05`、`SEC-04` 直接依赖 `APPBFF-01` 并验证正式主链与 legacy 边界。`IDN-01` 只定义客户 APP session 到历史页面/短期 adapter 的短期、一次性、opaque migration session bridge，不是独立登录、长期 token 或通用业务授权。此客户认证设计不涉及管理端认证，不新增或调整管理员 `AUTH` 任务。
 
 ## 任务统计与来源
 
@@ -106,7 +108,7 @@ APP 已登录 session
 
 准确依赖以 JSON 为准。正式 APP 迁移纵向主链为：Wish 责任/契约和 canonical schema -> Wish API/DDD、事务、Outbox 与只读投影 -> `APPBFF-01` / Admin BFF -> 对应 APP 页面和管理工作域 -> 模块测试/回退 -> `REL-*` 集成验收。兼容回退泳道只能处理历史 route/adapter 安全回退，不能承接正式业务写入。`HLT-07` 的消息联调依赖 `WADM-05`、`WADM-14`；`HWI-02` 服务发现依赖健康预约 APP/管理闭环 `HLT-04`、`WADM-12`；`HWI-03` 商城权益只读交接依赖服务账 APP/管理闭环 `HLT-05`、`WADM-15`；`HWI-04` 活动归因依赖 SCRM 客户端/管理闭环 `HLT-07`、`WADM-14`。`REL-05` 依赖 `HLT-05`、六个管理工作域和 APP BFF，确保发布集成晚于纵向模块闭环。
 
-`IDN-01` 先提供跨客户模块共用的会话桥接设计契约；它不把业务任务拆成身份、手机端、后台等横向孤岛。客户档案、预约、履约、SCRM 和服务账仍逐模块串起 APP 入口、APP BFF、Wish API/DDD、数据/事件、管理工作域、测试和回退。纵向闭环之后再做客户关系、消息、Commerce 只读引用、预约—履约—服务账联调和发布验收；登录桥接的全链路拒绝审计纳入 `TST-05` / `SEC-04` 验收。
+`IDN-01` 先提供跨客户模块共用的会话桥接设计契约；每个正式 APP 客户业务任务直接依赖它，但它不替代模块业务闭环，也不把业务任务拆成身份、手机端、后台等横向孤岛。客户档案、预约、履约、SCRM 和服务账仍逐模块串起 APP 入口、APP BFF、Wish API/DDD、数据/事件、管理工作域、测试和回退。纵向闭环之后再做客户关系、消息、Commerce 只读引用、预约—履约—服务账联调和发布验收；登录桥接的全链路拒绝审计及正式主链边界纳入直接依赖 `APPBFF-01` 的 `TST-05` / `SEC-04` 验收。
 
 ## 管理工作台支撑任务
 
