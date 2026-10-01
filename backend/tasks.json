@@ -505,6 +505,7 @@
     "implementation": "FND-03单写中心路由/pages.json/App.uvue/main.uts；保护未提交代码，尤其不得覆盖login.uvue和network/client.uts",
     "data": {
       "task_id": "FND-08",
+      "migration_lane": "legacy-compatibility-fallback",
       "title": "建立历史小程序路由兼容适配与安全回退",
       "workstream": "基础设施/主壳",
       "scope": "MVP必须",
@@ -3974,6 +3975,7 @@
     "implementation": "仅补充设计契约和场景矩阵。不得修改业务代码、管理员 AUTH、schema、token 配置或 .venv；legacy MAPP 只作为历史兼容 adapter。",
     "data": {
       "task_id": "IDN-01",
+      "migration_lane": "cross-cutting-security-gate",
       "title": "设计客户 APP 单次登录与一次性迁移会话桥接",
       "workstream": "客户身份与会话桥接",
       "scope": "MVP必须",
@@ -4432,6 +4434,7 @@
     "implementation": "BFF 只负责 APP 渠道适配、请求校验、授权上下文传播和 DTO 映射；业务规则、事务、唯一写主、Outbox/Event 与读模型均归同一 DFP Wish API/DDD 数据层。",
     "data": {
       "task_id": "APPBFF-01",
+      "migration_lane": "formal-app-migration",
       "title": "建设统一 DFP Wish APP BFF 适配层",
       "workstream": "APP BFF / 健康服务与 SCRM",
       "scope": "MVP必须",
@@ -5988,6 +5991,7 @@
     "implementation": "deep link无token/健康正文；不使用wildcard WebView；不支持能力有fallback",
     "data": {
       "task_id": "SEC-04",
+      "migration_lane": "cross-cutting-security-gate",
       "title": "检查 MVP Deep Link 与历史 MAPP 兼容适配安全",
       "workstream": "安全/测试",
       "scope": "MVP必须",
@@ -6264,6 +6268,7 @@
     "implementation": "owner参数不能授权；关键负向通过才可release",
     "data": {
       "task_id": "TST-05",
+      "migration_lane": "cross-cutting-security-gate",
       "title": "验证身份交换、双session和两站越权负向",
       "workstream": "安全/测试",
       "scope": "MVP必须",
