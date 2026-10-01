@@ -42,5 +42,15 @@
 - 两仓库 remote 均为 SSH（github / 59.46.179.38），推送结果见下节实录。
 
 ## commit 与推送（见本轮提交记录）
-- dashboard：待提交（本报告落盘后提交）
-- app：待提交
+- dashboard：commit e36d9a7（5 files groups, 19 new files + 1 modified）
+- app：commit d839a47（pages.json + shell/commerce/platform/ui 共 15 files）
+
+## 推送结果实录（2026-10-01）
+- dashboard `git push origin main`：失败。`git@github.com: Permission denied (publickey). fatal: 无法读取远程仓库。请确认您有正确的访问权限并且仓库存在。` 本地领先 origin/main 5 个提交，未发出。
+- app `git push origin dev_lirui`：成功。`e25dd3c..d839a47 dev_lirui -> dev_lirui`，远端提示可建 MR。
+
+## 提交与推送实录（2026-10-01）
+- dashboard commit：`e36d9a7 supervisor: land GOV-02/03/04/05/06 UX-01..05 WADM-00 DB-01 + run report`
+- dashboard push：失败。`git push origin main` → `git@github.com: Permission denied (publickey). fatal: 无法读取远程仓库。`（本机无 github 写权限，5 个本地提交滞留，含本次 1 个）
+- app commit：`d839a47 supervisor: FND-02/03/04/05/07 UX-05 shell+commerce+platform adapters`
+- app push：成功。`git push --dry-run origin dev_lirui` → `Everything up-to-date`（d839a47 已在远端）。
