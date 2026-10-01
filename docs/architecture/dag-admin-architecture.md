@@ -22,6 +22,8 @@ APP 页面/状态 -> feature/repository -> DFP Wish APP BFF
 
 `legacy-compatibility-fallback` 是独立的受控回退泳道。旧小程序后端、历史页面、原小程序管理端配置/兼容运营端只能作为迁移来源、短期 adapter 或受控回退，不是正式业务后端、登录入口或写主；不得在其中新增业务能力、独立登录、长期 token 或新业务 API。正式 APP 业务故障只能回 APP 原生安全页或审核过的历史外链，不得把正式写主切回 legacy。
 
+`backend/tasks.json` 的 `data.migration_lane` 按任务边界标注：`APPBFF-01` 与 `HLT-*`、`COM-*`、`ORD-*`、`MEM-*`、`CNT-*`、`USR-*`、`MER-*`、`HWI-*` 标记为 `formal-app-migration`；`GOV-03`、`FND-05`、`FND-08` 标记为 `legacy-compatibility-fallback`；共享身份契约/实现及安全门禁 `GOV-02`、`GOV-05`、`FND-01`、`API-02`、`API-03`、`IDN-01`、`SEC-*`、`TST-05`、`TST-06` 标记为 `cross-cutting-security-gate`。三个值以外不得新增泳道；没有跨迁移边界的通用平台任务可不填写该字段。
+
 横向集成必须晚于参与模块的纵向闭环，包含身份授权、tenant/site 与客户关系、消息/通知、Commerce 受控只读引用、预约—履约—服务账、发布和恢复验收。`IDN-01` 是共享客户会话桥接契约，不替代模块闭环；`APPBFF-01` 是 APP 主链的唯一渠道适配任务；`TST-05`、`SEC-04` 是共享安全门禁。
 
 ## 客户统一登录与会话桥接设计

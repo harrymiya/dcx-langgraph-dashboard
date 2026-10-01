@@ -71,7 +71,7 @@ Wish API/application/DDD 是唯一 principal 解析与授权上下文来源，�
 
 ## 任务字段与状态
 
-每个任务必须有唯一 `id`、目标、范围、`deps`、`delivery_wave`、`target_paths_or_modules`、`file_claims`、`targeted_tests` 和 `rollback_or_fallback`。涉及迁移边界的任务还必须声明 `migration_lane`：正式 APP 业务使用 `formal-app-migration`，历史来源/短期兼容使用 `legacy-compatibility-fallback`，共享身份与安全验收使用 `cross-cutting-security-gate`。共享 API 契约、schema、导航和事件 envelope 必须指定唯一写入任务。`deps` 是 DAG 唯一依赖源；如保留 `data.depends_on` 展示字段，必须与 `deps` 完全一致，不得用 `ROOT` 等未知哨兵代替空依赖。
+每个任务必须有唯一 `id`、目标、范围、`deps`、`delivery_wave`、`target_paths_or_modules`、`file_claims`、`targeted_tests` 和 `rollback_or_fallback`。涉及迁移边界的任务还必须声明 `migration_lane`：正式 APP 业务使用 `formal-app-migration`，历史来源/短期兼容使用 `legacy-compatibility-fallback`，共享身份与安全验收使用 `cross-cutting-security-gate`。`APPBFF-01` 及 `HLT-*`、`COM-*`、`ORD-*`、`MEM-*`、`CNT-*`、`USR-*`、`MER-*`、`HWI-*` 正式迁移业务任务标记为 `formal-app-migration`；`GOV-03`、`FND-05`、`FND-08` 标记为 `legacy-compatibility-fallback`；共享身份契约/实现与安全门禁（包括 `GOV-02`、`GOV-05`、`FND-01`、`API-02`、`API-03`、`IDN-01`、`SEC-*`、`TST-05`、`TST-06`）标记为 `cross-cutting-security-gate`。共享 API 契约、schema、导航和事件 envelope 必须指定唯一写入任务。`deps` 是 DAG 唯一依赖源；如保留 `data.depends_on` 展示字段，必须与 `deps` 完全一致，不得用 `ROOT` 等未知哨兵代替空依赖。
 
 所有新增设计任务默认 `planned`。没有任务级 owner、领取记录、commit、自动化测试命令与退出码、制品路径和验收结果，不得标记 `in-progress` 或 `done`。`merge-status` 只能证明合并发生，不能证明业务任务完成。
 

@@ -75,7 +75,8 @@
       "risk_level": "中",
       "source_status": "待实施/未开工",
       "delivery_wave": "I0-边界与基础",
-      "automated_result": "机器可读结果：执行命令、退出码、摘要、测试/构建/契约制品路径及未配置能力的安全降级说明。"
+      "automated_result": "机器可读结果：执行命令、退出码、摘要、测试/构建/契约制品路径及未配置能力的安全降级说明。",
+      "migration_lane": "cross-cutting-security-gate"
     },
     "evidence": []
   },
@@ -116,7 +117,8 @@
       "risk_level": "中",
       "source_status": "待实施/未开工",
       "delivery_wave": "I0-边界与基础",
-      "automated_result": "机器可读结果：执行命令、退出码、摘要、测试/构建/契约制品路径及未配置能力的安全降级说明。"
+      "automated_result": "机器可读结果：执行命令、退出码、摘要、测试/构建/契约制品路径及未配置能力的安全降级说明。",
+      "migration_lane": "legacy-compatibility-fallback"
     },
     "evidence": []
   },
@@ -199,7 +201,8 @@
       "risk_level": "高",
       "source_status": "待实施/未开工",
       "delivery_wave": "I0-边界与基础",
-      "automated_result": "机器可读结果：执行命令、退出码、摘要、测试/构建/契约制品路径及未配置能力的安全降级说明。"
+      "automated_result": "机器可读结果：执行命令、退出码、摘要、测试/构建/契约制品路径及未配置能力的安全降级说明。",
+      "migration_lane": "cross-cutting-security-gate"
     },
     "evidence": []
   },
@@ -392,7 +395,8 @@
       "risk_level": "高",
       "source_status": "待实施/未开工",
       "delivery_wave": "I0-边界与基础",
-      "automated_result": "机器可读结果：执行命令、退出码、摘要、测试/构建/契约制品路径及未配置能力的安全降级说明。"
+      "automated_result": "机器可读结果：执行命令、退出码、摘要、测试/构建/契约制品路径及未配置能力的安全降级说明。",
+      "migration_lane": "legacy-compatibility-fallback"
     },
     "evidence": []
   },
@@ -612,7 +616,8 @@
           "shop-categories"
         ],
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
-      }
+      },
+      "migration_lane": "formal-app-migration"
     },
     "evidence": []
   },
@@ -673,7 +678,8 @@
           "shop-products"
         ],
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
-      }
+      },
+      "migration_lane": "formal-app-migration"
     },
     "evidence": []
   },
@@ -733,7 +739,8 @@
           "shop-products"
         ],
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
-      }
+      },
+      "migration_lane": "formal-app-migration"
     },
     "evidence": []
   },
@@ -795,7 +802,8 @@
           "shop-cart"
         ],
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
-      }
+      },
+      "migration_lane": "formal-app-migration"
     },
     "evidence": []
   },
@@ -856,7 +864,8 @@
           "shop-payment"
         ],
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
-      }
+      },
+      "migration_lane": "formal-app-migration"
     },
     "evidence": []
   },
@@ -918,7 +927,8 @@
           "shop-favorites"
         ],
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
-      }
+      },
+      "migration_lane": "formal-app-migration"
     },
     "evidence": []
   },
@@ -983,7 +993,8 @@
           "shop-order-detail"
         ],
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
-      }
+      },
+      "migration_lane": "formal-app-migration"
     },
     "evidence": []
   },
@@ -1047,7 +1058,8 @@
           "shop-payment"
         ],
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
-      }
+      },
+      "migration_lane": "formal-app-migration"
     },
     "evidence": []
   },
@@ -1109,7 +1121,8 @@
           "shop-logistics"
         ],
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
-      }
+      },
+      "migration_lane": "formal-app-migration"
     },
     "evidence": []
   },
@@ -1169,7 +1182,8 @@
           "shop-after-sales"
         ],
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
-      }
+      },
+      "migration_lane": "formal-app-migration"
     },
     "evidence": []
   },
@@ -1229,7 +1243,8 @@
           "shop-order-detail"
         ],
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
-      }
+      },
+      "migration_lane": "formal-app-migration"
     },
     "evidence": []
   },
@@ -1293,7 +1308,8 @@
           "my-membership"
         ],
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
-      }
+      },
+      "migration_lane": "formal-app-migration"
     },
     "evidence": []
   },
@@ -1353,7 +1369,8 @@
           "my-membership"
         ],
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
-      }
+      },
+      "migration_lane": "formal-app-migration"
     },
     "evidence": []
   },
@@ -1416,7 +1433,8 @@
           "my-coupons"
         ],
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
-      }
+      },
+      "migration_lane": "formal-app-migration"
     },
     "evidence": []
   },
@@ -1479,7 +1497,8 @@
           "my-points"
         ],
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
-      }
+      },
+      "migration_lane": "formal-app-migration"
     },
     "evidence": []
   },
@@ -1541,7 +1560,8 @@
           "my-gift-cards"
         ],
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
-      }
+      },
+      "migration_lane": "formal-app-migration"
     },
     "evidence": []
   },
@@ -1604,7 +1624,8 @@
           "my-membership"
         ],
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
-      }
+      },
+      "migration_lane": "formal-app-migration"
     },
     "evidence": []
   },
@@ -1667,7 +1688,8 @@
           "my-balance"
         ],
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
-      }
+      },
+      "migration_lane": "formal-app-migration"
     },
     "evidence": []
   },
@@ -1730,7 +1752,8 @@
           "my-commission"
         ],
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
-      }
+      },
+      "migration_lane": "formal-app-migration"
     },
     "evidence": []
   },
@@ -1794,7 +1817,8 @@
           "shop-content"
         ],
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
-      }
+      },
+      "migration_lane": "formal-app-migration"
     },
     "evidence": []
   },
@@ -1858,7 +1882,8 @@
           "shop-content"
         ],
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
-      }
+      },
+      "migration_lane": "formal-app-migration"
     },
     "evidence": []
   },
@@ -1923,7 +1948,8 @@
           "shop-content-detail"
         ],
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
-      }
+      },
+      "migration_lane": "formal-app-migration"
     },
     "evidence": []
   },
@@ -1985,7 +2011,8 @@
           "shop-content-detail"
         ],
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
-      }
+      },
+      "migration_lane": "formal-app-migration"
     },
     "evidence": []
   },
@@ -2047,7 +2074,8 @@
           "shop-content"
         ],
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
-      }
+      },
+      "migration_lane": "formal-app-migration"
     },
     "evidence": []
   },
@@ -2110,7 +2138,8 @@
           "shop-content-detail"
         ],
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
-      }
+      },
+      "migration_lane": "formal-app-migration"
     },
     "evidence": []
   },
@@ -2174,7 +2203,8 @@
           "shop-content"
         ],
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
-      }
+      },
+      "migration_lane": "formal-app-migration"
     },
     "evidence": []
   },
@@ -2237,7 +2267,8 @@
           "shop-content-detail"
         ],
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
-      }
+      },
+      "migration_lane": "formal-app-migration"
     },
     "evidence": []
   },
@@ -2302,7 +2333,8 @@
           "profile-edit"
         ],
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
-      }
+      },
+      "migration_lane": "formal-app-migration"
     },
     "evidence": []
   },
@@ -2368,7 +2400,8 @@
           "my-agreements"
         ],
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
-      }
+      },
+      "migration_lane": "formal-app-migration"
     },
     "evidence": []
   },
@@ -2433,7 +2466,8 @@
           "agreement-detail"
         ],
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
-      }
+      },
+      "migration_lane": "formal-app-migration"
     },
     "evidence": []
   },
@@ -2497,7 +2531,8 @@
           "security-account"
         ],
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
-      }
+      },
+      "migration_lane": "formal-app-migration"
     },
     "evidence": []
   },
@@ -2561,7 +2596,8 @@
           "address-edit"
         ],
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
-      }
+      },
+      "migration_lane": "formal-app-migration"
     },
     "evidence": []
   },
@@ -2624,7 +2660,8 @@
           "service-statuses"
         ],
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
-      }
+      },
+      "migration_lane": "formal-app-migration"
     },
     "evidence": []
   },
@@ -2677,7 +2714,8 @@
           "shop"
         ],
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
-      }
+      },
+      "migration_lane": "formal-app-migration"
     },
     "evidence": []
   },
@@ -2723,7 +2761,8 @@
       "source_status": "待实施/未开工",
       "delivery_wave": "MVP后续",
       "mvp_scope_reason": "健康服务以 Wish 服务目录为权威来源；商城商品到健康服务的跨域映射不是 MVP 前置。",
-      "automated_result": "机器可读结果：执行命令、退出码、摘要、测试/构建/契约制品路径及未配置能力的安全降级说明。"
+      "automated_result": "机器可读结果：执行命令、退出码、摘要、测试/构建/契约制品路径及未配置能力的安全降级说明。",
+      "migration_lane": "formal-app-migration"
     },
     "evidence": []
   },
@@ -2768,7 +2807,8 @@
       "source_status": "待实施/未开工",
       "delivery_wave": "MVP后续",
       "mvp_scope_reason": "MVP 不以商城订单创建健康权益；服务预约与服务账由 Wish 闭环，商城订单交接后续实现。",
-      "automated_result": "机器可读结果：执行命令、退出码、摘要、测试/构建/契约制品路径及未配置能力的安全降级说明。"
+      "automated_result": "机器可读结果：执行命令、退出码、摘要、测试/构建/契约制品路径及未配置能力的安全降级说明。",
+      "migration_lane": "formal-app-migration"
     },
     "evidence": []
   },
@@ -2812,7 +2852,8 @@
       "source_status": "待实施/未开工",
       "delivery_wave": "MVP后续",
       "mvp_scope_reason": "商城活动来源归因属于商城原生迁移范围，MVP 只保留健康服务自身必要的来源字段。",
-      "automated_result": "机器可读结果：执行命令、退出码、摘要、测试/构建/契约制品路径及未配置能力的安全降级说明。"
+      "automated_result": "机器可读结果：执行命令、退出码、摘要、测试/构建/契约制品路径及未配置能力的安全降级说明。",
+      "migration_lane": "formal-app-migration"
     },
     "evidence": []
   },
@@ -2867,7 +2908,8 @@
           "access"
         ],
         "use": "疗愈师任务、服务过程和本次授权范围交互参考；示例均为合成数据。"
-      }
+      },
+      "migration_lane": "formal-app-migration"
     },
     "evidence": []
   },
@@ -3142,7 +3184,8 @@
       "risk_level": "高",
       "source_status": "待实施/未开工",
       "delivery_wave": "I0-边界与基础",
-      "automated_result": "机器可读结果：执行命令、退出码、摘要、测试/构建/契约制品路径及未配置能力的安全降级说明。"
+      "automated_result": "机器可读结果：执行命令、退出码、摘要、测试/构建/契约制品路径及未配置能力的安全降级说明。",
+      "migration_lane": "cross-cutting-security-gate"
     },
     "evidence": []
   },
@@ -4037,7 +4080,8 @@
       "risk_level": "高",
       "source_status": "待实施/未开工",
       "delivery_wave": "I0-边界与基础",
-      "automated_result": "机器可读结果：执行命令、退出码、摘要、测试/构建/契约制品路径及未配置能力的安全降级说明。"
+      "automated_result": "机器可读结果：执行命令、退出码、摘要、测试/构建/契约制品路径及未配置能力的安全降级说明。",
+      "migration_lane": "cross-cutting-security-gate"
     },
     "evidence": []
   },
@@ -4081,7 +4125,8 @@
       "risk_level": "高",
       "source_status": "待实施/未开工",
       "delivery_wave": "I0-边界与基础",
-      "automated_result": "机器可读结果：执行命令、退出码、摘要、测试/构建/契约制品路径及未配置能力的安全降级说明。"
+      "automated_result": "机器可读结果：执行命令、退出码、摘要、测试/构建/契约制品路径及未配置能力的安全降级说明。",
+      "migration_lane": "cross-cutting-security-gate"
     },
     "evidence": []
   },
@@ -4520,7 +4565,8 @@
           "health-records"
         ],
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
-      }
+      },
+      "migration_lane": "formal-app-migration"
     },
     "evidence": []
   },
@@ -4584,7 +4630,8 @@
           "health-services"
         ],
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
-      }
+      },
+      "migration_lane": "formal-app-migration"
     },
     "evidence": []
   },
@@ -4652,7 +4699,8 @@
           "service-statuses"
         ],
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
-      }
+      },
+      "migration_lane": "formal-app-migration"
     },
     "evidence": []
   },
@@ -4724,7 +4772,8 @@
           "service-statuses"
         ],
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
-      }
+      },
+      "migration_lane": "formal-app-migration"
     },
     "evidence": []
   },
@@ -4795,7 +4844,8 @@
           "security-login"
         ],
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
-      }
+      },
+      "migration_lane": "formal-app-migration"
     },
     "evidence": []
   },
@@ -4863,7 +4913,8 @@
           "service-statuses"
         ],
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
-      }
+      },
+      "migration_lane": "formal-app-migration"
     },
     "evidence": []
   },
@@ -4932,7 +4983,8 @@
           "service-statuses"
         ],
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
-      }
+      },
+      "migration_lane": "formal-app-migration"
     },
     "evidence": []
   },
@@ -5881,7 +5933,8 @@
       "risk_level": "高",
       "source_status": "待实施/未开工",
       "delivery_wave": "I0-边界与基础",
-      "automated_result": "机器可读结果：执行命令、退出码、摘要、测试/构建/契约制品路径及未配置能力的安全降级说明。"
+      "automated_result": "机器可读结果：执行命令、退出码、摘要、测试/构建/契约制品路径及未配置能力的安全降级说明。",
+      "migration_lane": "cross-cutting-security-gate"
     },
     "evidence": []
   },
@@ -5923,7 +5976,8 @@
       "risk_level": "高",
       "source_status": "待实施/未开工",
       "delivery_wave": "I0-边界与基础",
-      "automated_result": "机器可读结果：执行命令、退出码、摘要、测试/构建/契约制品路径及未配置能力的安全降级说明。"
+      "automated_result": "机器可读结果：执行命令、退出码、摘要、测试/构建/契约制品路径及未配置能力的安全降级说明。",
+      "migration_lane": "cross-cutting-security-gate"
     },
     "evidence": []
   },
@@ -5965,7 +6019,8 @@
       "risk_level": "高",
       "source_status": "待实施/未开工",
       "delivery_wave": "I0-边界与基础",
-      "automated_result": "机器可读结果：执行命令、退出码、摘要、测试/构建/契约制品路径及未配置能力的安全降级说明。"
+      "automated_result": "机器可读结果：执行命令、退出码、摘要、测试/构建/契约制品路径及未配置能力的安全降级说明。",
+      "migration_lane": "cross-cutting-security-gate"
     },
     "evidence": []
   },
@@ -6358,7 +6413,8 @@
         "task_scope": "承接健康管理、SCRM、客户侧小程序业务合入 APP、必要平台适配和两站隔离；任务导入、原型和文档不等于正式功能实现。"
       },
       "delivery_wave": "I3-集成与发布",
-      "automated_result": "机器可读结果：执行命令、退出码、摘要、测试/构建/契约制品路径及未配置能力的安全降级说明。"
+      "automated_result": "机器可读结果：执行命令、退出码、摘要、测试/构建/契约制品路径及未配置能力的安全降级说明。",
+      "migration_lane": "cross-cutting-security-gate"
     },
     "evidence": []
   },
@@ -7175,7 +7231,8 @@
       },
       "delivery_wave": "MVP后续",
       "mvp_scope_reason": "此客户侧功能按总体方案并入 APP 手机端，页面迁移在该后续任务独立实施。MAPP/小程序只作为历史路由和迁移来源；短期兼容 adapter 仅服务既有路由回退，不承载新业务。商城事实仍由 Commerce/MER 权威服务维护，健康/SCRM 事实由 DFP Wish 维护。",
-      "automated_result": "机器可读结果：执行命令、退出码、摘要、测试/构建/契约制品路径及未配置能力的安全降级说明。"
+      "automated_result": "机器可读结果：执行命令、退出码、摘要、测试/构建/契约制品路径及未配置能力的安全降级说明。",
+      "migration_lane": "formal-app-migration"
     },
     "evidence": []
   },
@@ -7235,7 +7292,8 @@
           "my-commission"
         ],
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
-      }
+      },
+      "migration_lane": "formal-app-migration"
     },
     "evidence": []
   },
