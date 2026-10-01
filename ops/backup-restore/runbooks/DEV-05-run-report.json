@@ -1,0 +1,49 @@
+{
+  "task_id": "DEV-05",
+  "status": "synthetic_checks_passed",
+  "scope": "ops/backup-restore/runbooks",
+  "changed_paths": [
+    "ops/backup-restore/runbooks/README.md",
+    "ops/backup-restore/runbooks/dev05_restore.py",
+    "ops/backup-restore/runbooks/tests/test_dev05_restore.py",
+    "ops/backup-restore/runbooks/DEV-05-run-report.json"
+  ],
+  "targeted_tests": {
+    "command": "python3 -m unittest discover -s ops/backup-restore/runbooks/tests -p 'test_*.py' -v",
+    "exit_code": 0,
+    "passed": 9,
+    "failed": 0,
+    "coverage": [
+      "manifest completeness, ciphertext SHA-256 and external HMAC integrity",
+      "secret omitted from manifest and allowlisted logs",
+      "isolated in-memory SQLite restore and seed/backup/restore parity",
+      "tenant/site/catalog/appointment/payment/ledger/audit reference continuity",
+      "ledger update/delete guards",
+      "cross-site reference rejection and snapshot drift detection",
+      "failed restore leaves source database unchanged"
+    ]
+  },
+  "baseline_validator": {
+    "command": "python3 scripts/validate_plan_coverage.py --source-root /home/agent/code/jiankang_app_uniapp",
+    "exit_code": 0,
+    "summary": "6 PASS checks: 143 planned tasks (97 MVP-required/46 follow-up), valid acyclic dependencies, 58 bidirectional registry links, 35 MAPP and 13 Wish lane boundaries, valid coverage statuses, and 35 inventory page mappings."
+  },
+  "git_diff_check": {
+    "command": "git diff --check",
+    "exit_code": 0
+  },
+  "safety": {
+    "synthetic_sqlite_fixtures_only": true,
+    "real_backup_performed": false,
+    "real_restore_performed": false,
+    "production_connection_opened": false,
+    "external_writes_performed": false,
+    "real_secrets_used": false,
+    "production_encryption_adapter_implemented": false,
+    "rpo_rto": "pending owner confirmation"
+  },
+  "limitations": [
+    "The helper hashes opaque synthetic ciphertext and does not encrypt or decrypt backup bytes.",
+    "KMS integration, storage ACLs, retention enforcement, and an operational recovery adapter remain outside this synthetic delivery."
+  ]
+}
