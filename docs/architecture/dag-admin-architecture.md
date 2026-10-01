@@ -32,26 +32,58 @@ Wish 正式业务泳道：APP -> Wish APP BFF -> Wish API/application service ->
 
 ## 客户统一登录与会话桥接设计
 
-小程序现状是微信登录/授权并可进行手机号核验；迁移后的客户入口是 APP 手机号 + 短信验证码，客户只在 APP 登录一次。历史小程序身份只能由服务端在该迁移契约内核验/映射；如需处理旧 token，只允许服务端一次性交换并立即使旧 token 失效，不要求客户重新登录小程序。`IDN-01` 是客户侧共享设计前置，定义从 APP session 进入历史迁移页面或短期兼容 adapter 时的一次性身份续接；它本身不代表 APP 页面、Wish 业务 API 或 DDD 已实现。
+### 身份来源与唯一客户登录
 
-```text
-APP 已登录 session
-  → APP migration-session adapter
-  → Wish APP BFF 请求 bridge
-  → Wish API/application service 验证 APP session 并签发 opaque、短 TTL、单次 bridge
-  → allowlist 内的 legacy adapter 原子兑换 bridge，获得仅限该路由的临时身份上下文
-  → Wish DDD 统一解析 principal / tenant-site / subject / relationship / purpose / consent
-```
+小程序的微信登录/授权，以及按历史配置进行的可选手机号核验或短信验证，只是历史身份来源，不构成迁移后的客户登录入口。客户唯一登录入口是 APP 手机号 + 短信验证码；客户只在 APP 登录一次。进入兼容页、历史 route 或短期 adapter 时复用已验证的 APP session，不显示第二次登录/授权，也不再要求输入密码、短信码或重新登录小程序。管理员身份体系与客户 session 分离。
 
-- Bridge 绑定 audience、allowlist route/origin、nonce/jti、subject、tenant/site、relationship、purpose、consent 版本与有效期；只允许一次兑换。兑换仅向可信 adapter 提供该路由的临时身份上下文，不返回可复用凭据。它只续接迁移期身份，不作为长期凭据、独立登录或新业务授权。不得把 bridge 放进 URL、普通日志或客户端可复用存储。
-- 如迁移涉及既有小程序 token，旧 token 只在服务端进行一次性交换并立即失效；不得发回客户端、兑换为可复用 token，或继续接受旧 token。无法确认原子失效时 fail closed。
-- Wish API/application/DDD 只为明确属于 Wish 的业务解析身份上下文与授权。客户端提交的 principal、tenant/site、subject、relationship、purpose 和 consent 不可信；兑换及敏感操作时复核关系、同意、用途和有效期。
-- Wish APP BFF 只适配 Wish 业务路由/DTO 并调用 Wish application service，不直连数据库。明确属于 Wish 的健康、预约、履约、SCRM 和服务账请求仍走 APP → Wish APP BFF → Wish API/DDD；正式迁移页面按原服务契约调用 MAPP server。
-- MAPP server 按原服务契约继续承载正式迁移页面调用的既有业务和未迁移小程序业务；它不独立登录、不签发长期 token，也不被替换为 Wish 新业务 API。失败时 bridge/兼容入口 fail closed：APP session 有效则回 APP 原生安全页，失效则回 APP 登录入口，不转到独立 legacy 登录。
-- APP 退出时撤销该客户尚未兑换的 bridge。退出、bridge 撤销/过期、重放、错误 audience/route、主体/站点/关系/用途/同意越权及 bridge 服务故障都产生脱敏最小化审计；日志不含 bridge、健康正文或完整敏感标识。
+### Bridge 签发、兑换与旧 token 处理
 
-设计节点 `IDN-01` 依赖 `GOV-02`、`GOV-03`、`GOV-05` 和 `API-01`。APP session adapter、Wish bridge API/DDD、APP BFF、legacy adapter 和安全集成测试分别由 `FND-01`、`API-02`、`APPBFF-01`、`FND-08`、`TST-05` 拥有并显式依赖该设计；全部正式 APP 客户业务任务也直接依赖该共享契约。`API-03` 负责运行时统一 scope/拒绝策略；`TST-05`、`SEC-04` 直接依赖 `APPBFF-01` 并验证正式主链与 legacy 边界。`IDN-01` 只定义客户 APP session 到历史页面/短期 adapter 的短期、一次性、opaque migration session bridge，不是独立登录、长期 token 或通用业务授权。此客户认证设计不涉及管理端认证，不新增或调整管理员 `AUTH` 任务。
+仅当尚未迁移的历史 route 确实需要身份续接时，Wish 服务端在验证仍有效的 APP session 和服务端身份映射后，签发 opaque、短 TTL、单次兑换的 bridge。票据本身不携带可由客户端解读的授权声明，不是登录凭证、长期 token 或新业务授权。其最大有效时长由服务端限制，不能因读取、失败重试或兑换而延长；本设计不指定生产 TTL、issuer 字符串或 origin 配置值。
 
+每张 bridge 必须绑定并在兑换时逐项核验：
+
+- 由 GOV-03 登记及安全策略明确允许的 `route` 与 `origin`；两者成对匹配，客户端不能用 query、跳转目标或自报来源扩大 allowlist。
+- 唯一 `audience`，且只面向该历史 route 的受信任 adapter；不得跨 Wish、Commerce 或其他 audience 使用。
+- 与当前 APP session / route challenge 关联的 `nonce`，以及唯一 `jti`。服务端原子地消费 `jti` 后才返回该 route 的临时身份上下文；并发兑换、再次兑换及重放一律拒绝。
+- 经服务端验证的 `subject`、`tenant_id`、`site_id`、`relationship`、`purpose`、`consent`（含适用的版本/状态）和有效期。缺失、冲突、撤销或过期的绑定均拒绝。
+
+兑换只向可信 adapter 返回绑定原 APP session 与 allowlisted route 的临时身份上下文，不返回旧 token、可复用 bridge 或可续期凭证。若需要兼容旧小程序 token，只能由可信服务端执行一次性交换，并立即使旧 token 失效；必须确认失效后才算成功，不能确认则 fail closed。旧 token 不得返回客户端、写入 URL/普通日志、续期或再次兑换。
+
+### Wish 授权上下文与业务链边界
+
+Wish API/application/DDD 从已验证的 APP session 或一次性 bridge 在服务端解析 `principal`、`tenant_id`、`site_id`、`subject`、`relationship`、`purpose`、`consent` 和 `field_scope`，并在兑换及敏感业务操作时复核当前关系、用途、同意与字段范围。客户端提交的 principal、tenant/site、subject、relationship、purpose、consent、角色或字段范围均不可信；允许作为筛选选择的值也只是请求意图，不能成为授权事实或扩大权限。拒绝交由 Wish 服务端授权边界执行。
+
+- 正式迁移页面直接按原服务契约调用 `MAPP server`：`APP 迁移页面 → MAPP server → 原有业务数据/服务`。该路径不经过 Wish bridge、Wish APP BFF 或 Wish API/DDD。
+- 明确属于 Wish 的新业务走 `APP → Wish APP BFF → Wish API/application service → DDD`，由 Wish 服务端解析上述 principal 与授权上下文，不通过 MAPP server。
+- `MAPP server` 保持原小程序后端和既有服务边界，继续承载正式迁移页面调用的原服务及未迁移小程序业务；它不改造成 Wish adapter，不独立登录、不重新询问密码/验证码、不签发长期客户 token，也不替代 Wish 新业务 API。
+
+### 生命周期、失败处理与审计
+
+APP 全局退出使 APP session 失效，并撤销该 session 派生的待兑换 bridge 和已兑换的兼容态；显式撤销、到期、重放、错误 audience/route/origin、subject 或 tenant/site/relationship/purpose/consent/field scope 不匹配、身份映射冲突，以及 Wish/adapter 超时或不可用，都必须 fail closed。不得创建临时授权上下文、执行受保护操作、静默切换登录体系或退回 MAPP 独立登录。APP session 仍有效时回到 APP 原生安全页并给出安全错误；APP session 无效时回 APP 原生登录入口。撤销状态或旧 token 失效无法确认时同样拒绝。
+
+只保留完成安全追踪所需的最小审计：可信 request/correlation 引用、时间、事件类型、决策、稳定原因类别、责任服务及必要的脱敏 actor/object 引用；有可信值时才记录 tenant/site、purpose 与策略版本。不得记录 bridge、旧 token、nonce、原始 jti、验证码、完整手机号、URL/query、客户端被拒绝的字段值或健康正文。面向客户端的错误沿用 API-01 安全错误契约，不回显 token、密钥、被拒值或健康内容；本设计不新增错误码或 API 路由。
+
+### IDN-01 静态场景覆盖矩阵
+
+以下矩阵由本目录的文档场景测试检查。预期结果描述设计契约；测试不调用服务、不验证真实签名/并发原子性，也不使用生产身份或数据。
+
+| 场景 | 合成输入 / 边界 | 契约预期 |
+| --- | --- | --- |
+| IDN-S01 有效兑换 | 有效 APP session；未过期且未撤销的 ticket；audience、route、origin、nonce、jti 和完整身份范围均匹配 | 原子消费一次并仅返回该 route 的临时上下文；不存在可复用凭证 |
+| IDN-S02 重复兑换 / 重放 | 已消费的 jti、重复请求或重放 nonce | 拒绝且不返回上下文；记录最小化拒绝审计 |
+| IDN-S03 过期 | bridge 已超过服务端短 TTL | 拒绝，不续期、不执行受保护操作 |
+| IDN-S04 撤销 | bridge 已显式撤销，或服务端无法确认撤销状态 | 拒绝并 fail closed |
+| IDN-S05 APP 退出 | APP logout 后尝试兑换退出前签发的待用 bridge / 使用派生兼容态 | 撤销待用票据和派生兼容态；后续请求拒绝 |
+| IDN-S06 audience 错误 | ticket audience 与目标 adapter 不符，或指向 Wish/Commerce 的其他 audience | 拒绝，不跨 audience 转发或重试 |
+| IDN-S07 route / origin 错误 | 单独替换 route 或 origin，或使用未登记的组合 | 拒绝，不接受 query、跳转目标或客户端自报值扩大 allowlist |
+| IDN-S08 授权 scope 不匹配 | subject、tenant、site、relationship、purpose、consent 或 field scope 任一不匹配/过期/撤销 | 服务端重新核验并拒绝；客户端字段不覆盖可信上下文 |
+| IDN-S09 超时 / 依赖失败 | Wish bridge 服务或历史 adapter 超时、不可用、结果不确定 | 不建立上下文、不自动转 legacy 登录；安全回 APP 原生页 |
+| IDN-S10 旧 token 重用 | 合成旧小程序 token 完成一次服务端兑换后再次提交 | 首次兑换立即使旧 token 失效；再次使用拒绝；客户端从未收到该 token |
+| IDN-S11 无泄漏 | 检查合成 URL、错误响应、普通日志及审计样本 | 无 bridge/token/nonce/raw jti/验证码/完整手机号/健康正文/被拒值；审计仅含必要脱敏引用 |
+| IDN-S12 业务边界 | 一条正式迁移页面请求和一条明确属于 Wish 的新业务请求 | 前者直连 MAPP 原契约；后者走 APP BFF → Wish API/application → DDD；MAPP 边界不变 |
+| IDN-S13 登录连续性 | 历史微信登录/授权与可选手机号核验来源；已登录 APP 客户打开兼容页 | 历史身份只用于映射；APP 手机号 + 短信验证码是唯一客户登录；兼容页不二次登录 |
+
+管理员 `AUTH` 登录、认证、session、token、凭据与配置完全排除；不新增或调整任何 `AUTH` 任务。上述为目标设计和文档覆盖，不证明 APP、Wish、MAPP 或 adapter 已实现；真实服务、生产身份数据与外部写入保持关闭。未来并发消费、签名验证和运行时拒绝审计由相应实现/安全任务验收。
 ## 任务统计与来源
 
 任务图共 **143 项**：**97 项 MVP 必须**、**46 项 MVP 后续**；当前任务状态均为 `planned`。`__start__`、`__end__` 是控制节点，不计入业务任务。管理工作台本轮增加的 **12 个任务**是 `WADM-00..05` 与 `WADM-11..16`；`APPBFF-01` 是单独的 APP 后端渠道任务，`IDN-01` 是客户会话桥接设计前置。
