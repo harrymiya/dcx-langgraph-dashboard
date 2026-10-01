@@ -34,7 +34,82 @@
       "risk_level": "中",
       "source_status": "待实施/未开工",
       "delivery_wave": "I0-边界与基础",
-      "automated_result": "机器可读结果：执行命令、退出码、摘要、测试/构建/契约制品路径及未配置能力的安全降级说明。"
+      "automated_result": "机器可读结果：执行命令、退出码、摘要、测试/构建/契约制品路径及未配置能力的安全降级说明。",
+      "migration_scope_policy": {
+        "schema_version": 1,
+        "source_repository": "jiankang_app_uniapp",
+        "source_file": "docs/migration/mapp-page-migration-inventory.md",
+        "selection_rule": "Only inventory rows mapped to a listed selected_task_id enter formal-app-migration; each task page ID list must match those rows.",
+        "selected_task_ids": [
+          "COM-01",
+          "COM-02",
+          "COM-03",
+          "COM-04",
+          "COM-05",
+          "COM-06",
+          "ORD-01",
+          "ORD-02",
+          "ORD-03",
+          "ORD-04",
+          "ORD-05",
+          "MEM-01",
+          "MEM-02",
+          "MEM-03",
+          "MEM-04",
+          "MEM-05",
+          "MEM-06",
+          "MEM-07",
+          "MEM-08",
+          "MEM-09",
+          "MEM-10",
+          "CNT-01",
+          "CNT-02",
+          "CNT-03",
+          "CNT-04",
+          "CNT-05",
+          "CNT-06",
+          "CNT-07",
+          "USR-01",
+          "USR-02",
+          "USR-03",
+          "USR-04",
+          "USR-05",
+          "USR-06",
+          "MER-01"
+        ],
+        "selected_task_count": 35,
+        "excluded_app_home_buttons": {
+          "count": 3,
+          "scope": "external-third-party-miniprogram-launch",
+          "migration_task_ids": [],
+          "backend_target": null
+        },
+        "wish_native_task_ids": [
+          "APPBFF-01",
+          "HLT-01",
+          "HLT-02",
+          "HLT-03",
+          "HLT-04",
+          "HLT-05",
+          "HLT-06",
+          "HLT-07",
+          "HWI-01",
+          "HWI-02",
+          "HWI-03",
+          "HWI-04",
+          "HWI-05"
+        ],
+        "wish_native_task_count": 13,
+        "wish_native_backend_chain": [
+          "APP",
+          "Wish APP BFF",
+          "Wish API/application service",
+          "DDD"
+        ],
+        "wish_native_excluded_backend": "MAPP server",
+        "unselected_customer_route_chain": "原小程序客户端 → MAPP server",
+        "out_of_scope_inventory_routes": "Preserve inventory-declared existing client/backend; no formal-app-migration task."
+      }
     },
     "evidence": []
   },
@@ -619,7 +694,19 @@
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
       },
       "migration_lane": "formal-app-migration",
-      "backend_target": "MAPP server"
+      "backend_target": "MAPP server",
+      "migration_scope": "selected-page",
+      "migration_source_file": "jiankang_app_uniapp/docs/migration/mapp-page-migration-inventory.md",
+      "migration_source_page_ids": [
+        "MP003",
+        "MP053"
+      ],
+      "migration_backend": "MAPP server",
+      "backend_target_chain": [
+        "APP migration page/entry",
+        "MAPP server",
+        "original business data/services"
+      ]
     },
     "evidence": []
   },
@@ -684,7 +771,20 @@
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
       },
       "migration_lane": "formal-app-migration",
-      "backend_target": "MAPP server"
+      "backend_target": "MAPP server",
+      "migration_scope": "selected-page",
+      "migration_source_file": "jiankang_app_uniapp/docs/migration/mapp-page-migration-inventory.md",
+      "migration_source_page_ids": [
+        "MP055",
+        "MP056",
+        "MP058"
+      ],
+      "migration_backend": "MAPP server",
+      "backend_target_chain": [
+        "APP migration page/entry",
+        "MAPP server",
+        "original business data/services"
+      ]
     },
     "evidence": []
   },
@@ -748,7 +848,18 @@
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
       },
       "migration_lane": "formal-app-migration",
-      "backend_target": "MAPP server"
+      "backend_target": "MAPP server",
+      "migration_scope": "selected-page",
+      "migration_source_file": "jiankang_app_uniapp/docs/migration/mapp-page-migration-inventory.md",
+      "migration_source_page_ids": [
+        "MP052"
+      ],
+      "migration_backend": "MAPP server",
+      "backend_target_chain": [
+        "APP migration page/entry",
+        "MAPP server",
+        "original business data/services"
+      ]
     },
     "evidence": []
   },
@@ -813,7 +924,19 @@
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
       },
       "migration_lane": "formal-app-migration",
-      "backend_target": "MAPP server"
+      "backend_target": "MAPP server",
+      "migration_scope": "selected-page",
+      "migration_source_file": "jiankang_app_uniapp/docs/migration/mapp-page-migration-inventory.md",
+      "migration_source_page_ids": [
+        "MP004",
+        "MP089"
+      ],
+      "migration_backend": "MAPP server",
+      "backend_target_chain": [
+        "APP migration page/entry",
+        "MAPP server",
+        "original business data/services"
+      ]
     },
     "evidence": []
   },
@@ -878,7 +1001,18 @@
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
       },
       "migration_lane": "formal-app-migration",
-      "backend_target": "MAPP server"
+      "backend_target": "MAPP server",
+      "migration_scope": "selected-page",
+      "migration_source_file": "jiankang_app_uniapp/docs/migration/mapp-page-migration-inventory.md",
+      "migration_source_page_ids": [
+        "MP064"
+      ],
+      "migration_backend": "MAPP server",
+      "backend_target_chain": [
+        "APP migration page/entry",
+        "MAPP server",
+        "original business data/services"
+      ]
     },
     "evidence": []
   },
@@ -943,7 +1077,20 @@
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
       },
       "migration_lane": "formal-app-migration",
-      "backend_target": "MAPP server"
+      "backend_target": "MAPP server",
+      "migration_scope": "selected-page",
+      "migration_source_file": "jiankang_app_uniapp/docs/migration/mapp-page-migration-inventory.md",
+      "migration_source_page_ids": [
+        "MP061",
+        "MP080",
+        "MP081"
+      ],
+      "migration_backend": "MAPP server",
+      "backend_target_chain": [
+        "APP migration page/entry",
+        "MAPP server",
+        "original business data/services"
+      ]
     },
     "evidence": []
   },
@@ -1011,7 +1158,20 @@
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
       },
       "migration_lane": "formal-app-migration",
-      "backend_target": "MAPP server"
+      "backend_target": "MAPP server",
+      "migration_scope": "selected-page",
+      "migration_source_file": "jiankang_app_uniapp/docs/migration/mapp-page-migration-inventory.md",
+      "migration_source_page_ids": [
+        "MP062",
+        "MP068",
+        "MP069"
+      ],
+      "migration_backend": "MAPP server",
+      "backend_target_chain": [
+        "APP migration page/entry",
+        "MAPP server",
+        "original business data/services"
+      ]
     },
     "evidence": []
   },
@@ -1078,7 +1238,21 @@
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
       },
       "migration_lane": "formal-app-migration",
-      "backend_target": "MAPP server"
+      "backend_target": "MAPP server",
+      "migration_scope": "selected-page",
+      "migration_source_file": "jiankang_app_uniapp/docs/migration/mapp-page-migration-inventory.md",
+      "migration_source_page_ids": [
+        "MP065",
+        "MP067",
+        "MP082",
+        "MP083"
+      ],
+      "migration_backend": "MAPP server",
+      "backend_target_chain": [
+        "APP migration page/entry",
+        "MAPP server",
+        "original business data/services"
+      ]
     },
     "evidence": []
   },
@@ -1143,7 +1317,20 @@
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
       },
       "migration_lane": "formal-app-migration",
-      "backend_target": "MAPP server"
+      "backend_target": "MAPP server",
+      "migration_scope": "selected-page",
+      "migration_source_file": "jiankang_app_uniapp/docs/migration/mapp-page-migration-inventory.md",
+      "migration_source_page_ids": [
+        "MP063",
+        "MP077",
+        "MP078"
+      ],
+      "migration_backend": "MAPP server",
+      "backend_target_chain": [
+        "APP migration page/entry",
+        "MAPP server",
+        "original business data/services"
+      ]
     },
     "evidence": []
   },
@@ -1207,7 +1394,22 @@
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
       },
       "migration_lane": "formal-app-migration",
-      "backend_target": "MAPP server"
+      "backend_target": "MAPP server",
+      "migration_scope": "selected-page",
+      "migration_source_file": "jiankang_app_uniapp/docs/migration/mapp-page-migration-inventory.md",
+      "migration_source_page_ids": [
+        "MP066",
+        "MP070",
+        "MP071",
+        "MP072",
+        "MP073"
+      ],
+      "migration_backend": "MAPP server",
+      "backend_target_chain": [
+        "APP migration page/entry",
+        "MAPP server",
+        "original business data/services"
+      ]
     },
     "evidence": []
   },
@@ -1271,7 +1473,20 @@
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
       },
       "migration_lane": "formal-app-migration",
-      "backend_target": "MAPP server"
+      "backend_target": "MAPP server",
+      "migration_scope": "selected-page",
+      "migration_source_file": "jiankang_app_uniapp/docs/migration/mapp-page-migration-inventory.md",
+      "migration_source_page_ids": [
+        "MP074",
+        "MP075",
+        "MP076"
+      ],
+      "migration_backend": "MAPP server",
+      "backend_target_chain": [
+        "APP migration page/entry",
+        "MAPP server",
+        "original business data/services"
+      ]
     },
     "evidence": []
   },
@@ -1338,7 +1553,20 @@
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
       },
       "migration_lane": "formal-app-migration",
-      "backend_target": "MAPP server"
+      "backend_target": "MAPP server",
+      "migration_scope": "selected-page",
+      "migration_source_file": "jiankang_app_uniapp/docs/migration/mapp-page-migration-inventory.md",
+      "migration_source_page_ids": [
+        "MP086",
+        "MP087",
+        "MP088"
+      ],
+      "migration_backend": "MAPP server",
+      "backend_target_chain": [
+        "APP migration page/entry",
+        "MAPP server",
+        "original business data/services"
+      ]
     },
     "evidence": []
   },
@@ -1402,7 +1630,27 @@
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
       },
       "migration_lane": "formal-app-migration",
-      "backend_target": "MAPP server"
+      "backend_target": "MAPP server",
+      "migration_scope": "selected-page",
+      "migration_source_file": "jiankang_app_uniapp/docs/migration/mapp-page-migration-inventory.md",
+      "migration_source_page_ids": [
+        "MP099",
+        "MP100",
+        "MP101",
+        "MP102",
+        "MP103",
+        "MP104",
+        "MP105",
+        "MP106",
+        "MP107",
+        "MP108"
+      ],
+      "migration_backend": "MAPP server",
+      "backend_target_chain": [
+        "APP migration page/entry",
+        "MAPP server",
+        "original business data/services"
+      ]
     },
     "evidence": []
   },
@@ -1468,7 +1716,19 @@
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
       },
       "migration_lane": "formal-app-migration",
-      "backend_target": "MAPP server"
+      "backend_target": "MAPP server",
+      "migration_scope": "selected-page",
+      "migration_source_file": "jiankang_app_uniapp/docs/migration/mapp-page-migration-inventory.md",
+      "migration_source_page_ids": [
+        "MP042",
+        "MP097"
+      ],
+      "migration_backend": "MAPP server",
+      "backend_target_chain": [
+        "APP migration page/entry",
+        "MAPP server",
+        "original business data/services"
+      ]
     },
     "evidence": []
   },
@@ -1534,7 +1794,20 @@
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
       },
       "migration_lane": "formal-app-migration",
-      "backend_target": "MAPP server"
+      "backend_target": "MAPP server",
+      "migration_scope": "selected-page",
+      "migration_source_file": "jiankang_app_uniapp/docs/migration/mapp-page-migration-inventory.md",
+      "migration_source_page_ids": [
+        "MP048",
+        "MP109",
+        "MP110"
+      ],
+      "migration_backend": "MAPP server",
+      "backend_target_chain": [
+        "APP migration page/entry",
+        "MAPP server",
+        "original business data/services"
+      ]
     },
     "evidence": []
   },
@@ -1599,7 +1872,26 @@
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
       },
       "migration_lane": "formal-app-migration",
-      "backend_target": "MAPP server"
+      "backend_target": "MAPP server",
+      "migration_scope": "selected-page",
+      "migration_source_file": "jiankang_app_uniapp/docs/migration/mapp-page-migration-inventory.md",
+      "migration_source_page_ids": [
+        "MP116",
+        "MP117",
+        "MP118",
+        "MP119",
+        "MP120",
+        "MP121",
+        "MP122",
+        "MP123",
+        "MP124"
+      ],
+      "migration_backend": "MAPP server",
+      "backend_target_chain": [
+        "APP migration page/entry",
+        "MAPP server",
+        "original business data/services"
+      ]
     },
     "evidence": []
   },
@@ -1665,7 +1957,21 @@
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
       },
       "migration_lane": "formal-app-migration",
-      "backend_target": "MAPP server"
+      "backend_target": "MAPP server",
+      "migration_scope": "selected-page",
+      "migration_source_file": "jiankang_app_uniapp/docs/migration/mapp-page-migration-inventory.md",
+      "migration_source_page_ids": [
+        "MP008",
+        "MP041",
+        "MP049",
+        "MP050"
+      ],
+      "migration_backend": "MAPP server",
+      "backend_target_chain": [
+        "APP migration page/entry",
+        "MAPP server",
+        "original business data/services"
+      ]
     },
     "evidence": []
   },
@@ -1731,7 +2037,21 @@
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
       },
       "migration_lane": "formal-app-migration",
-      "backend_target": "MAPP server"
+      "backend_target": "MAPP server",
+      "migration_scope": "selected-page",
+      "migration_source_file": "jiankang_app_uniapp/docs/migration/mapp-page-migration-inventory.md",
+      "migration_source_page_ids": [
+        "MP019",
+        "MP020",
+        "MP024",
+        "MP028"
+      ],
+      "migration_backend": "MAPP server",
+      "backend_target_chain": [
+        "APP migration page/entry",
+        "MAPP server",
+        "original business data/services"
+      ]
     },
     "evidence": []
   },
@@ -1797,7 +2117,23 @@
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
       },
       "migration_lane": "formal-app-migration",
-      "backend_target": "MAPP server"
+      "backend_target": "MAPP server",
+      "migration_scope": "selected-page",
+      "migration_source_file": "jiankang_app_uniapp/docs/migration/mapp-page-migration-inventory.md",
+      "migration_source_page_ids": [
+        "MP021",
+        "MP022",
+        "MP031",
+        "MP032",
+        "MP033",
+        "MP034"
+      ],
+      "migration_backend": "MAPP server",
+      "backend_target_chain": [
+        "APP migration page/entry",
+        "MAPP server",
+        "original business data/services"
+      ]
     },
     "evidence": []
   },
@@ -1864,7 +2200,27 @@
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
       },
       "migration_lane": "formal-app-migration",
-      "backend_target": "MAPP server"
+      "backend_target": "MAPP server",
+      "migration_scope": "selected-page",
+      "migration_source_file": "jiankang_app_uniapp/docs/migration/mapp-page-migration-inventory.md",
+      "migration_source_page_ids": [
+        "MP092",
+        "MP093",
+        "MP094",
+        "MP096",
+        "MP098",
+        "MP111",
+        "MP112",
+        "MP113",
+        "MP114",
+        "MP115"
+      ],
+      "migration_backend": "MAPP server",
+      "backend_target_chain": [
+        "APP migration page/entry",
+        "MAPP server",
+        "original business data/services"
+      ]
     },
     "evidence": []
   },
@@ -1931,7 +2287,19 @@
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
       },
       "migration_lane": "formal-app-migration",
-      "backend_target": "MAPP server"
+      "backend_target": "MAPP server",
+      "migration_scope": "selected-page",
+      "migration_source_file": "jiankang_app_uniapp/docs/migration/mapp-page-migration-inventory.md",
+      "migration_source_page_ids": [
+        "MP059",
+        "MP060"
+      ],
+      "migration_backend": "MAPP server",
+      "backend_target_chain": [
+        "APP migration page/entry",
+        "MAPP server",
+        "original business data/services"
+      ]
     },
     "evidence": []
   },
@@ -1999,7 +2367,21 @@
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
       },
       "migration_lane": "formal-app-migration",
-      "backend_target": "MAPP server"
+      "backend_target": "MAPP server",
+      "migration_scope": "selected-page",
+      "migration_source_file": "jiankang_app_uniapp/docs/migration/mapp-page-migration-inventory.md",
+      "migration_source_page_ids": [
+        "MP125",
+        "MP129",
+        "MP130",
+        "MP131"
+      ],
+      "migration_backend": "MAPP server",
+      "backend_target_chain": [
+        "APP migration page/entry",
+        "MAPP server",
+        "original business data/services"
+      ]
     },
     "evidence": []
   },
@@ -2064,7 +2446,19 @@
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
       },
       "migration_lane": "formal-app-migration",
-      "backend_target": "MAPP server"
+      "backend_target": "MAPP server",
+      "migration_scope": "selected-page",
+      "migration_source_file": "jiankang_app_uniapp/docs/migration/mapp-page-migration-inventory.md",
+      "migration_source_page_ids": [
+        "MP132",
+        "MP133"
+      ],
+      "migration_backend": "MAPP server",
+      "backend_target_chain": [
+        "APP migration page/entry",
+        "MAPP server",
+        "original business data/services"
+      ]
     },
     "evidence": []
   },
@@ -2129,7 +2523,18 @@
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
       },
       "migration_lane": "formal-app-migration",
-      "backend_target": "MAPP server"
+      "backend_target": "MAPP server",
+      "migration_scope": "selected-page",
+      "migration_source_file": "jiankang_app_uniapp/docs/migration/mapp-page-migration-inventory.md",
+      "migration_source_page_ids": [
+        "MP126"
+      ],
+      "migration_backend": "MAPP server",
+      "backend_target_chain": [
+        "APP migration page/entry",
+        "MAPP server",
+        "original business data/services"
+      ]
     },
     "evidence": []
   },
@@ -2195,7 +2600,19 @@
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
       },
       "migration_lane": "formal-app-migration",
-      "backend_target": "MAPP server"
+      "backend_target": "MAPP server",
+      "migration_scope": "selected-page",
+      "migration_source_file": "jiankang_app_uniapp/docs/migration/mapp-page-migration-inventory.md",
+      "migration_source_page_ids": [
+        "MP127",
+        "MP128"
+      ],
+      "migration_backend": "MAPP server",
+      "backend_target_chain": [
+        "APP migration page/entry",
+        "MAPP server",
+        "original business data/services"
+      ]
     },
     "evidence": []
   },
@@ -2262,7 +2679,25 @@
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
       },
       "migration_lane": "formal-app-migration",
-      "backend_target": "MAPP server"
+      "backend_target": "MAPP server",
+      "migration_scope": "selected-page",
+      "migration_source_file": "jiankang_app_uniapp/docs/migration/mapp-page-migration-inventory.md",
+      "migration_source_page_ids": [
+        "MP009",
+        "MP010",
+        "MP011",
+        "MP012",
+        "MP013",
+        "MP014",
+        "MP015",
+        "MP095"
+      ],
+      "migration_backend": "MAPP server",
+      "backend_target_chain": [
+        "APP migration page/entry",
+        "MAPP server",
+        "original business data/services"
+      ]
     },
     "evidence": []
   },
@@ -2328,7 +2763,18 @@
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
       },
       "migration_lane": "formal-app-migration",
-      "backend_target": "MAPP server"
+      "backend_target": "MAPP server",
+      "migration_scope": "selected-page",
+      "migration_source_file": "jiankang_app_uniapp/docs/migration/mapp-page-migration-inventory.md",
+      "migration_source_page_ids": [
+        "MP006"
+      ],
+      "migration_backend": "MAPP server",
+      "backend_target_chain": [
+        "APP migration page/entry",
+        "MAPP server",
+        "original business data/services"
+      ]
     },
     "evidence": []
   },
@@ -2396,7 +2842,27 @@
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
       },
       "migration_lane": "formal-app-migration",
-      "backend_target": "MAPP server"
+      "backend_target": "MAPP server",
+      "migration_scope": "selected-page",
+      "migration_source_file": "jiankang_app_uniapp/docs/migration/mapp-page-migration-inventory.md",
+      "migration_source_page_ids": [
+        "MP005",
+        "MP016",
+        "MP017",
+        "MP018",
+        "MP025",
+        "MP030",
+        "MP036",
+        "MP037",
+        "MP038",
+        "MP043"
+      ],
+      "migration_backend": "MAPP server",
+      "backend_target_chain": [
+        "APP migration page/entry",
+        "MAPP server",
+        "original business data/services"
+      ]
     },
     "evidence": []
   },
@@ -2465,7 +2931,24 @@
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
       },
       "migration_lane": "formal-app-migration",
-      "backend_target": "MAPP server"
+      "backend_target": "MAPP server",
+      "migration_scope": "selected-page",
+      "migration_source_file": "jiankang_app_uniapp/docs/migration/mapp-page-migration-inventory.md",
+      "migration_source_page_ids": [
+        "MP026",
+        "MP027",
+        "MP136",
+        "MP137",
+        "MP138",
+        "MP139",
+        "MP140"
+      ],
+      "migration_backend": "MAPP server",
+      "backend_target_chain": [
+        "APP migration page/entry",
+        "MAPP server",
+        "original business data/services"
+      ]
     },
     "evidence": []
   },
@@ -2533,7 +3016,21 @@
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
       },
       "migration_lane": "formal-app-migration",
-      "backend_target": "MAPP server"
+      "backend_target": "MAPP server",
+      "migration_scope": "selected-page",
+      "migration_source_file": "jiankang_app_uniapp/docs/migration/mapp-page-migration-inventory.md",
+      "migration_source_page_ids": [
+        "MP007",
+        "MP057",
+        "MP079",
+        "MP085"
+      ],
+      "migration_backend": "MAPP server",
+      "backend_target_chain": [
+        "APP migration page/entry",
+        "MAPP server",
+        "original business data/services"
+      ]
     },
     "evidence": []
   },
@@ -2600,7 +3097,19 @@
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
       },
       "migration_lane": "formal-app-migration",
-      "backend_target": "MAPP server"
+      "backend_target": "MAPP server",
+      "migration_scope": "selected-page",
+      "migration_source_file": "jiankang_app_uniapp/docs/migration/mapp-page-migration-inventory.md",
+      "migration_source_page_ids": [
+        "MP039",
+        "MP163"
+      ],
+      "migration_backend": "MAPP server",
+      "backend_target_chain": [
+        "APP migration page/entry",
+        "MAPP server",
+        "original business data/services"
+      ]
     },
     "evidence": []
   },
@@ -2667,7 +3176,19 @@
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
       },
       "migration_lane": "formal-app-migration",
-      "backend_target": "MAPP server"
+      "backend_target": "MAPP server",
+      "migration_scope": "selected-page",
+      "migration_source_file": "jiankang_app_uniapp/docs/migration/mapp-page-migration-inventory.md",
+      "migration_source_page_ids": [
+        "MP090",
+        "MP091"
+      ],
+      "migration_backend": "MAPP server",
+      "backend_target_chain": [
+        "APP migration page/entry",
+        "MAPP server",
+        "original business data/services"
+      ]
     },
     "evidence": []
   },
@@ -2733,7 +3254,19 @@
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
       },
       "migration_lane": "formal-app-migration",
-      "backend_target": "MAPP server"
+      "backend_target": "MAPP server",
+      "migration_scope": "selected-page",
+      "migration_source_file": "jiankang_app_uniapp/docs/migration/mapp-page-migration-inventory.md",
+      "migration_source_page_ids": [
+        "MP134",
+        "MP135"
+      ],
+      "migration_backend": "MAPP server",
+      "backend_target_chain": [
+        "APP migration page/entry",
+        "MAPP server",
+        "original business data/services"
+      ]
     },
     "evidence": []
   },
@@ -2788,7 +3321,17 @@
         ],
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
       },
-      "migration_lane": "wish-formal-business"
+      "migration_lane": "wish-formal-business",
+      "migration_scope": "wish-native",
+      "migration_source_file": "jiankang_app_uniapp/docs/ruixin-health-app-scrm-complete-design.md",
+      "migration_backend": null,
+      "backend_target": "Wish API/application service → DDD",
+      "backend_target_chain": [
+        "APP",
+        "Wish APP BFF",
+        "Wish API/application service",
+        "DDD"
+      ]
     },
     "evidence": []
   },
@@ -2836,7 +3379,17 @@
       "delivery_wave": "MVP后续",
       "mvp_scope_reason": "健康服务以 Wish 服务目录为权威来源；商城商品到健康服务的跨域映射不是 MVP 前置。",
       "automated_result": "机器可读结果：执行命令、退出码、摘要、测试/构建/契约制品路径及未配置能力的安全降级说明。",
-      "migration_lane": "wish-formal-business"
+      "migration_lane": "wish-formal-business",
+      "migration_scope": "wish-native",
+      "migration_source_file": "jiankang_app_uniapp/docs/ruixin-health-app-scrm-complete-design.md",
+      "migration_backend": null,
+      "backend_target": "Wish API/application service → DDD",
+      "backend_target_chain": [
+        "APP",
+        "Wish APP BFF",
+        "Wish API/application service",
+        "DDD"
+      ]
     },
     "evidence": []
   },
@@ -2883,7 +3436,17 @@
       "delivery_wave": "MVP后续",
       "mvp_scope_reason": "MVP 不以商城订单创建健康权益；服务预约与服务账由 Wish 闭环，商城订单交接后续实现。",
       "automated_result": "机器可读结果：执行命令、退出码、摘要、测试/构建/契约制品路径及未配置能力的安全降级说明。",
-      "migration_lane": "wish-formal-business"
+      "migration_lane": "wish-formal-business",
+      "migration_scope": "wish-native",
+      "migration_source_file": "jiankang_app_uniapp/docs/ruixin-health-app-scrm-complete-design.md",
+      "migration_backend": null,
+      "backend_target": "Wish API/application service → DDD",
+      "backend_target_chain": [
+        "APP",
+        "Wish APP BFF",
+        "Wish API/application service",
+        "DDD"
+      ]
     },
     "evidence": []
   },
@@ -2929,7 +3492,17 @@
       "delivery_wave": "MVP后续",
       "mvp_scope_reason": "商城活动来源归因属于商城原生迁移范围，MVP 只保留健康服务自身必要的来源字段。",
       "automated_result": "机器可读结果：执行命令、退出码、摘要、测试/构建/契约制品路径及未配置能力的安全降级说明。",
-      "migration_lane": "wish-formal-business"
+      "migration_lane": "wish-formal-business",
+      "migration_scope": "wish-native",
+      "migration_source_file": "jiankang_app_uniapp/docs/ruixin-health-app-scrm-complete-design.md",
+      "migration_backend": null,
+      "backend_target": "Wish API/application service → DDD",
+      "backend_target_chain": [
+        "APP",
+        "Wish APP BFF",
+        "Wish API/application service",
+        "DDD"
+      ]
     },
     "evidence": []
   },
@@ -2986,7 +3559,17 @@
         ],
         "use": "疗愈师任务、服务过程和本次授权范围交互参考；示例均为合成数据。"
       },
-      "migration_lane": "wish-formal-business"
+      "migration_lane": "wish-formal-business",
+      "migration_scope": "wish-native",
+      "migration_source_file": "jiankang_app_uniapp/docs/ruixin-health-app-scrm-complete-design.md",
+      "migration_backend": null,
+      "backend_target": "Wish API/application service → DDD",
+      "backend_target_chain": [
+        "APP",
+        "Wish APP BFF",
+        "Wish API/application service",
+        "DDD"
+      ]
     },
     "evidence": []
   },
@@ -4574,7 +5157,17 @@
       "risk_level": "高",
       "source_status": "新增方案任务 / 待实施",
       "delivery_wave": "I1-统一 Wish APP BFF 与健康/SCRM 纵向闭环",
-      "automated_result": "机器可读结果：命令、退出码、摘要、契约/测试制品路径及未配置能力的安全降级说明。"
+      "automated_result": "机器可读结果：命令、退出码、摘要、契约/测试制品路径及未配置能力的安全降级说明。",
+      "migration_scope": "wish-native",
+      "migration_source_file": "jiankang_app_uniapp/docs/ruixin-health-app-scrm-complete-design.md",
+      "migration_backend": null,
+      "backend_target": "Wish API/application service → DDD",
+      "backend_target_chain": [
+        "APP",
+        "Wish APP BFF",
+        "Wish API/application service",
+        "DDD"
+      ]
     },
     "evidence": []
   },
@@ -4644,7 +5237,17 @@
         ],
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
       },
-      "migration_lane": "wish-formal-business"
+      "migration_lane": "wish-formal-business",
+      "migration_scope": "wish-native",
+      "migration_source_file": "jiankang_app_uniapp/docs/ruixin-health-app-scrm-complete-design.md",
+      "migration_backend": null,
+      "backend_target": "Wish API/application service → DDD",
+      "backend_target_chain": [
+        "APP",
+        "Wish APP BFF",
+        "Wish API/application service",
+        "DDD"
+      ]
     },
     "evidence": []
   },
@@ -4710,7 +5313,17 @@
         ],
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
       },
-      "migration_lane": "wish-formal-business"
+      "migration_lane": "wish-formal-business",
+      "migration_scope": "wish-native",
+      "migration_source_file": "jiankang_app_uniapp/docs/ruixin-health-app-scrm-complete-design.md",
+      "migration_backend": null,
+      "backend_target": "Wish API/application service → DDD",
+      "backend_target_chain": [
+        "APP",
+        "Wish APP BFF",
+        "Wish API/application service",
+        "DDD"
+      ]
     },
     "evidence": []
   },
@@ -4780,7 +5393,17 @@
         ],
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
       },
-      "migration_lane": "wish-formal-business"
+      "migration_lane": "wish-formal-business",
+      "migration_scope": "wish-native",
+      "migration_source_file": "jiankang_app_uniapp/docs/ruixin-health-app-scrm-complete-design.md",
+      "migration_backend": null,
+      "backend_target": "Wish API/application service → DDD",
+      "backend_target_chain": [
+        "APP",
+        "Wish APP BFF",
+        "Wish API/application service",
+        "DDD"
+      ]
     },
     "evidence": []
   },
@@ -4854,7 +5477,17 @@
         ],
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
       },
-      "migration_lane": "wish-formal-business"
+      "migration_lane": "wish-formal-business",
+      "migration_scope": "wish-native",
+      "migration_source_file": "jiankang_app_uniapp/docs/ruixin-health-app-scrm-complete-design.md",
+      "migration_backend": null,
+      "backend_target": "Wish API/application service → DDD",
+      "backend_target_chain": [
+        "APP",
+        "Wish APP BFF",
+        "Wish API/application service",
+        "DDD"
+      ]
     },
     "evidence": []
   },
@@ -4927,7 +5560,17 @@
         ],
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
       },
-      "migration_lane": "wish-formal-business"
+      "migration_lane": "wish-formal-business",
+      "migration_scope": "wish-native",
+      "migration_source_file": "jiankang_app_uniapp/docs/ruixin-health-app-scrm-complete-design.md",
+      "migration_backend": null,
+      "backend_target": "Wish API/application service → DDD",
+      "backend_target_chain": [
+        "APP",
+        "Wish APP BFF",
+        "Wish API/application service",
+        "DDD"
+      ]
     },
     "evidence": []
   },
@@ -4997,7 +5640,17 @@
         ],
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
       },
-      "migration_lane": "wish-formal-business"
+      "migration_lane": "wish-formal-business",
+      "migration_scope": "wish-native",
+      "migration_source_file": "jiankang_app_uniapp/docs/ruixin-health-app-scrm-complete-design.md",
+      "migration_backend": null,
+      "backend_target": "Wish API/application service → DDD",
+      "backend_target_chain": [
+        "APP",
+        "Wish APP BFF",
+        "Wish API/application service",
+        "DDD"
+      ]
     },
     "evidence": []
   },
@@ -5068,7 +5721,17 @@
         ],
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
       },
-      "migration_lane": "wish-formal-business"
+      "migration_lane": "wish-formal-business",
+      "migration_scope": "wish-native",
+      "migration_source_file": "jiankang_app_uniapp/docs/ruixin-health-app-scrm-complete-design.md",
+      "migration_backend": null,
+      "backend_target": "Wish API/application service → DDD",
+      "backend_target_chain": [
+        "APP",
+        "Wish APP BFF",
+        "Wish API/application service",
+        "DDD"
+      ]
     },
     "evidence": []
   },
@@ -7292,7 +7955,7 @@
       "parallel_group": "PG-COM",
       "recommended_agent_role": "商城客户侧页面工程师",
       "source_requirements": "mapp 163 路由清单中的客户侧商城门店目录/详情；总体方案客户 APP 商城入口。",
-      "source_routes": "mapp 商城门店目录、分类与门店详情路由；具体 route/query 以迁移清单核定。",
+      "source_routes": "/pages/merchant/home/index,/pages/merchant/classify_coupon/index,/pages/merchant/detail/index,/pages/merchant/merchant_street/index",
       "target_paths_or_modules": "features/commerce/customer-store-directory",
       "file_claims": "MER-01只负责客户侧商城门店目录与详情路由片段；FND-03单写中心路由注册。",
       "inputs": "Commerce/MER 客户侧商品/门店接口契约、商城入口设计、已核定的 mapp 路由。",
@@ -7319,7 +7982,21 @@
       "mvp_scope_reason": "此客户侧功能按总体方案并入 APP 手机端，页面迁移在该后续任务独立实施。MAPP server 是迁移前端的后端目标；本任务只迁移 APP 前端页面/入口，沿用原有业务数据/服务。商城事实仍由 Commerce/MER 权威服务维护，健康/SCRM 事实由 DFP Wish 维护。",
       "automated_result": "机器可读结果：执行命令、退出码、摘要、测试/构建/契约制品路径及未配置能力的安全降级说明。",
       "migration_lane": "formal-app-migration",
-      "backend_target": "MAPP server"
+      "backend_target": "MAPP server",
+      "migration_scope": "selected-page",
+      "migration_source_file": "jiankang_app_uniapp/docs/migration/mapp-page-migration-inventory.md",
+      "migration_source_page_ids": [
+        "MP044",
+        "MP045",
+        "MP047",
+        "MP051"
+      ],
+      "migration_backend": "MAPP server",
+      "backend_target_chain": [
+        "APP migration page/entry",
+        "MAPP server",
+        "original business data/services"
+      ]
     },
     "evidence": []
   },
@@ -7349,7 +8026,7 @@
       "parallel_group": "PG-MEM",
       "recommended_agent_role": "会员与客户自助页面工程师",
       "source_requirements": "mapp 163 路由清单中客户个人中心的推广关系/奖励状态；总体方案客户授权与归因边界。；客户 APP 原型参考：docs/prototypes/customer-miniapp-prototype.html；界面：my-commission",
-      "source_routes": "客户个人中心推广奖励及关联记录路由；具体 route/query 以迁移清单核定。",
+      "source_routes": "/pages/users/user_spread_money/index,/pages/users/user_spread_brokerage_out/index,/pages/users/commission_rank/index",
       "target_paths_or_modules": "features/membership/promotion-reward-history",
       "file_claims": "MEM-09只负责客户本人推广关系和奖励状态展示；不实现人员管理或财务核算工作台。",
       "inputs": "Commerce/MER 权威订单奖励状态与个人中心路由映射；客户关系来源需满足告知/授权规则。",
@@ -7383,7 +8060,20 @@
         "use": "交互与状态参考；其中人物、数据和业务结果均为合成示例。"
       },
       "migration_lane": "formal-app-migration",
-      "backend_target": "MAPP server"
+      "backend_target": "MAPP server",
+      "migration_scope": "selected-page",
+      "migration_source_file": "jiankang_app_uniapp/docs/migration/mapp-page-migration-inventory.md",
+      "migration_source_page_ids": [
+        "MP023",
+        "MP029",
+        "MP035"
+      ],
+      "migration_backend": "MAPP server",
+      "backend_target_chain": [
+        "APP migration page/entry",
+        "MAPP server",
+        "original business data/services"
+      ]
     },
     "evidence": []
   },

@@ -21,7 +21,9 @@
 
 小程序业务并入 APP 后，已迁入 APP 的前端页面/入口属于正式 APP 业务，不是兼容页或临时页面。正式迁移业务进入独占 `formal-app-migration` 泳道：`APP 页面/状态 → feature/repository → MAPP server → 原有业务数据/服务`；迁移只覆盖前端，既有 MAPP server 保持原业务后端边界。未迁移小程序原客户端单独沿用 `小程序原客户端 → MAPP server`，不与 APP 迁移泳道合并。明确属于 Wish 的其他业务另走 `wish-formal-business` 泳道：`APP → Wish APP BFF → Wish API/application service → DDD → Wish 写主/Outbox/Event/read model/audit`；管理端通过 Wish Admin BFF 进入同一 Wish 写主。
 
-任务图中的 `formal-app-migration` 泳道只覆盖确属小程序前端页面/入口迁移的任务（当前为 `COM-*`、`ORD-*`、`MEM-*`、`CNT-*`、`USR-*`、`MER-*`）。每项任务必须声明 `backend_target: MAPP server`，并不得依赖 Wish APP BFF/DDD。`APPBFF-01`、`HLT-*` 和明确属于 Wish 的 `HWI-*` 进入独立 `wish-formal-business` 泳道，按各自 Wish 纵向闭环执行。APP 首页三个第三方小程序按钮不是迁移任务；入口交互盘点可由 UX 任务记录其外部入口属性。
+`formal-app-migration` 的机器可读 allowlist 固定为 35 个任务：`COM-01..06`、`ORD-01..05`、`MEM-01..10`、`CNT-01..07`、`USR-01..06`、`MER-01`。唯一范围登记位于 `backend/tasks.json` 的 `GOV-01.data.migration_scope_policy`；每个所选任务还必须有 `migration_scope: selected-page`、`migration_backend: MAPP server`、`migration_source_file` 和非空 `migration_source_page_ids`，其页面 ID 必须对应手机端迁移清单中映射到该任务 ID 的行。Agent 领迁移任务时必须同时检查 allowlist、泳道和来源字段；缺字段、来源不匹配或任务 ID 不在 allowlist 都应拒绝认领为迁移任务。未被 35 个任务选中的客户路由继续沿用 `小程序原客户端 → MAPP server`；员工/商户工作台及范围外记录保留清单标注的既有入口，不创建 APP 迁移任务。APP 首页三个第三方小程序按钮只拉起外部小程序，不创建迁移任务，也不连接本图 MAPP server。
+
+`APPBFF-01`、`HLT-01..07`、`HWI-01..05` 共 13 个明确属于 Wish 的任务进入独立 `wish-formal-business` 泳道；任务数据必须声明 `migration_scope: wish-native`、`migration_backend: null` 和 `backend_target_chain: [APP, Wish APP BFF, Wish API/application service, DDD]`。Wish 任务不得接 MAPP server；纵向闭环按 Wish API/DDD、schema、事件、管理工作域、测试与回退执行。
 
 `legacy-compatibility-fallback` 是独立的受控回退泳道，仅允许历史路由登记、旧 route adapter 和安全回退任务使用。它不改变正式迁移页面调用 MAPP server 原有服务的边界，也不建立第二套登录或业务写主。正式 APP 页面故障时按对应业务的既有服务回退策略处理，不得新增独立登录或长期 token。
 
@@ -73,7 +75,7 @@ Wish API/application/DDD 只为明确属于 Wish 的业务解析 principal 与�
 
 ## 任务字段与状态
 
-每个任务必须有唯一 `id`、目标、范围、`deps`、`delivery_wave`、`target_paths_or_modules`、`file_claims`、`targeted_tests` 和 `rollback_or_fallback`。小程序前端迁移任务必须声明 `migration_lane: formal-app-migration` 与 `backend_target: MAPP server`；明确属于 Wish 的业务标记 `wish-formal-business`，历史来源/短期兼容使用 `legacy-compatibility-fallback`，共享身份与安全验收使用 `cross-cutting-security-gate`。`COM-*`、`ORD-*`、`MEM-*`、`CNT-*`、`USR-*`、`MER-*` 属于 `formal-app-migration`；`APPBFF-01`、`HLT-*`、明确属于 Wish 的 `HWI-*` 属于 `wish-formal-business`；`GOV-03`、`FND-05`、`FND-08` 属于 `legacy-compatibility-fallback`；共享身份契约/实现与安全门禁（包括 `GOV-02`、`GOV-05`、`FND-01`、`API-02`、`API-03`、`IDN-01`、`SEC-*`、`TST-05`、`TST-06`）属于 `cross-cutting-security-gate`。`formal-app-migration` 任务不得依赖 Wish APP BFF/DDD，除非任务本身明确属于 Wish 业务。APP 首页三个第三方小程序按钮只作为外部入口说明，不新增到迁移任务。共享 API 契约、schema、导航和事件 envelope 必须指定唯一写入任务。`deps` 是 DAG 唯一依赖源；如保留 `data.depends_on` 展示字段，必须与 `deps` 完全一致，不得用 `ROOT` 等未知哨兵代替空依赖。
+每个任务必须有唯一 `id`、目标、范围、`deps`、`delivery_wave`、`target_paths_or_modules`、`file_claims`、`targeted_tests` 和 `rollback_or_fallback`。35 个所选页面迁移任务还必须满足 GOV-01 范围登记及 `migration_scope`、`migration_backend`、`migration_source_file`、`migration_source_page_ids` 字段校验；Wish 原生任务必须声明 Wish 后端链且 `migration_backend` 为空。其余迁移边界字段保持：历史来源/短期兼容使用 `legacy-compatibility-fallback`，共享身份与安全验收使用 `cross-cutting-security-gate`；`GOV-03`、`FND-05`、`FND-08` 属于前者；共享身份契约/实现与安全门禁（包括 `GOV-02`、`GOV-05`、`FND-01`、`API-02`、`API-03`、`IDN-01`、`SEC-*`、`TST-05`、`TST-06`）属于后者。APP 首页三个第三方小程序按钮只作为外部入口说明，不新增到迁移任务。共享 API 契约、schema、导航和事件 envelope 必须指定唯一写入任务。`deps` 是 DAG 唯一依赖源；如保留 `data.depends_on` 展示字段，必须与 `deps` 完全一致，不得用 `ROOT` 等未知哨兵代替空依赖。
 
 所有新增设计任务默认 `planned`。没有任务级 owner、领取记录、commit、自动化测试命令与退出码、制品路径和验收结果，不得标记 `in-progress` 或 `done`。`merge-status` 只能证明合并发生，不能证明业务任务完成。
 
@@ -85,7 +87,7 @@ Wish API/application/DDD 只为明确属于 Wish 的业务解析 principal 与�
 - 管理端订单、消息/广播、协议/同意、合规、App 发布、运营成员和用户查询是既有兼容能力，保留并做回归保护。
 - 健康预约的目录、容量、房间/设备/服务角色可用性、资源冲突和候补属于主线履约约束；不因此建设员工排班、班次、请假、调班或员工日历。
 - 员工排班管理、物料/库存/仓库、绩效/提成、日常运营 KPI、收银工作台和商户经营管理排除在本期任务图之外。
-- 手机端总体方案是架构上位基线；指定小程序迁入 APP 只迁移前端页面/入口，正式后端目标为 MAPP server。未迁移小程序原客户端独立调用 MAPP server；APP 首页三个第三方小程序按钮是外部入口而非迁移任务。明确属于 Wish 的业务才接入 Wish APP BFF/API/DDD。
+- 手机端总体方案是架构上位基线；formal-app-migration 只允许 35 个 allowlist 任务迁移前端页面/入口并调用 MAPP server。未选路由由原小程序客户端继续调用 MAPP server；APP 首页三个第三方小程序按钮是外部入口而非迁移任务。13 个 Wish 原生任务只走 APP BFF/API/DDD，禁止接入 MAPP server。
 
 ## 验收规则
 

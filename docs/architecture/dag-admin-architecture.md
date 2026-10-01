@@ -4,7 +4,7 @@
 
 ## 正式架构基线
 
-指定小程序迁入 APP 只迁移前端页面/入口，独占 `formal-app-migration` 泳道；正式链路为 `APP 中的小程序迁移业务 → MAPP server → 原有业务数据/服务`。未迁移的小程序原客户端独立沿用 `小程序原客户端 → MAPP server`。APP 首页三个第三方小程序按钮只拉起其他第三方小程序，是外部入口，不属于本次迁移且不进入迁移任务。明确属于 Wish 的健康、SCRM、预约、履约和健康服务账功能进入单独的 `wish-formal-business` 泳道；它们不得与小程序迁移泳道混用。
+指定小程序仅选择迁移清单映射到 35 个任务 ID 的页面迁入 APP：`COM-01..06`、`ORD-01..05`、`MEM-01..10`、`CNT-01..07`、`USR-01..06`、`MER-01`。任务只迁移 APP 前端页面/入口，正式链路为 `APP 页面/入口 → MAPP server → 原有业务数据/服务`。未被这些任务选择的客户路由继续沿用 `小程序原客户端 → MAPP server`；员工/商户工作台及范围外记录保留迁移清单标注的既有入口。APP 首页三个第三方小程序按钮只拉起其他第三方小程序，是外部入口，不属于本次迁移且不进入迁移任务。13 个明确属于 Wish 的任务单独走 `wish-formal-business` 泳道，链路为 `APP → Wish APP BFF → Wish API/application service → DDD`，不得接入 MAPP server。
 
 正式主链固定为：
 
@@ -18,13 +18,13 @@ Wish 正式业务泳道：APP -> Wish APP BFF -> Wish API/application service ->
 
 ## 正式 APP 迁移业务与兼容回退泳道
 
-`formal-app-migration` 只登记确属小程序前端页面/入口迁移的任务。此类任务声明 `backend_target: MAPP server`，只交付 APP 前端调用适配和路由/页面；MAPP server 继续使用原有业务数据/服务。迁移任务不得依赖 Wish APP BFF、Wish API 或 Wish DDD。
+`formal-app-migration` 只登记 allowlist 中的 35 个小程序页面/入口迁移任务。机器范围登记在 `backend/tasks.json` 的 `GOV-01.data.migration_scope_policy`；每个所选任务必须有 `migration_scope: selected-page`、`migration_backend: MAPP server`、`migration_source_file` 和 `migration_source_page_ids`，页面 ID 必须对应手机端清单 `DAG task ID` 列映射。Agent 认领时须同时校验 registry、task lane 和来源页字段；字段缺失或不匹配时拒绝按迁移任务执行。迁移任务只交付 APP 前端页面/状态与 feature/repository，按原服务契约访问 MAPP server 原有业务数据/服务，不得依赖 Wish APP BFF、Wish API 或 Wish DDD。
 
-明确属于 Wish 的新业务不属于小程序迁移泳道，单独使用 `wish-formal-business`：`APPBFF-01`、`HLT-*` 和相应 `HWI-*` 按 Wish API/DDD、schema、事件、管理工作域、测试与回退形成纵向闭环。Wish 业务依赖 APPBFF-01 是合理的；它不得被误读为迁移任务依赖。
+明确属于 Wish 的 13 个原生任务为 `APPBFF-01`、`HLT-01..07`、`HWI-01..05`，单独使用 `wish-formal-business`，任务字段标记 `migration_scope: wish-native`、`migration_backend: null` 和 Wish `backend_target_chain`。它们按 Wish API/DDD、schema、事件、管理工作域、测试与回退形成纵向闭环，不得接入 MAPP server。Wish 业务依赖 APPBFF-01 是合理的；它不得被误读为小程序迁移任务依赖。
 
 `legacy-compatibility-fallback` 是独立的受控回退泳道，只包含历史 route 登记、短期 adapter 和安全回退。它不改变 MAPP server 作为小程序迁移页面后端目标的边界；MAPP server 不新增独立登录、长期 token 或与本次页面迁移无关的新业务 API。
 
-`backend/tasks.json` 的 `data.migration_lane` 按任务边界标注：`COM-*`、`ORD-*`、`MEM-*`、`CNT-*`、`USR-*`、`MER-*` 为 `formal-app-migration`，且每项有 `backend_target: MAPP server`；`APPBFF-01`、`HLT-*` 和明确属于 Wish 的 `HWI-*` 为 `wish-formal-business`；`GOV-03`、`FND-05`、`FND-08` 为 `legacy-compatibility-fallback`；共享身份契约/实现及安全门禁 `GOV-02`、`GOV-05`、`FND-01`、`API-02`、`API-03`、`IDN-01`、`SEC-*`、`TST-05`、`TST-06` 为 `cross-cutting-security-gate`。未跨越这些业务边界的通用平台任务可不填写该字段。
+`backend/tasks.json` 的 `data.migration_lane` 按任务边界标注。精确 allowlist、排除规则和 Wish 链定义在 `GOV-01.data.migration_scope_policy`；35 项迁移任务各自记录清单文件和页面 ID，13 项 Wish 原生任务记录 Wish 后端链且 `migration_backend` 为空。`GOV-03`、`FND-05`、`FND-08` 为 `legacy-compatibility-fallback`；共享身份契约/实现及安全门禁 `GOV-02`、`GOV-05`、`FND-01`、`API-02`、`API-03`、`IDN-01`、`SEC-*`、`TST-05`、`TST-06` 为 `cross-cutting-security-gate`。未跨越这些业务边界的通用平台任务可不填写该字段。
 
 小程序前端迁移任务可以直接依赖 `IDN-01` 获取 APP session 边界契约，但不得依赖 `APPBFF-01`、Wish API 或 Wish DDD；Wish BFF/DDD 依赖仅适用于任务本身明确属于 Wish 的业务。桥接实现/适配任务 `FND-01`、`API-02`、`APPBFF-01`、`FND-08` 和安全验收 `TST-05`、`SEC-04` 按各自职责依赖 `IDN-01`；`TST-05`、`SEC-04` 对 Wish 业务链的安全验收依赖 `APPBFF-01`。`IDN-01` 是设计前置，不反向依赖下游实现。
 

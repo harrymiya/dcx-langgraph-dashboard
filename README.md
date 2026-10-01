@@ -14,7 +14,7 @@
 
 ## 任务图架构边界
 
-指定小程序迁入 APP 只迁移前端页面/入口，独占 `formal-app-migration` 泳道，链路为 `APP 中的小程序迁移业务 -> MAPP server -> 原有业务数据/服务`。未迁移的小程序原客户端独立继续调用 MAPP server。APP 首页三个第三方小程序按钮只作为外部入口说明，与本次迁移无关，不进入迁移任务。只有明确属于 Wish 的业务才使用独立 `wish-formal-business` 泳道和 `APP -> Wish APP BFF -> Wish API/application service -> DDD` 主链。`IDN-01` 的一次性 bridge 只用于需要续接身份的未迁移历史 route，不改变正式迁入页面直连 MAPP server 的边界。所有目标架构均为设计/未实现；管理员登录与认证不属于本阶段。
+指定小程序页面选择性迁入 APP：只有 35 个清单任务 `COM-01..06`、`ORD-01..05`、`MEM-01..10`、`CNT-01..07`、`USR-01..06`、`MER-01` 属于 `formal-app-migration`，只迁移 APP 前端页面/入口，链路为 `APP 页面/入口 -> MAPP server -> 原有业务数据/服务`。范围登记在 `backend/tasks.json` 的 `GOV-01.data.migration_scope_policy`；任务级来源页 ID 与手机端迁移清单逐项对应。未选客户路由继续由原小程序客户端调用 MAPP server；员工/商户工作台和范围外记录保留清单标注的既有入口。APP 首页三个第三方小程序按钮只拉起外部小程序，不进入迁移任务。13 个 Wish 原生任务 `APPBFF-01`、`HLT-01..07`、`HWI-01..05` 单独走 `APP -> Wish APP BFF -> Wish API/application service -> DDD`，不接 MAPP server。`IDN-01` 的一次性 bridge 只用于需要续接身份的未迁移历史 route，不改变正式迁入页面直连 MAPP server 的边界。所有目标架构均为设计/未实现；管理员登录与认证不属于本阶段。
 
 ![Refactor Control Room 演示](docs/demo.png)
 
