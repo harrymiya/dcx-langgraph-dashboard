@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "task_id": "GOV-01",
+  "captured_at_utc": "2026-10-01T09:22:37Z",
+  "target_repository": {
+    "root": "/home/agent/code/dcx-langgraph-dashboard",
+    "branch": "main",
+    "head": "b33884643df102395d9aa0c42d64ee19350fa01d",
+    "pre_capture_worktree_state": "clean",
+    "pre_capture_porcelain": "",
+    "remote_tracking_state_at_capture": "ahead 3 of origin/main"
+  },
+  "declared_mapp_source_snapshot": {
+    "repository": "/home/musk/code/mapp/mapp_app",
+    "ref": "origin/release",
+    "expected_sha_from_GOV_01_input": "ce281ef0d9a6c05a43e87a4799b730c36112ff75",
+    "inventory_declares_same_sha": true,
+    "verification_scope": "Matched GOV-01 input SHA to the inventory declaration. The inventory-declared MAPP checkout path has no .git directory in this environment, so the source Git object could not be verified; this is declared provenance, not a verified source checkout.",
+    "checkout_status": "unavailable at /home/musk/code/mapp/mapp_app/.git"
+  },
+  "inventory_repository_snapshot": {
+    "root": "/home/agent/code/jiankang_app_uniapp",
+    "branch": "dev_lirui",
+    "head": "e25dd3c5481a017d10b7264292721cb18e2aba91",
+    "worktree_state": "clean",
+    "route_inventory": "docs/migration/mapp-page-migration-inventory.md",
+    "route_inventory_sha256": "bc49d6d3b9d2960e68c26593578c423a84de1da881757dc2858dab7d200522c2",
+    "overall_design_sha256": "25297852167de5fb219914a2dfcd4aaed3d98f9595a076539d2278da20e443ac",
+    "cross_project_architecture_sha256": "3acc9173534e55ccd84890d8cd877bba00986be7d528b62441065e3cffeaf8b9",
+    "note": "This is the repository snapshot containing the inventory, not the separate MAPP source repository.",
+    "is_declared_mapp_source_repository": false
+  },
+  "route_baseline": {
+    "parsed_inventory_rows": 163,
+    "unique_route_ids": 163,
+    "route_id_range": [
+      "MP001",
+      "MP163"
+    ],
+    "continuous_MP001_to_MP163": true,
+    "inventory_declared_main_package_routes": 6,
+    "inventory_declared_subpackage_routes": 157,
+    "inventory_declared_subpackage_roots": 11,
+    "baseline_route_deletion_count": 0,
+    "deletion_approval_recorded": false,
+    "counts_basis": "163 route rows parsed from the inventory; package split and subpackage-root counts copied from its source-baseline declaration."
+  },
+  "protected_paths": [
+    {
+      "path": "pages/auth/login.uvue",
+      "purpose": "login page",
+      "exists_at_capture": true,
+      "sha256": "2ebd3e59c2fff20759df80e789a123791cd6a7d04ebb86a96cc370c77761e5d1"
+    },
+    {
+      "path": "foundation/network/client.uts",
+      "purpose": "shared network client",
+      "exists_at_capture": true,
+      "sha256": "35ca981d73dd493be9c1db7c0f948d675890b1d9e241ac095e74573b260b193b"
+    }
+  ],
+  "preexisting_worktree_changes": [],
+  "implementation_evidence": false
+}

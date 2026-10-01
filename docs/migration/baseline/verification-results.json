@@ -1,0 +1,79 @@
+{
+  "schema_version": 1,
+  "task_id": "GOV-01",
+  "captured_at_utc": "2026-10-01T09:22:37Z",
+  "task_state": "planned",
+  "results": [
+    {
+      "name": "MAPP checkout path availability",
+      "command": "if test -d /home/musk/code/mapp/mapp_app/.git; then git -C /home/musk/code/mapp/mapp_app rev-parse HEAD && git -C /home/musk/code/mapp/mapp_app status --porcelain=v1; else echo 'MAPP source checkout unavailable at inventory-declared path'; fi",
+      "exit_code": 0,
+      "stdout": "MAPP source checkout unavailable at inventory-declared path\n",
+      "note": "The expected source SHA was matched to the GOV-01 input and inventory declaration; the separate source Git object is unavailable here."
+    },
+    {
+      "name": "GOV-01 targeted baseline checks (after LF normalization)",
+      "command": "python docs/migration/baseline/validate_baseline.py --source-root /home/agent/code/jiankang_app_uniapp",
+      "exit_code": 0,
+      "stdout": {
+        "status": "passed",
+        "checks": {
+          "task_input_sha_matches_inventory_declaration": "passed",
+          "163_route_ids_unique_contiguous_and_mirrored": "passed",
+          "all_inventory_facts_mirrored_in_zero_deletion_ledger": "passed",
+          "zero_deletion_rows_and_no_approval": "passed",
+          "login_and_network_paths_exist_and_match_captured_sha256": "passed",
+          "both_worktrees_recorded_and_template_present": "passed",
+          "captured_inventory_snapshot_unchanged": "passed"
+        },
+        "mapp_source_sha": "ce281ef0d9a6c05a43e87a4799b730c36112ff75",
+        "route_rows": 163,
+        "unique_route_ids": 163,
+        "deletion_count": 0,
+        "protected_paths": [
+          "foundation/network/client.uts",
+          "pages/auth/login.uvue"
+        ],
+        "inventory_repository_head": "e25dd3c5481a017d10b7264292721cb18e2aba91",
+        "mapp_git_object_directly_verified": false
+      }
+    },
+    {
+      "name": "Overall plan coverage and DAG validation",
+      "command": "python scripts/validate_plan_coverage.py --source-root /home/agent/code/jiankang_app_uniapp",
+      "exit_code": 0,
+      "stdout": "PASS tasks: 143 (planned=143, MVP必须=97, MVP后续=46)\nPASS dependencies: all references exist; DAG is acyclic; data.depends_on matches deps\nPASS coverage: 58 non-empty requirements; 143 tasks linked bidirectionally; no unmapped task or registry item\nPASS migration lanes: 35 MAPP-selected tasks; 13 Wish-native tasks; external and excluded lanes registered\nPASS coverage statuses: current-state-retained, out-of-scope-with-reason, planned\nPASS inventory source page mapping checked (35 selected tasks)\n"
+    },
+    {
+      "name": "Initial working-tree whitespace check (before staging)",
+      "command": "git diff --check",
+      "exit_code": 0,
+      "stdout": "",
+      "note": "Only checked unstaged changes; it did not cover new files already staged."
+    },
+    {
+      "name": "Initial staged whitespace check",
+      "command": "git diff --cached --check",
+      "exit_code": 2,
+      "stdout": "Detected CRLF line endings as trailing whitespace in CSV rows; converted all baseline CSV files to LF."
+    },
+    {
+      "name": "CSV line-ending normalization",
+      "command": "python - <<'PY' (normalize CRLF/CR to LF for docs/migration/baseline/*.csv) PY",
+      "exit_code": 0,
+      "stdout": "workspace-change-register.csv: CRLF=3 -> LF\nworkspace-change-register-template.csv: CRLF=1 -> LF\nzero-deletion-ledger.csv: CRLF=164 -> LF\nprotected-paths.csv: CRLF=3 -> LF\n"
+    },
+    {
+      "name": "Final working-tree whitespace check",
+      "command": "git diff --check",
+      "exit_code": 0,
+      "stdout": ""
+    },
+    {
+      "name": "Final staged whitespace check",
+      "command": "git diff --cached --check",
+      "exit_code": 0,
+      "stdout": ""
+    }
+  ]
+}

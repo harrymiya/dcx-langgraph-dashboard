@@ -1,0 +1,3 @@
+workspace_root,captured_at_utc,head,branch,path,status,change_type,owner_or_task,protected_path_review,disposition,evidence
+/home/agent/code/dcx-langgraph-dashboard,2026-10-01T09:22:37Z,b33884643df102395d9aa0c42d64ee19350fa01d,main,.,clean,baseline-snapshot,GOV-01,not-applicable: no dirty paths,no pre-existing changes,git status --porcelain was empty before GOV-01 edits
+/home/agent/code/jiankang_app_uniapp,2026-10-01T09:22:37Z,e25dd3c5481a017d10b7264292721cb18e2aba91,dev_lirui,.,clean,read-only-source-snapshot,GOV-01,login/network paths recorded in protected-paths.csv,source checkout not modified,git status --porcelain was empty at capture
