@@ -1,0 +1,26 @@
+{
+  "seed_id": "db07-tenant-site-v1",
+  "data_mode": "synthetic_design_only",
+  "tenant": {
+    "tenant_id": "133697a8-311e-5454-9ce2-75dbdbe09458",
+    "tenant_code": "tenant-demo",
+    "name": "演示租户",
+    "status": "inactive"
+  },
+  "sites": [
+    {
+      "site_id": "755cd59e-b21f-5ef3-91f5-11fc3d20b04b",
+      "site_code": "site-a",
+      "name": "凤凰谷",
+      "timezone": null,
+      "status": "inactive"
+    },
+    {
+      "site_id": "d181ad3b-bec5-57f8-a3dd-b938d801e171",
+      "site_code": "site-b",
+      "name": "第二站",
+      "timezone": null,
+      "status": "inactive"
+    }
+  ]
+}
