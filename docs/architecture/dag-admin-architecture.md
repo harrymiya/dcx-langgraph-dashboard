@@ -4,13 +4,13 @@
 
 ## 正式架构基线
 
-客户小程序业务并入 APP 手机端。小程序/MAPP 只保留为历史迁移来源或短期兼容 adapter；历史路由、深链与外链可以登记并做安全回退，但不在其后端新增业务能力。小程序中迁入 APP 的部分属于正式 APP 业务，进入独立的 `formal-app-migration` 泳道，不得被描述成兼容页面或临时后端。新的健康、SCRM、预约、履约和健康服务账功能统一进入 DFP Wish；后续商城、订单、会员、内容和用户服务迁移也按正式 APP 业务泳道建设。
+指定小程序迁入 APP 只迁移前端页面/入口，独占 `formal-app-migration` 泳道；正式链路为 `APP 中的小程序迁移业务 → MAPP server → 原有业务数据/服务`。未迁移的小程序原客户端独立沿用 `小程序原客户端 → MAPP server`。APP 首页三个第三方小程序按钮只拉起其他第三方小程序，是外部入口，不属于本次迁移且不进入迁移任务。明确属于 Wish 的健康、SCRM、预约、履约和健康服务账功能进入单独的 `wish-formal-business` 泳道；它们不得与小程序迁移泳道混用。
 
 正式主链固定为：
 
 ```text
-APP 页面/状态 -> feature/repository -> DFP Wish APP BFF
-  -> Wish API/application service -> DDD domain
+小程序迁移泳道：APP 页面/入口 -> feature/repository -> MAPP server -> 原有业务数据/服务
+Wish 正式业务泳道：APP -> Wish APP BFF -> Wish API/application service -> DDD domain
   -> repository/UoW/事务 -> Wish 数据层/Outbox/Event -> read model/audit
 ```
 
@@ -18,15 +18,17 @@ APP 页面/状态 -> feature/repository -> DFP Wish APP BFF
 
 ## 正式 APP 迁移业务与兼容回退泳道
 
-正式 APP 迁移业务是独立业务泳道：小程序中决定迁入 APP 的能力，迁入后按正式 APP 功能建设、接入、测试和回退验收。客户 APP 的健康服务、预约、履约、SCRM、服务账，以及后续商城、订单/支付/售后、会员/营销/钱包、内容/发现和用户服务任务均属于 `formal-app-migration`；每个模块必须完成 APP 入口、APP BFF、Wish API/application service、DDD/schema/repository/UoW/事务、Outbox/事件、read model/audit、管理工作域、测试和回退的纵向闭环。
+`formal-app-migration` 只登记确属小程序前端页面/入口迁移的任务。此类任务声明 `backend_target: MAPP server`，只交付 APP 前端调用适配和路由/页面；MAPP server 继续使用原有业务数据/服务。迁移任务不得依赖 Wish APP BFF、Wish API 或 Wish DDD。
 
-`legacy-compatibility-fallback` 是独立的受控回退泳道。旧小程序后端、历史页面、原小程序管理端配置/兼容运营端只能作为迁移来源、短期 adapter 或受控回退，不是正式业务后端、登录入口或写主；不得在其中新增业务能力、独立登录、长期 token 或新业务 API。正式 APP 业务故障只能回 APP 原生安全页或审核过的历史外链，不得把正式写主切回 legacy。
+明确属于 Wish 的新业务不属于小程序迁移泳道，单独使用 `wish-formal-business`：`APPBFF-01`、`HLT-*` 和相应 `HWI-*` 按 Wish API/DDD、schema、事件、管理工作域、测试与回退形成纵向闭环。Wish 业务依赖 APPBFF-01 是合理的；它不得被误读为迁移任务依赖。
 
-`backend/tasks.json` 的 `data.migration_lane` 按任务边界标注：`APPBFF-01` 与 `HLT-*`、`COM-*`、`ORD-*`、`MEM-*`、`CNT-*`、`USR-*`、`MER-*`、`HWI-*` 标记为 `formal-app-migration`；`GOV-03`、`FND-05`、`FND-08` 标记为 `legacy-compatibility-fallback`；共享身份契约/实现及安全门禁 `GOV-02`、`GOV-05`、`FND-01`、`API-02`、`API-03`、`IDN-01`、`SEC-*`、`TST-05`、`TST-06` 标记为 `cross-cutting-security-gate`。三个值以外不得新增泳道；没有跨迁移边界的通用平台任务可不填写该字段。
+`legacy-compatibility-fallback` 是独立的受控回退泳道，只包含历史 route 登记、短期 adapter 和安全回退。它不改变 MAPP server 作为小程序迁移页面后端目标的边界；MAPP server 不新增独立登录、长期 token 或与本次页面迁移无关的新业务 API。
 
-所有 `formal-app-migration` 客户业务任务，以及桥接实现/适配任务 `FND-01`、`API-02`、`APPBFF-01`、`FND-08` 和安全验收 `TST-05`、`SEC-04`，都必须在 `deps` 中直接依赖 `IDN-01`，不得只依靠传递依赖；`TST-05`、`SEC-04` 还必须直接依赖 `APPBFF-01`，验证新业务经 Wish 正式主链处理且不会进入 legacy 写主。`IDN-01` 是设计前置，由自身验收场景核验正式主链边界，不反向依赖下游 APP BFF。
+`backend/tasks.json` 的 `data.migration_lane` 按任务边界标注：`COM-*`、`ORD-*`、`MEM-*`、`CNT-*`、`USR-*`、`MER-*` 为 `formal-app-migration`，且每项有 `backend_target: MAPP server`；`APPBFF-01`、`HLT-*` 和明确属于 Wish 的 `HWI-*` 为 `wish-formal-business`；`GOV-03`、`FND-05`、`FND-08` 为 `legacy-compatibility-fallback`；共享身份契约/实现及安全门禁 `GOV-02`、`GOV-05`、`FND-01`、`API-02`、`API-03`、`IDN-01`、`SEC-*`、`TST-05`、`TST-06` 为 `cross-cutting-security-gate`。未跨越这些业务边界的通用平台任务可不填写该字段。
 
-横向集成必须晚于参与模块的纵向闭环，包含身份授权、tenant/site 与客户关系、消息/通知、Commerce 受控只读引用、预约—履约—服务账、发布和恢复验收。`IDN-01` 是共享客户会话桥接契约，不替代模块闭环；`APPBFF-01` 是 APP 主链的唯一渠道适配任务；`TST-05`、`SEC-04` 是共享安全门禁。
+小程序前端迁移任务可以直接依赖 `IDN-01` 获取 APP session 边界契约，但不得依赖 `APPBFF-01`、Wish API 或 Wish DDD；Wish BFF/DDD 依赖仅适用于任务本身明确属于 Wish 的业务。桥接实现/适配任务 `FND-01`、`API-02`、`APPBFF-01`、`FND-08` 和安全验收 `TST-05`、`SEC-04` 按各自职责依赖 `IDN-01`；`TST-05`、`SEC-04` 对 Wish 业务链的安全验收依赖 `APPBFF-01`。`IDN-01` 是设计前置，不反向依赖下游实现。
+
+横向集成必须晚于参与模块的纵向闭环，包含身份授权、tenant/site 与客户关系、消息/通知、Commerce 受控只读引用、预约—履约—服务账、发布和恢复验收。`IDN-01` 是共享客户会话桥接契约，不替代模块闭环；`APPBFF-01` 是明确属于 Wish 的业务渠道适配任务；`TST-05`、`SEC-04` 是共享安全门禁。
 
 ## 客户统一登录与会话桥接设计
 
@@ -43,9 +45,9 @@ APP 已登录 session
 
 - Bridge 绑定 audience、allowlist route/origin、nonce/jti、subject、tenant/site、relationship、purpose、consent 版本与有效期；只允许一次兑换。兑换仅向可信 adapter 提供该路由的临时身份上下文，不返回可复用凭据。它只续接迁移期身份，不作为长期凭据、独立登录或新业务授权。不得把 bridge 放进 URL、普通日志或客户端可复用存储。
 - 如迁移涉及既有小程序 token，旧 token 只在服务端进行一次性交换并立即失效；不得发回客户端、兑换为可复用 token，或继续接受旧 token。无法确认原子失效时 fail closed。
-- Wish API/application/DDD 是唯一身份上下文解析与授权决策点。客户端提交的 principal、tenant/site、subject、relationship、purpose 和 consent 不可信；兑换及敏感操作时复核关系、同意、用途和有效期。
-- APP BFF 只适配 bridge 路由/DTO 并调用 Wish application service，不直连数据库。所有新健康、预约、履约、SCRM 和服务账请求仍走 APP → Wish APP BFF → Wish API/DDD。
-- 旧小程序后端只是历史迁移来源或短期兼容 adapter；它不独立登录、不签发长期 token，也不承载正式业务 API。失败时 bridge/兼容入口 fail closed：APP session 有效则回 APP 原生安全页，失效则回 APP 登录入口，不转到 legacy 登录。
+- Wish API/application/DDD 只为明确属于 Wish 的业务解析身份上下文与授权。客户端提交的 principal、tenant/site、subject、relationship、purpose 和 consent 不可信；兑换及敏感操作时复核关系、同意、用途和有效期。
+- Wish APP BFF 只适配 Wish 业务路由/DTO 并调用 Wish application service，不直连数据库。明确属于 Wish 的健康、预约、履约、SCRM 和服务账请求仍走 APP → Wish APP BFF → Wish API/DDD；正式迁移页面按原服务契约调用 MAPP server。
+- MAPP server 按原服务契约继续承载正式迁移页面调用的既有业务和未迁移小程序业务；它不独立登录、不签发长期 token，也不被替换为 Wish 新业务 API。失败时 bridge/兼容入口 fail closed：APP session 有效则回 APP 原生安全页，失效则回 APP 登录入口，不转到独立 legacy 登录。
 - APP 退出时撤销该客户尚未兑换的 bridge。退出、bridge 撤销/过期、重放、错误 audience/route、主体/站点/关系/用途/同意越权及 bridge 服务故障都产生脱敏最小化审计；日志不含 bridge、健康正文或完整敏感标识。
 
 设计节点 `IDN-01` 依赖 `GOV-02`、`GOV-03`、`GOV-05` 和 `API-01`。APP session adapter、Wish bridge API/DDD、APP BFF、legacy adapter 和安全集成测试分别由 `FND-01`、`API-02`、`APPBFF-01`、`FND-08`、`TST-05` 拥有并显式依赖该设计；全部正式 APP 客户业务任务也直接依赖该共享契约。`API-03` 负责运行时统一 scope/拒绝策略；`TST-05`、`SEC-04` 直接依赖 `APPBFF-01` 并验证正式主链与 legacy 边界。`IDN-01` 只定义客户 APP session 到历史页面/短期 adapter 的短期、一次性、opaque migration session bridge，不是独立登录、长期 token 或通用业务授权。此客户认证设计不涉及管理端认证，不新增或调整管理员 `AUTH` 任务。
@@ -106,9 +108,9 @@ APP 已登录 session
 | `APPBFF-01` | `exts/wish_app/api/*_bff_router.py`、`exts/wish_app/api/_shared/bff_contracts.py`、`domain/app_bff/application/wish_service_gateway.py` | APP 渠道适配、DTO 与授权上下文传递；不拥有领域事实或 DB schema。 |
 | `WADM-01..05`、`WADM-11..16` | `apps/wish-adm/`、`exts/wish_adm/api/`、`domain/*_admin/` | 同一 Wish 服务中的 Admin BFF、管理查询/操作适配和运营工作台。 |
 
-准确依赖以 JSON 为准。正式 APP 迁移纵向主链为：Wish 责任/契约和 canonical schema -> Wish API/DDD、事务、Outbox 与只读投影 -> `APPBFF-01` / Admin BFF -> 对应 APP 页面和管理工作域 -> 模块测试/回退 -> `REL-*` 集成验收。兼容回退泳道只能处理历史 route/adapter 安全回退，不能承接正式业务写入。`HLT-07` 的消息联调依赖 `WADM-05`、`WADM-14`；`HWI-02` 服务发现依赖健康预约 APP/管理闭环 `HLT-04`、`WADM-12`；`HWI-03` 商城权益只读交接依赖服务账 APP/管理闭环 `HLT-05`、`WADM-15`；`HWI-04` 活动归因依赖 SCRM 客户端/管理闭环 `HLT-07`、`WADM-14`。`REL-05` 依赖 `HLT-05`、六个管理工作域和 APP BFF，确保发布集成晚于纵向模块闭环。
+准确依赖以 JSON 为准。小程序迁移前端链为 `APP 页面/feature -> MAPP server -> 原有业务数据/服务`，不经过 Wish BFF/DDD。Wish 正式业务链为 Wish 责任/契约和 canonical schema -> Wish API/DDD、事务、Outbox 与只读投影 -> `APPBFF-01` / Admin BFF -> 对应 APP 页面和管理工作域 -> 模块测试/回退 -> `REL-*` 集成验收。兼容回退泳道只处理历史 route/adapter 安全回退。`HLT-07` 的消息联调依赖 `WADM-05`、`WADM-14`；`HWI-02` 服务发现依赖健康预约 APP/管理闭环 `HLT-04`、`WADM-12`；`HWI-03` 商城权益只读交接依赖服务账 APP/管理闭环 `HLT-05`、`WADM-15`；`HWI-04` 活动归因依赖 SCRM 客户端/管理闭环 `HLT-07`、`WADM-14`。`REL-05` 依赖 `HLT-05`、六个管理工作域和 APP BFF，确保发布集成晚于 Wish 纵向闭环。
 
-`IDN-01` 先提供跨客户模块共用的会话桥接设计契约；每个正式 APP 客户业务任务直接依赖它，但它不替代模块业务闭环，也不把业务任务拆成身份、手机端、后台等横向孤岛。客户档案、预约、履约、SCRM 和服务账仍逐模块串起 APP 入口、APP BFF、Wish API/DDD、数据/事件、管理工作域、测试和回退。纵向闭环之后再做客户关系、消息、Commerce 只读引用、预约—履约—服务账联调和发布验收；登录桥接的全链路拒绝审计及正式主链边界纳入直接依赖 `APPBFF-01` 的 `TST-05` / `SEC-04` 验收。
+`IDN-01` 提供跨客户模块共用的 APP session 与历史 route bridge 设计契约，不替代任何模块闭环。小程序迁移前端任务通过 MAPP server 原服务契约访问迁移前已有的业务；健康/SCRM/预约/履约/服务账等明确属于 Wish 的业务逐模块串起 APP 入口、`APPBFF-01`、Wish API/DDD、数据/事件、管理工作域、测试和回退。Wish 纵向闭环后再做客户关系、消息、Commerce 只读引用、预约—履约—服务账联调和发布验收；Wish 登录桥接的全链路拒绝审计纳入 `TST-05` / `SEC-04`。
 
 ## 管理工作台支撑任务
 
@@ -129,7 +131,7 @@ APP 已登录 session
 - Wish 是健康服务、SCRM 和健康服务账唯一权威写端；Commerce/MER 是商城订单和商城账唯一权威写端。禁止双写、账本合并或将商城购买推导成健康预约/参与事实。
 - Outbox/Inbox 事件固定源 tenant/site 并支持幂等重放。事件只含业务引用、低敏状态和版本，不带手机号、健康正文、媒体地址。通知发送前复核用途同意、偏好、频控和退订；发送失败可追踪、退避并进入可处理状态。
 - 预约可用性、房间/设备/服务角色约束、容量、冲突、候补、改期和取消属于健康服务履约主线；它们不建立员工日历，也不维护员工班次、休假或调班。
-- 历史 route/外链 fallback 由 APP 路由 allowlist 和短期 adapter 控制；fallback 不改变业务写主，也不把 legacy MAPP 后端提升为正式业务 API。
+- 历史 route/外链 fallback 由 APP 路由 allowlist 和短期 adapter 控制；fallback 不改变业务写主。MAPP server 是小程序迁移前端调用的原业务后端，不是 Wish API/DDD 的替代或子集。
 
 ## 本轮明确排除
 
@@ -137,8 +139,8 @@ APP 已登录 session
 - 员工排班管理、班次、休假、调班、员工日历和人员资源维护界面。
 - 物料/耗材库存、低库存、仓库、采购、盘点或仓库成本。服务记录可写本次用品文本。
 - 绩效、提成、薪酬、员工结算；日常运营 KPI/日报；日常收银工作台；商户经营管理。
-- 将小程序/MAPP 作为新业务端、正式业务后端或额外管理平台。
+- 新建第二套小程序业务后台或管理平台；MAPP server 按既有服务契约承载指定小程序迁移页面和未迁移小程序原客户端。
 
 ## 校验口径
 
-任务图校验应确认全部 **143** 个任务状态为 `planned`，ID 唯一，`deps` 全部存在且无环，`data.depends_on` 与 `deps` 一致；MVP 统计由 `data.scope == "MVP必须"` 计算，后续统计由 `data.scope == "MVP后续"` 计算。涉及迁移边界的任务还应有 `data.migration_lane`，其值只能为 `formal-app-migration`、`legacy-compatibility-fallback` 或 `cross-cutting-security-gate`。新增任务必须有唯一 `file_claims`、可执行 `targeted_tests` 和任务级 `rollback_or_fallback`；新增数据不填写 owner、commit、evidence 或 verified_at。
+任务图校验应确认全部 **143** 个任务状态为 `planned`，ID 唯一，`deps` 全部存在且无环，`data.depends_on` 与 `deps` 一致；MVP 统计由 `data.scope == "MVP必须"` 计算，后续统计由 `data.scope == "MVP后续"` 计算。迁移任务必须使用独占 `formal-app-migration`、声明 `backend_target: MAPP server`，且不依赖 Wish APP BFF/DDD；明确属于 Wish 的任务使用 `wish-formal-business`。其他迁移边界的 `data.migration_lane` 可为 `legacy-compatibility-fallback` 或 `cross-cutting-security-gate`。新增任务必须有唯一 `file_claims`、可执行 `targeted_tests` 和任务级 `rollback_or_fallback`；新增数据不填写 owner、commit、evidence 或 verified_at。

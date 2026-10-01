@@ -14,7 +14,7 @@
 
 ## 任务图架构边界
 
-小程序中迁入 APP 的客户能力属于正式 APP 业务，进入 `formal-app-migration` 泳道，主链为 `APP -> APP BFF -> Wish API/application service -> DDD -> Wish 数据层`。客户只在 APP 登录一次；`IDN-01` 定义 opaque、短期、一次性且限定 audience、route、origin 的 migration session bridge。历史页面、旧小程序后端、原小程序管理端配置和兼容运营端只作迁移来源、短期 adapter 或受控回退，不得成为正式后端、登录入口或写主。Wish 统一解析客户身份和授权上下文；失败、过期、重放、撤销或越权时 fail closed 并脱敏审计。管理员登录与认证不属于本阶段。
+指定小程序迁入 APP 只迁移前端页面/入口，独占 `formal-app-migration` 泳道，链路为 `APP 中的小程序迁移业务 -> MAPP server -> 原有业务数据/服务`。未迁移的小程序原客户端独立继续调用 MAPP server。APP 首页三个第三方小程序按钮只作为外部入口说明，与本次迁移无关，不进入迁移任务。只有明确属于 Wish 的业务才使用独立 `wish-formal-business` 泳道和 `APP -> Wish APP BFF -> Wish API/application service -> DDD` 主链。`IDN-01` 的一次性 bridge 只用于需要续接身份的未迁移历史 route，不改变正式迁入页面直连 MAPP server 的边界。所有目标架构均为设计/未实现；管理员登录与认证不属于本阶段。
 
 ![Refactor Control Room 演示](docs/demo.png)
 
