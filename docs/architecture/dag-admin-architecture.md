@@ -19,7 +19,7 @@ APP BFF 和 Admin BFF 是 DFP Wish 内的渠道适配层。管理端是同一套
 
 ## 客户统一登录与会话桥接设计
 
-客户只在 APP 登录一次。`IDN-01` 是客户侧共享设计前置，定义从 APP session 进入历史迁移页面或短期兼容 adapter 时的一次性身份续接；它本身不代表 APP 页面、Wish 业务 API 或 DDD 已实现。
+小程序现状是微信登录/授权并可进行手机号核验；迁移后的客户入口是 APP 手机号 + 短信验证码，客户只在 APP 登录一次。历史小程序身份只能由服务端在该迁移契约内核验/映射；如需处理旧 token，只允许服务端一次性交换并立即使旧 token 失效，不要求客户重新登录小程序。`IDN-01` 是客户侧共享设计前置，定义从 APP session 进入历史迁移页面或短期兼容 adapter 时的一次性身份续接；它本身不代表 APP 页面、Wish 业务 API 或 DDD 已实现。
 
 ```text
 APP 已登录 session
@@ -31,6 +31,7 @@ APP 已登录 session
 ```
 
 - Bridge 绑定 audience、allowlist route/origin、nonce/jti、subject、tenant/site、relationship、purpose、consent 版本与有效期；只允许一次兑换。兑换仅向可信 adapter 提供该路由的临时身份上下文，不返回可复用凭据。它只续接迁移期身份，不作为长期凭据、独立登录或新业务授权。不得把 bridge 放进 URL、普通日志或客户端可复用存储。
+- 如迁移涉及既有小程序 token，旧 token 只在服务端进行一次性交换并立即失效；不得发回客户端、兑换为可复用 token，或继续接受旧 token。无法确认原子失效时 fail closed。
 - Wish API/application/DDD 是唯一身份上下文解析与授权决策点。客户端提交的 principal、tenant/site、subject、relationship、purpose 和 consent 不可信；兑换及敏感操作时复核关系、同意、用途和有效期。
 - APP BFF 只适配 bridge 路由/DTO 并调用 Wish application service，不直连数据库。所有新健康、预约、履约、SCRM 和服务账请求仍走 APP → Wish APP BFF → Wish API/DDD。
 - 旧小程序后端只是历史迁移来源或短期兼容 adapter；它不独立登录、不签发长期 token，也不承载正式业务 API。失败时 bridge/兼容入口 fail closed：APP session 有效则回 APP 原生安全页，失效则回 APP 登录入口，不转到 legacy 登录。
@@ -68,7 +69,7 @@ APP 已登录 session
 | 健康服务与预约 | `API-05`、`API-06`、`DB-04`、`OPS-01/02/04/05/07` | `APPBFF-01`、`HLT-01`、`HLT-03`、`HLT-04` | `WADM-04`、`WADM-12` | `HLT-07`、通知/发布验收 |
 | 履约与服务记录 | `API-08`、`SCR-03`、`DB-05`、`API-09` | `APPBFF-01`、疗愈师任务/服务记录入口 | `WADM-13` | `REL-*`、审计验收 |
 | SCRM 与客户跟进 | `API-08`、`API-09`、`SCR-01..04`、`SCR-07/08` | `APPBFF-01`、`HLT-07` | `WADM-05`、`WADM-14` | 消息、通知、回访回归 |
-| 健康服务账 | `API-07`、`SCR-05/06`、`DB-05` | `APPBFF-01`、服务卡/账状态入口 | `WADM-15` | Commerce 只读引用、对账、发布验收 |
+| 健康服务账 | `API-07`、`SCR-05/06`、`DB-05` | `APPBFF-01`、`HLT-05` 服务卡/权益入口 | `WADM-15` | Commerce 只读引用、对账、发布验收 |
 | 权限与审计 | `API-03`、`API-10`、`SEC-*` | 客户端只消费授权结果 | `WADM-16` | 全链路拒绝审计、恢复验收 |
 
 六个管理工作域都由 `apps/wish-adm` 运营工作台调用同一 Wish 后台：
@@ -94,7 +95,7 @@ APP 已登录 session
 | `APPBFF-01` | `exts/wish_app/api/*_bff_router.py`、`exts/wish_app/api/_shared/bff_contracts.py`、`domain/app_bff/application/wish_service_gateway.py` | APP 渠道适配、DTO 与授权上下文传递；不拥有领域事实或 DB schema。 |
 | `WADM-01..05`、`WADM-11..16` | `apps/wish-adm/`、`exts/wish_adm/api/`、`domain/*_admin/` | 同一 Wish 服务中的 Admin BFF、管理查询/操作适配和运营工作台。 |
 
-准确依赖以 JSON 为准。纵向主链为：Wish 责任/契约和 canonical schema → Wish API/DDD、事务、Outbox 与只读投影 → `APPBFF-01` / Admin BFF → 对应 APP 页面和管理工作域 → 模块测试/回退 → `REL-*` 集成验收。`REL-05` 依赖六个管理工作域和 APP BFF，确保发布集成晚于纵向模块闭环。
+准确依赖以 JSON 为准。纵向主链为：Wish 责任/契约和 canonical schema → Wish API/DDD、事务、Outbox 与只读投影 → `APPBFF-01` / Admin BFF → 对应 APP 页面和管理工作域 → 模块测试/回退 → `REL-*` 集成验收。`HLT-07` 的消息联调依赖 `WADM-05`、`WADM-14`；`HWI-02` 服务发现依赖健康预约 APP/管理闭环 `HLT-04`、`WADM-12`；`HWI-03` 商城权益只读交接依赖服务账 APP/管理闭环 `HLT-05`、`WADM-15`；`HWI-04` 活动归因依赖 SCRM 客户端/管理闭环 `HLT-07`、`WADM-14`。`REL-05` 依赖 `HLT-05`、六个管理工作域和 APP BFF，确保发布集成晚于纵向模块闭环。
 
 `IDN-01` 先提供跨客户模块共用的会话桥接设计契约；它不把业务任务拆成身份、手机端、后台等横向孤岛。客户档案、预约、履约、SCRM 和服务账仍逐模块串起 APP 入口、APP BFF、Wish API/DDD、数据/事件、管理工作域、测试和回退。纵向闭环之后再做客户关系、消息、Commerce 只读引用、预约—履约—服务账联调和发布验收；登录桥接的全链路拒绝审计纳入 `TST-05` / `SEC-04` 验收。
 

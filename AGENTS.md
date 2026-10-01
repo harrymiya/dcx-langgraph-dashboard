@@ -44,10 +44,12 @@ Wish API/application/DDD 是唯一 principal 解析与授权上下文来源，�
 | 健康服务与预约 | `API-05`、`API-06`、`DB-04`、`OPS-01/02/04/05/07` | `APPBFF-01`、`HLT-01`、`HLT-03`、`HLT-04` | `WADM-04`、`WADM-12` | `HLT-07`、通知/发布验收 |
 | 履约与服务记录 | `API-08`、`SCR-03`、`DB-05`、`API-09` | `APPBFF-01`、疗愈师任务/服务记录入口 | `WADM-13` | `REL-*`、审计验收 |
 | SCRM 与客户跟进 | `API-08`、`API-09`、`SCR-01..04`、`SCR-07/08` | `APPBFF-01`、`HLT-07` | `WADM-05`、`WADM-14` | 消息、通知、回访回归 |
-| 健康服务账 | `API-07`、`SCR-05/06`、`DB-05` | `APPBFF-01`、服务卡/账状态入口 | `WADM-15` | Commerce 只读引用、对账、发布验收 |
+| 健康服务账 | `API-07`、`SCR-05/06`、`DB-05` | `APPBFF-01`、`HLT-05` 服务卡/权益入口 | `WADM-15` | Commerce 只读引用、对账、发布验收 |
 | 权限与审计 | `API-03`、`API-10`、`SEC-*` | 客户端只消费授权结果 | `WADM-16` | 全链路拒绝审计、恢复验收 |
 
 `APPBFF-01` 是 APP 渠道适配任务，具体拥有 `exts/wish_app/api/` 路由、共享 BFF contract 和 Wish application-service gateway；它不拥有 Wish 领域事实、schema 或 Admin BFF。客户模块共用 `IDN-01` 定义的会话上下文，不各自建立登录流程。Admin BFF 和运营工作域由 `WADM-*` 在同一 DFP Wish 服务内实现。映射是架构规划，不构成实现证据。若某模块的客户端、BFF、DDD、数据、事件或测试节点缺失，应新增或调整 `planned` 任务，不能用页面壳、合并提交或单个 BFF 测试替代闭环。
+
+横向集成必须在参与模块的 APP 与管理工作域纵向闭环后发生：`HLT-07` 依赖 `WADM-05`、`WADM-14`；Commerce 服务发现 `HWI-02` 依赖 `HLT-04`、`WADM-12`；商城权益只读交接 `HWI-03` 依赖 `HLT-05`、`WADM-15`；活动归因 `HWI-04` 依赖 `HLT-07`、`WADM-14`。`REL-05` 等发布联调还必须等待 `HLT-05` 和六个管理工作域。
 
 ## 任务字段与状态
 
