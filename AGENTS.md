@@ -9,15 +9,23 @@
 1. **领域**：客户档案与授权、健康记录、服务目录与预约、履约/SOP/服务记录、SCRM/回访/触达、健康服务账分别定义边界、聚合和唯一写主；Commerce/MER 独立负责商城事实。
 2. **分层**：客户 APP 页面/状态 → feature/repository → DFP Wish APP BFF；管理端工作台页面 → DFP Wish Admin BFF；两条渠道均进入同一 Wish API/application service → DDD domain → repository/UoW/事务 → Wish DB/Outbox/Event → read model/audit。BFF 是 DFP Wish 内的渠道适配层，不是独立业务后端。
 3. **纵向闭环**：每个独立模块必须把 APP 手机端入口、管理端工作域、对应 BFF、Wish API/DDD、schema/repository/事务、事件/通知、读模型/审计、测试和回退串成一条可独立验收的链。
-4. **横向集成**：只有纵向模块闭环后，才安排身份授权、tenant/site、客户关系、消息、Commerce 引用、预约—履约—服务账和发布验收等跨域集成。
+4. **横向集成**：客户 APP 会话身份源和一次性迁移桥接由 `IDN-01` 作为共享基础契约先行定义，这不是跨域业务集成。只有纵向模块闭环后，才安排身份授权联调、tenant/site、客户关系、消息、Commerce 引用、预约—履约—服务账和发布验收等跨域集成。
 
 客户小程序业务并入 APP 手机端。小程序/MAPP 只作为历史迁移来源或短期兼容 adapter；可以保留历史路由、深链、外链的登记与安全回退，不得把它描述成正式业务后端，也不得在其中新增业务能力。新健康/SCRM/预约/履约/服务账业务统一经过 Wish APP BFF/Admin BFF、Wish API/application service 与 DDD 数据层。管理端只是同一套 Wish 后台的运营工作台。Commerce/MER 继续独立维护商城事实，Wish 只通过受控只读引用与之协作。
 
 禁止把任务按“手机端一批、管理端一批、后台一批”拆成无法独立验收的横向孤岛。一个模块可以包含多个 DAG 节点，但节点必须通过依赖把纵向链串起来；跨模块任务只能依赖相关模块闭环完成。
 
+## 客户统一登录与迁移会话桥接
+
+客户只在 APP 登录一次。`IDN-01` 定义 APP session 到历史页面/短期兼容 adapter 的身份续接契约；进入兼容入口时由 Wish 服务端验证 APP session 并签发短时、单次兑换、绑定 allowlist route/origin、audience、nonce、subject、tenant/site、relationship、purpose 和 consent 的 opaque migration bridge。Bridge 仅续接迁移期身份，不是独立登录或长期 token。
+
+Wish API/application/DDD 是唯一 principal 解析与授权上下文来源，统一核验 principal、tenant/site、subject、relationship、purpose、consent 和有效期；不得信任客户端自报字段。APP BFF 只适配 bridge 并调用 Wish application service。旧小程序后端不得独立登录、签发长期 token 或承载正式业务 API；新健康/SCRM/预约/履约/服务账请求都留在 Wish 链路。APP 退出时撤销尚未兑换的 bridge；退出、撤销、过期、重放、越权和 bridge 故障均 fail closed、记录最小化审计并安全回到 APP 原生页或 APP 登录入口。
+
+`IDN-01` 是客户侧共享设计前置，不替代任何模块的 APP 页面、BFF、API/DDD、数据、事件、测试和回退闭环。受影响实现任务及 `TST-05` 必须显式依赖该契约；管理员认证仍完全排除，不新增或调整 `AUTH` 任务。
+
 ## 纵向模块任务映射
 
-| 模块 | Wish API/DDD 与数据 | APP/BFF | 管理工作台 | 后置横向集成 |
+| 模块 | Wish API/DDD 与数据 | APP/BFF（共用 `IDN-01` 客户会话上下文） | 管理工作台 | 后置横向集成 |
 | --- | --- | --- | --- | --- |
 | 客户档案与授权 | `API-04`、`SCR-01`、`SCR-02`、`DB-05` | `APPBFF-01`、`HLT-06`、资料/授权入口 | `WADM-11` | `SEC-*`、`REL-*` |
 | 健康服务与预约 | `API-05`、`API-06`、`DB-04`、`OPS-01/02/04/05/07` | `APPBFF-01`、`HLT-01`、`HLT-03`、`HLT-04` | `WADM-04`、`WADM-12` | `HLT-07`、通知/发布验收 |
@@ -26,7 +34,7 @@
 | 健康服务账 | `API-07`、`SCR-05/06`、`DB-05` | `APPBFF-01`、服务卡/账状态入口 | `WADM-15` | Commerce 只读引用、对账、发布验收 |
 | 权限与审计 | `API-03`、`API-10`、`SEC-*` | 客户端只消费授权结果 | `WADM-16` | 全链路拒绝审计、恢复验收 |
 
-`APPBFF-01` 是 APP 渠道适配任务，具体拥有 `exts/wish_app/api/` 路由、共享 BFF contract 和 Wish application-service gateway；它不拥有 Wish 领域事实、schema 或 Admin BFF。Admin BFF 和运营工作域由 `WADM-*` 在同一 DFP Wish 服务内实现。映射是架构规划，不构成实现证据。若某模块的客户端、BFF、DDD、数据、事件或测试节点缺失，应新增或调整 `planned` 任务，不能用页面壳、合并提交或单个 BFF 测试替代闭环。
+`APPBFF-01` 是 APP 渠道适配任务，具体拥有 `exts/wish_app/api/` 路由、共享 BFF contract 和 Wish application-service gateway；它不拥有 Wish 领域事实、schema 或 Admin BFF。客户模块共用 `IDN-01` 定义的会话上下文，不各自建立登录流程。Admin BFF 和运营工作域由 `WADM-*` 在同一 DFP Wish 服务内实现。映射是架构规划，不构成实现证据。若某模块的客户端、BFF、DDD、数据、事件或测试节点缺失，应新增或调整 `planned` 任务，不能用页面壳、合并提交或单个 BFF 测试替代闭环。
 
 ## 任务字段与状态
 

@@ -17,9 +17,30 @@ APP BFF 和 Admin BFF 是 DFP Wish 内的渠道适配层。管理端是同一套
 
 `APPBFF-01` 是统一 APP BFF 方案任务，独占 `exts/wish_app/api/` 的健康档案、目录、预约、履约、SCRM、服务账 router、共享 BFF contract 和 Wish application-service gateway。它依赖相应 `API-*`、`SCR-*`、`OPS-*` 领域前置。各 `HLT-*` 客户端任务通过该 BFF 访问 Wish API，不直连数据库或旧小程序后端。
 
+## 客户统一登录与会话桥接设计
+
+客户只在 APP 登录一次。`IDN-01` 是客户侧共享设计前置，定义从 APP session 进入历史迁移页面或短期兼容 adapter 时的一次性身份续接；它本身不代表 APP 页面、Wish 业务 API 或 DDD 已实现。
+
+```text
+APP 已登录 session
+  → APP migration-session adapter
+  → Wish APP BFF 请求 bridge
+  → Wish API/application service 验证 APP session 并签发 opaque、短 TTL、单次 bridge
+  → allowlist 内的 legacy adapter 原子兑换 bridge，获得仅限该路由的临时身份上下文
+  → Wish DDD 统一解析 principal / tenant-site / subject / relationship / purpose / consent
+```
+
+- Bridge 绑定 audience、allowlist route/origin、nonce/jti、subject、tenant/site、relationship、purpose、consent 版本与有效期；只允许一次兑换。兑换仅向可信 adapter 提供该路由的临时身份上下文，不返回可复用凭据。它只续接迁移期身份，不作为长期凭据、独立登录或新业务授权。不得把 bridge 放进 URL、普通日志或客户端可复用存储。
+- Wish API/application/DDD 是唯一身份上下文解析与授权决策点。客户端提交的 principal、tenant/site、subject、relationship、purpose 和 consent 不可信；兑换及敏感操作时复核关系、同意、用途和有效期。
+- APP BFF 只适配 bridge 路由/DTO 并调用 Wish application service，不直连数据库。所有新健康、预约、履约、SCRM 和服务账请求仍走 APP → Wish APP BFF → Wish API/DDD。
+- 旧小程序后端只是历史迁移来源或短期兼容 adapter；它不独立登录、不签发长期 token，也不承载正式业务 API。失败时 bridge/兼容入口 fail closed：APP session 有效则回 APP 原生安全页，失效则回 APP 登录入口，不转到 legacy 登录。
+- APP 退出时撤销该客户尚未兑换的 bridge。退出、bridge 撤销/过期、重放、错误 audience/route、主体/站点/关系/用途/同意越权及 bridge 服务故障都产生最小化审计；日志不含 bridge、健康正文或完整敏感标识。
+
+设计节点 `IDN-01` 依赖 `GOV-02`、`GOV-03`、`GOV-05` 和 `API-01`。APP session adapter、Wish bridge API/DDD、APP BFF、legacy adapter 和安全集成测试分别由 `FND-01`、`API-02`、`APPBFF-01`、`FND-08`、`TST-05` 拥有并显式依赖该设计；`API-03` 负责运行时统一 scope/拒绝策略。此客户认证设计不涉及管理端认证，不新增或调整管理员 `AUTH` 任务。
+
 ## 任务统计与来源
 
-任务图共 **142 项**：**96 项 MVP 必须**、**46 项 MVP 后续**；当前任务状态均为 `planned`。`__start__`、`__end__` 是控制节点，不计入业务任务。管理工作台本轮增加的 **12 个任务**是 `WADM-00..05` 与 `WADM-11..16`；`APPBFF-01` 是单独的 APP 后端渠道任务。
+任务图共 **143 项**：**97 项 MVP 必须**、**46 项 MVP 后续**；当前任务状态均为 `planned`。`__start__`、`__end__` 是控制节点，不计入业务任务。管理工作台本轮增加的 **12 个任务**是 `WADM-00..05` 与 `WADM-11..16`；`APPBFF-01` 是单独的 APP 后端渠道任务，`IDN-01` 是客户会话桥接设计前置。
 
 架构规划参考手机端总体方案、数据架构、DFP Wish 后台服务设计和既有任务索引。`backend/tasks.json` 的 `deps` 是唯一机器依赖源；`data.depends_on` 仅作一致性展示。
 
@@ -41,7 +62,7 @@ APP BFF 和 Admin BFF 是 DFP Wish 内的渠道适配层。管理端是同一套
 
 ## 六个管理工作域与纵向模块映射
 
-| 模块 | Wish API/DDD 与数据 | APP / APP BFF | 管理工作台 | 后置横向集成 |
+| 模块 | Wish API/DDD 与数据 | APP / APP BFF（共用 `IDN-01` 客户会话上下文） | 管理工作台 | 后置横向集成 |
 | --- | --- | --- | --- | --- |
 | 客户档案与授权 | `API-04`、`SCR-01`、`SCR-02`、`DB-05` | `APPBFF-01`、`HLT-06` | `WADM-11` | `SEC-*`、`REL-*` |
 | 健康服务与预约 | `API-05`、`API-06`、`DB-04`、`OPS-01/02/04/05/07` | `APPBFF-01`、`HLT-01`、`HLT-03`、`HLT-04` | `WADM-04`、`WADM-12` | `HLT-07`、通知/发布验收 |
@@ -65,6 +86,8 @@ APP BFF 和 Admin BFF 是 DFP Wish 内的渠道适配层。管理端是同一套
 
 | 任务 | 计划路径 | 责任 |
 | --- | --- | --- |
+| `IDN-01` | `docs/architecture/dag-admin-architecture.md` 客户统一登录与会话桥接章节 | 独占桥接设计章节；列明 APP session adapter、APP BFF、Wish API/application/DDD、legacy adapter 和测试路径，不拥有这些实现文件。 |
+| `API-02` | `exts/wish/api/identity/migration_session_router.py`、`domain/identity_migration/` | Wish 服务端 bridge 签发/原子兑换、身份上下文和生命周期审计实现；不实现 APP BFF 或 legacy adapter。 |
 | `API-04..10` | `exts/wish/api/*_router.py` 与 `domain/<context>/application/` | Wish API/application service 到领域应用服务的路由适配；核心聚合/写主归 `SCR-*`、`OPS-*`。 |
 | `DB-04` | `domain/alembic/versions/health_appointment_resources.py` | 预约、时段、资源锁 schema 与 repository 基础。 |
 | `DB-05` | `domain/alembic/versions/scrm_service_records_and_ledger.py` | SCRM、服务记录、服务卡和健康服务账 schema。 |
@@ -72,6 +95,8 @@ APP BFF 和 Admin BFF 是 DFP Wish 内的渠道适配层。管理端是同一套
 | `WADM-01..05`、`WADM-11..16` | `apps/wish-adm/`、`exts/wish_adm/api/`、`domain/*_admin/` | 同一 Wish 服务中的 Admin BFF、管理查询/操作适配和运营工作台。 |
 
 准确依赖以 JSON 为准。纵向主链为：Wish 责任/契约和 canonical schema → Wish API/DDD、事务、Outbox 与只读投影 → `APPBFF-01` / Admin BFF → 对应 APP 页面和管理工作域 → 模块测试/回退 → `REL-*` 集成验收。`REL-05` 依赖六个管理工作域和 APP BFF，确保发布集成晚于纵向模块闭环。
+
+`IDN-01` 先提供跨客户模块共用的会话桥接设计契约；它不把业务任务拆成身份、手机端、后台等横向孤岛。客户档案、预约、履约、SCRM 和服务账仍逐模块串起 APP 入口、APP BFF、Wish API/DDD、数据/事件、管理工作域、测试和回退。纵向闭环之后再做客户关系、消息、Commerce 只读引用、预约—履约—服务账联调和发布验收；登录桥接的全链路拒绝审计纳入 `TST-05` / `SEC-04` 验收。
 
 ## 管理工作台支撑任务
 
@@ -87,6 +112,7 @@ APP BFF 和 Admin BFF 是 DFP Wish 内的渠道适配层。管理端是同一套
 ## 授权、数据与事件规则
 
 - 每次读写都由 Wish 服务端根据授权主体解析 tenant/site；请求中的 `site_id` 不能覆盖授权范围。APP BFF 和 Admin BFF 复用 `API-03` 角色/站点策略，不新增管理员身份认证任务。
+- 客户 APP session 是唯一登录来源；迁移 bridge 仅短时单次续接身份。退出、撤销、过期、越权或桥接失败要 fail closed 并写入脱敏审计，fallback 只回 APP 原生安全页/APP 登录入口。
 - 客户、健康数据、预约、服务记录、服务账和审计采用最小字段投影。家属/代理关系本身不构成健康字段授权；跨站访问要有具体对象、站点、用途和有效期授权。
 - Wish 是健康服务、SCRM 和健康服务账唯一权威写端；Commerce/MER 是商城订单和商城账唯一权威写端。禁止双写、账本合并或将商城购买推导成健康预约/参与事实。
 - Outbox/Inbox 事件固定源 tenant/site 并支持幂等重放。事件只含业务引用、低敏状态和版本，不带手机号、健康正文、媒体地址。通知发送前复核用途同意、偏好、频控和退订；发送失败可追踪、退避并进入可处理状态。
@@ -95,7 +121,7 @@ APP BFF 和 Admin BFF 是 DFP Wish 内的渠道适配层。管理端是同一套
 
 ## 本轮明确排除
 
-- 管理员登录、验证码、认证、session、token 或凭据问题；不新增或调整 AUTH 任务。
+- 管理员登录、验证码、认证、session、token 或凭据问题；不新增或调整 AUTH 任务。`IDN-01` 仅设计客户 APP session bridge，不改变管理员认证范围。
 - 员工排班管理、班次、休假、调班、员工日历和人员资源维护界面。
 - 物料/耗材库存、低库存、仓库、采购、盘点或仓库成本。服务记录可写本次用品文本。
 - 绩效、提成、薪酬、员工结算；日常运营 KPI/日报；日常收银工作台；商户经营管理。
@@ -103,4 +129,4 @@ APP BFF 和 Admin BFF 是 DFP Wish 内的渠道适配层。管理端是同一套
 
 ## 校验口径
 
-任务图校验应确认全部 **142** 个任务状态为 `planned`，ID 唯一，`deps` 全部存在且无环，`data.depends_on` 与 `deps` 一致；MVP 统计由 `data.scope == "MVP必须"` 计算，后续统计由 `data.scope == "MVP后续"` 计算。新增任务必须有唯一 `file_claims`、可执行 `targeted_tests` 和任务级 `rollback_or_fallback`；新增数据不填写 owner、commit、evidence 或 verified_at。
+任务图校验应确认全部 **143** 个任务状态为 `planned`，ID 唯一，`deps` 全部存在且无环，`data.depends_on` 与 `deps` 一致；MVP 统计由 `data.scope == "MVP必须"` 计算，后续统计由 `data.scope == "MVP后续"` 计算。新增任务必须有唯一 `file_claims`、可执行 `targeted_tests` 和任务级 `rollback_or_fallback`；新增数据不填写 owner、commit、evidence 或 verified_at。
