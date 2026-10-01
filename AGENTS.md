@@ -2,6 +2,19 @@
 
 本项目只负责任务图、依赖、状态和机器验收证据，不承载手机端、管理端或 Wish 业务实现。当前任务图是总体方案的正确子集；任务设计不等于功能已实现。
 
+## 技术架构硬约束：DAG 必须遵守统一身份与 Wish 主链
+
+所有任务、路径、依赖、测试和回退设计都必须遵守以下架构，不得通过新增任务绕开：
+
+- 小程序现状是微信登录/授权并可进行手机号核验；APP 客户入口是手机号 + 短信验证码。小程序业务并入 APP 后，客户只在 APP 登录一次。
+- `IDN-01` 统一定义 APP customer session 到历史页面/短期兼容 adapter 的 migration session bridge：短期、一次性、opaque、限定 audience/route/origin、服务端原子兑换。bridge 不是独立登录、长期 token 或通用业务授权。
+- 旧小程序后端不独立登录、不重新询问密码/验证码、不签发长期 token、不承载正式新业务；旧 token 仅服务端兑换并立即失效。APP logout 撤销派生 bridge。
+- Wish API/application/DDD 统一解析 principal、tenant/site、subject、relationship、purpose、consent 和 field scope；客户端自报范围不是授权事实。重放、过期、越权、站点不匹配和桥接失败必须 fail closed、审计并回 APP 原生页/明确错误。
+- 每个纵向模块任务必须串起 APP 入口、APP BFF、Wish API/DDD、schema/repository/UoW/事务、Outbox/事件、read model/audit、管理工作域、测试和回退；管理端只能通过 Wish Admin BFF 进入同一 Wish 写主。
+- 管理员登录、认证、session、token 和凭据不在本轮；不得新增或调整 AUTH 任务。所有任务状态保持 `planned`，无任务级 owner、commit、evidence、verified_at 不得标记完成。
+
+以上是目标设计/未实现约束；DAG 任务不是生产实现证据。
+
 ## 架构拆解原则
 
 产品架构同时使用四个维度：
