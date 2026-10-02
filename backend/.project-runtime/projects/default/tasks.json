@@ -10247,8 +10247,8 @@
     "output": "回调验签去重、金额核对、卡预览/确认、收款退款状态和不可变分录",
     "scope": "DFP-Wish: finance/payment/refund/cards",
     "verify": "执行 data.targeted_tests 中的自动化检查；写回命令、退出码、机器摘要和制品路径。缺失外部配置时使用合成/沙箱夹具，真实写入保持关闭。",
-    "status": "planned",
-    "status_source": "markdown-dag-import",
+    "status": "code-ready",
+    "status_source": "autonomous-agent",
     "ingestion_status": "ingested",
     "description": "实现Wish服务支付退款与四类卡服务账",
     "goal": "回调验签去重、金额核对、卡预览/确认、收款退款状态和不可变分录",
@@ -10291,7 +10291,61 @@
       ],
       "coverage_status": "planned"
     },
-    "evidence": []
+    "evidence": [
+      {
+        "report": "domain/tests/health_service_ledger/test_api07_payment_entitlement.py",
+        "checks": [
+          {
+            "command": "uv run --project . pytest tests/health_service_ledger/test_api07_payment_entitlement.py tests/health_appointment/test_api06_appointment_service.py tests/security/test_audit_redaction.py tests/security/test_purpose_scope_checks.py tests/api/test_notification_reliability.py ../domain/authorization/tests/test_api03_authorization.py",
+            "exit": 0
+          },
+          {
+            "command": "python3 -m compileall -q health_service_ledger/application/payment_service.py health_service_ledger/application/refund_service.py service_cards/application/entitlement_service.py",
+            "exit": 0
+          },
+          {
+            "command": "git diff --check",
+            "exit": 0
+          },
+          {
+            "command": "python3 scripts/validate_plan_coverage.py --source-root /home/agent/code/jiankang_app_uniapp",
+            "exit": 0
+          }
+        ]
+      }
+    ],
+    "automated_result": {
+      "commands": [
+        {
+          "command": "uv run --project . pytest tests/health_service_ledger/test_api07_payment_entitlement.py tests/health_appointment/test_api06_appointment_service.py tests/security/test_audit_redaction.py tests/security/test_purpose_scope_checks.py tests/api/test_notification_reliability.py ../domain/authorization/tests/test_api03_authorization.py",
+          "exit": 0,
+          "summary": "25 tests passed; signed payment callbacks, unknown status, refund scope, four entitlement kinds, operation idempotency boundary, API-06 and security regressions verified; 1 existing collection warning"
+        },
+        {
+          "command": "python3 -m compileall -q health_service_ledger/application/payment_service.py health_service_ledger/application/refund_service.py service_cards/application/entitlement_service.py",
+          "exit": 0,
+          "summary": "Python syntax compilation passed"
+        },
+        {
+          "command": "git diff --check",
+          "exit": 0,
+          "summary": "dfp_wish worktree clean for API-07 checks; unrelated changes excluded"
+        },
+        {
+          "command": "python3 scripts/validate_plan_coverage.py --source-root /home/agent/code/jiankang_app_uniapp",
+          "exit": 0,
+          "summary": "6 baseline coverage/dependency/lane checks PASS"
+        }
+      ],
+      "artifacts": [
+        "domain/health_service_ledger/application/payment_service.py",
+        "domain/health_service_ledger/application/refund_service.py",
+        "domain/service_cards/application/entitlement_service.py",
+        "domain/tests/health_service_ledger/test_api07_payment_entitlement.py"
+      ],
+      "safety": "Synthetic payment/refund/entitlement validation only; no production payment, refund, service-ledger or Commerce writes, external writes, or deployment."
+    },
+    "verified_at": "2026-10-02T06:32:45-07:00"
   },
   {
     "id": "API-08",
@@ -11326,8 +11380,8 @@
     "output": "DFP-Wish: crm/customers and staff-relations",
     "scope": "客户/员工维护关系",
     "verify": "执行 data.targeted_tests 中的自动化检查；写回命令、退出码、机器摘要和制品路径。缺失外部配置时使用合成/沙箱夹具，真实写入保持关闭。",
-    "status": "planned",
-    "status_source": "markdown-dag-import",
+    "status": "code-ready",
+    "status_source": "autonomous-agent",
     "ingestion_status": "ingested",
     "description": "实现客户主档、身份映射和多对多维护关系",
     "goal": "DFP-Wish: crm/customers and staff-relations",
@@ -11383,7 +11437,61 @@
       ],
       "coverage_status": "planned"
     },
-    "evidence": []
+    "evidence": [
+      {
+        "report": "domain/tests/scrm/test_scr01_customer_profile.py",
+        "checks": [
+          {
+            "command": "uv run --project . pytest tests/scrm/test_scr01_customer_profile.py ../exts/wish/api/test_scrm_router.py ../exts/wish/api/test_health_profile_router.py tests/security/test_purpose_scope_checks.py ../domain/authorization/tests/test_api03_authorization.py",
+            "exit": 0
+          },
+          {
+            "command": "python3 -m compileall -q scrm/customer_profile/application/customer_profile_service.py scrm/customer_profile/infrastructure/customer_repository.py scrm/customer_relationship/infrastructure/identity_mapping_repository.py",
+            "exit": 0
+          },
+          {
+            "command": "git diff --check",
+            "exit": 0
+          },
+          {
+            "command": "python3 scripts/validate_plan_coverage.py --source-root /home/agent/code/jiankang_app_uniapp",
+            "exit": 0
+          }
+        ]
+      }
+    ],
+    "automated_result": {
+      "commands": [
+        {
+          "command": "uv run --project . pytest tests/scrm/test_scr01_customer_profile.py ../exts/wish/api/test_scrm_router.py ../exts/wish/api/test_health_profile_router.py tests/security/test_purpose_scope_checks.py ../domain/authorization/tests/test_api03_authorization.py",
+          "exit": 0,
+          "summary": "23 tests passed; tenant-scoped customer profiles, no phone auto-merge, site-scoped audited identity mappings, purpose/security and API-03 regressions verified; 1 existing dependency deprecation warning"
+        },
+        {
+          "command": "python3 -m compileall -q scrm/customer_profile/application/customer_profile_service.py scrm/customer_profile/infrastructure/customer_repository.py scrm/customer_relationship/infrastructure/identity_mapping_repository.py",
+          "exit": 0,
+          "summary": "Python syntax compilation passed"
+        },
+        {
+          "command": "git diff --check",
+          "exit": 0,
+          "summary": "dfp_wish worktree clean for SCR-01 checks; unrelated changes excluded"
+        },
+        {
+          "command": "python3 scripts/validate_plan_coverage.py --source-root /home/agent/code/jiankang_app_uniapp",
+          "exit": 0,
+          "summary": "6 baseline coverage/dependency/lane checks PASS"
+        }
+      ],
+      "artifacts": [
+        "domain/scrm/customer_profile/application/customer_profile_service.py",
+        "domain/scrm/customer_profile/infrastructure/customer_repository.py",
+        "domain/scrm/customer_relationship/infrastructure/identity_mapping_repository.py",
+        "domain/tests/scrm/test_scr01_customer_profile.py"
+      ],
+      "safety": "Synthetic customer/identity mapping validation only; no phone auto-merge, production CRM writes, health data, external writes, or deployment."
+    },
+    "verified_at": "2026-10-02T05:55:49-07:00"
   },
   {
     "id": "SCR-02",
@@ -11398,8 +11506,8 @@
     "output": "DFP-Wish: crm/privacy-projection",
     "scope": "客户字段授权服务",
     "verify": "执行 data.targeted_tests 中的自动化检查；写回命令、退出码、机器摘要和制品路径。缺失外部配置时使用合成/沙箱夹具，真实写入保持关闭。",
-    "status": "planned",
-    "status_source": "markdown-dag-import",
+    "status": "code-ready",
+    "status_source": "autonomous-agent",
     "ingestion_status": "ingested",
     "description": "实现低敏健康摘要和逐字段隐私投影",
     "goal": "DFP-Wish: crm/privacy-projection",
@@ -11454,7 +11562,60 @@
       ],
       "coverage_status": "planned"
     },
-    "evidence": []
+    "evidence": [
+      {
+        "report": "domain/tests/scrm/privacy/test_scr02_projection.py",
+        "checks": [
+          {
+            "command": "uv run --project . pytest tests/scrm/privacy/test_scr02_projection.py tests/security/test_purpose_scope_checks.py tests/security/test_audit_redaction.py tests/scrm/test_scr01_customer_profile.py authorization/tests/test_api03_authorization.py",
+            "exit": 0
+          },
+          {
+            "command": "python3 -m compileall -q scrm/privacy/field_projection.py scrm/privacy/authorized_health_summary.py",
+            "exit": 0
+          },
+          {
+            "command": "git diff --check",
+            "exit": 0
+          },
+          {
+            "command": "python3 scripts/validate_plan_coverage.py --source-root /home/agent/code/jiankang_app_uniapp",
+            "exit": 0
+          }
+        ]
+      }
+    ],
+    "automated_result": {
+      "commands": [
+        {
+          "command": "uv run --project . pytest tests/scrm/privacy/test_scr02_projection.py tests/security/test_purpose_scope_checks.py tests/security/test_audit_redaction.py tests/scrm/test_scr01_customer_profile.py authorization/tests/test_api03_authorization.py",
+          "exit": 0,
+          "summary": "22 tests passed; low-sensitivity summary projection, field/purpose/channel/aggregate denial, expiry/revocation/site isolation, SCR-01/SEC/API-03 regressions verified"
+        },
+        {
+          "command": "python3 -m compileall -q scrm/privacy/field_projection.py scrm/privacy/authorized_health_summary.py",
+          "exit": 0,
+          "summary": "Python syntax compilation passed"
+        },
+        {
+          "command": "git diff --check",
+          "exit": 0,
+          "summary": "dfp_wish worktree clean for SCR-02 checks; unrelated changes excluded"
+        },
+        {
+          "command": "python3 scripts/validate_plan_coverage.py --source-root /home/agent/code/jiankang_app_uniapp",
+          "exit": 0,
+          "summary": "6 baseline coverage/dependency/lane checks PASS"
+        }
+      ],
+      "artifacts": [
+        "domain/scrm/privacy/field_projection.py",
+        "domain/scrm/privacy/authorized_health_summary.py",
+        "domain/tests/scrm/privacy/test_scr02_projection.py"
+      ],
+      "safety": "Synthetic privacy projection validation only; no production health data, marketing exports, external writes, or deployment."
+    },
+    "verified_at": "2026-10-02T07:06:58-07:00"
   },
   {
     "id": "SCR-03",
@@ -11470,8 +11631,8 @@
     "output": "DFP-Wish: service-notes/timeline",
     "scope": "服务小记和timeline projection",
     "verify": "执行 data.targeted_tests 中的自动化检查；写回命令、退出码、机器摘要和制品路径。缺失外部配置时使用合成/沙箱夹具，真实写入保持关闭。",
-    "status": "planned",
-    "status_source": "markdown-dag-import",
+    "status": "code-ready",
+    "status_source": "autonomous-agent",
     "ingestion_status": "ingested",
     "description": "实现服务小记、私有媒体引用和只读时间线",
     "goal": "DFP-Wish: service-notes/timeline",
@@ -11528,7 +11689,61 @@
       ],
       "coverage_status": "planned"
     },
-    "evidence": []
+    "evidence": [
+      {
+        "report": "domain/tests/scrm/service_records/test_scr03_service_records.py",
+        "checks": [
+          {
+            "command": "uv run --project . pytest tests/scrm/service_records/test_scr03_service_records.py tests/scrm/privacy/test_scr02_projection.py ../exts/wish/api/test_scrm_router.py tests/security/test_audit_redaction.py tests/security/test_purpose_scope_checks.py",
+            "exit": 0
+          },
+          {
+            "command": "python3 -m compileall -q scrm/service_records/application/service_record_service.py scrm/timeline/infrastructure/timeline_projection.py scrm/media/private_media_reference.py",
+            "exit": 0
+          },
+          {
+            "command": "git diff --check",
+            "exit": 0
+          },
+          {
+            "command": "python3 scripts/validate_plan_coverage.py --source-root /home/agent/code/jiankang_app_uniapp",
+            "exit": 0
+          }
+        ]
+      }
+    ],
+    "automated_result": {
+      "commands": [
+        {
+          "command": "uv run --project . pytest tests/scrm/service_records/test_scr03_service_records.py tests/scrm/privacy/test_scr02_projection.py ../exts/wish/api/test_scrm_router.py tests/security/test_audit_redaction.py tests/security/test_purpose_scope_checks.py",
+          "exit": 0,
+          "summary": "18 tests passed; assigned appointment notes, append-only revisions, scope-filtered read-only timeline, private media type/subject/site/revocation guards and privacy/SCRM regressions verified; 1 existing dependency warning"
+        },
+        {
+          "command": "python3 -m compileall -q scrm/service_records/application/service_record_service.py scrm/timeline/infrastructure/timeline_projection.py scrm/media/private_media_reference.py",
+          "exit": 0,
+          "summary": "Python syntax compilation passed"
+        },
+        {
+          "command": "git diff --check",
+          "exit": 0,
+          "summary": "dfp_wish worktree clean for SCR-03 checks; unrelated changes excluded"
+        },
+        {
+          "command": "python3 scripts/validate_plan_coverage.py --source-root /home/agent/code/jiankang_app_uniapp",
+          "exit": 0,
+          "summary": "6 baseline coverage/dependency/lane checks PASS"
+        }
+      ],
+      "artifacts": [
+        "domain/scrm/service_records/application/service_record_service.py",
+        "domain/scrm/timeline/infrastructure/timeline_projection.py",
+        "domain/scrm/media/private_media_reference.py",
+        "domain/tests/scrm/service_records/test_scr03_service_records.py"
+      ],
+      "safety": "Synthetic service-note/timeline/private-media validation only; no production health body, uploads, external writes, or deployment."
+    },
+    "verified_at": "2026-10-02T08:04:54-07:00"
   },
   {
     "id": "SCR-04",
@@ -11543,8 +11758,8 @@
     "output": "DFP-Wish: crm/followup/tags",
     "scope": "N日回访/结果码/标签",
     "verify": "执行 data.targeted_tests 中的自动化检查；写回命令、退出码、机器摘要和制品路径。缺失外部配置时使用合成/沙箱夹具，真实写入保持关闭。",
-    "status": "planned",
-    "status_source": "markdown-dag-import",
+    "status": "code-ready",
+    "status_source": "autonomous-agent",
     "ingestion_status": "ingested",
     "description": "实现客户跟踪、回访、提醒与基础标签",
     "goal": "DFP-Wish: crm/followup/tags",
@@ -11597,7 +11812,60 @@
       ],
       "coverage_status": "planned"
     },
-    "evidence": []
+    "evidence": [
+      {
+        "report": "domain/tests/scrm/followups/test_scr04_followups.py",
+        "checks": [
+          {
+            "command": "uv run --project . pytest tests/scrm/followups/test_scr04_followups.py tests/scrm/service_records/test_scr03_service_records.py tests/scrm/privacy/test_scr02_projection.py tests/api/test_notification_reliability.py",
+            "exit": 0
+          },
+          {
+            "command": "python3 -m compileall -q scrm/followups/application/followup_service.py scrm/followups/infrastructure/followup_repository.py",
+            "exit": 0
+          },
+          {
+            "command": "git diff --check",
+            "exit": 0
+          },
+          {
+            "command": "python3 scripts/validate_plan_coverage.py --source-root /home/agent/code/jiankang_app_uniapp",
+            "exit": 0
+          }
+        ]
+      }
+    ],
+    "automated_result": {
+      "commands": [
+        {
+          "command": "uv run --project . pytest tests/scrm/followups/test_scr04_followups.py tests/scrm/service_records/test_scr03_service_records.py tests/scrm/privacy/test_scr02_projection.py tests/api/test_notification_reliability.py",
+          "exit": 0,
+          "summary": "15 tests passed; followup event replay idempotency, DONE result requirement, reschedule due_at, tenant/site customer queue scope, marketing separation and SCR-02/03/API-09 regressions verified"
+        },
+        {
+          "command": "python3 -m compileall -q scrm/followups/application/followup_service.py scrm/followups/infrastructure/followup_repository.py",
+          "exit": 0,
+          "summary": "Python syntax compilation passed"
+        },
+        {
+          "command": "git diff --check",
+          "exit": 0,
+          "summary": "dfp_wish worktree clean for SCR-04 checks; misplaced test removed from non-project path"
+        },
+        {
+          "command": "python3 scripts/validate_plan_coverage.py --source-root /home/agent/code/jiankang_app_uniapp",
+          "exit": 0,
+          "summary": "6 baseline coverage/dependency/lane checks PASS"
+        }
+      ],
+      "artifacts": [
+        "domain/scrm/followups/application/followup_service.py",
+        "domain/scrm/followups/infrastructure/followup_repository.py",
+        "domain/tests/scrm/followups/test_scr04_followups.py"
+      ],
+      "safety": "Synthetic followup/tag fixtures only; no production CRM, marketing provider, external writes, or deployment."
+    },
+    "verified_at": "2026-10-02T08:14:53-07:00"
   },
   {
     "id": "SCR-05",
@@ -11611,8 +11879,8 @@
     "output": "DFP-Wish: finance/cards",
     "scope": "储值/折扣/次卡/套餐规则与状态",
     "verify": "执行 data.targeted_tests 中的自动化检查；写回命令、退出码、机器摘要和制品路径。缺失外部配置时使用合成/沙箱夹具，真实写入保持关闭。",
-    "status": "planned",
-    "status_source": "markdown-dag-import",
+    "status": "code-ready",
+    "status_source": "autonomous-agent",
     "ingestion_status": "ingested",
     "description": "实现四种Wish服务卡规则和权益生命周期",
     "goal": "DFP-Wish: finance/cards",
@@ -11666,7 +11934,61 @@
       ],
       "coverage_status": "planned"
     },
-    "evidence": []
+    "evidence": [
+      {
+        "report": "domain/tests/service_cards/test_scr05_entitlement_lifecycle.py",
+        "checks": [
+          {
+            "command": "uv run --project . pytest tests/service_cards/test_scr05_entitlement_lifecycle.py tests/health_service_ledger/test_api07_payment_entitlement.py tests/security/test_purpose_scope_checks.py tests/security/test_audit_redaction.py",
+            "exit": 0
+          },
+          {
+            "command": "python3 -m compileall -q service_cards/domain/card_rules.py service_cards/application/entitlement_lifecycle.py service_cards/infrastructure/card_repository.py",
+            "exit": 0
+          },
+          {
+            "command": "git diff --check",
+            "exit": 0
+          },
+          {
+            "command": "python3 scripts/validate_plan_coverage.py --source-root /home/agent/code/jiankang_app_uniapp",
+            "exit": 0
+          }
+        ]
+      }
+    ],
+    "automated_result": {
+      "commands": [
+        {
+          "command": "uv run --project . pytest tests/service_cards/test_scr05_entitlement_lifecycle.py tests/health_service_ledger/test_api07_payment_entitlement.py tests/security/test_purpose_scope_checks.py tests/security/test_audit_redaction.py",
+          "exit": 0,
+          "summary": "13 tests passed; four card kinds, separated principal/gift/session balances, site scope, operation idempotency, expiry/freeze and security regressions verified"
+        },
+        {
+          "command": "python3 -m compileall -q service_cards/domain/card_rules.py service_cards/application/entitlement_lifecycle.py service_cards/infrastructure/card_repository.py",
+          "exit": 0,
+          "summary": "Python syntax compilation passed"
+        },
+        {
+          "command": "git diff --check",
+          "exit": 0,
+          "summary": "dfp_wish worktree clean for SCR-05 checks; unrelated changes excluded"
+        },
+        {
+          "command": "python3 scripts/validate_plan_coverage.py --source-root /home/agent/code/jiankang_app_uniapp",
+          "exit": 0,
+          "summary": "6 baseline coverage/dependency/lane checks PASS"
+        }
+      ],
+      "artifacts": [
+        "domain/service_cards/domain/card_rules.py",
+        "domain/service_cards/application/entitlement_lifecycle.py",
+        "domain/service_cards/infrastructure/card_repository.py",
+        "domain/tests/service_cards/test_scr05_entitlement_lifecycle.py"
+      ],
+      "safety": "Synthetic service-card entitlement validation only; no production health ledger, payment, Commerce ledger, external writes, or deployment."
+    },
+    "verified_at": "2026-10-02T08:24:25-07:00"
   },
   {
     "id": "SCR-06",
@@ -11679,8 +12001,8 @@
     "output": "服务费用、服务卡扣减、应收、退款审核和对账引用；与 Commerce 商城账完全分离。",
     "scope": "Wish服务账/欠款/退款审批",
     "verify": "执行 data.targeted_tests 中的自动化检查；写回命令、退出码、机器摘要和制品路径。缺失外部配置时使用合成/沙箱夹具，真实写入保持关闭。",
-    "status": "planned",
-    "status_source": "markdown-dag-import",
+    "status": "code-ready",
+    "status_source": "autonomous-agent",
     "ingestion_status": "ingested",
     "description": "实现 Wish 服务费用、应收、退款审核与健康服务账",
     "goal": "服务费用、服务卡扣减、应收、退款审核和对账引用；与 Commerce 商城账完全分离。",
@@ -11734,7 +12056,61 @@
       ],
       "coverage_status": "planned"
     },
-    "evidence": []
+    "evidence": [
+      {
+        "report": "domain/tests/health_service_ledger/test_scr06_ledger_refund.py",
+        "checks": [
+          {
+            "command": "uv run --project . pytest tests/health_service_ledger/test_scr06_ledger_refund.py tests/service_cards/test_scr05_entitlement_lifecycle.py tests/health_service_ledger/test_api07_payment_entitlement.py tests/security/test_audit_redaction.py tests/security/test_purpose_scope_checks.py",
+            "exit": 0
+          },
+          {
+            "command": "python3 -m compileall -q health_service_ledger/application/receivable_service.py health_service_ledger/application/refund_review_service.py health_service_ledger/infrastructure/ledger_repository.py",
+            "exit": 0
+          },
+          {
+            "command": "git diff --check",
+            "exit": 0
+          },
+          {
+            "command": "python3 scripts/validate_plan_coverage.py --source-root /home/agent/code/jiankang_app_uniapp",
+            "exit": 0
+          }
+        ]
+      }
+    ],
+    "automated_result": {
+      "commands": [
+        {
+          "command": "uv run --project . pytest tests/health_service_ledger/test_scr06_ledger_refund.py tests/service_cards/test_scr05_entitlement_lifecycle.py tests/health_service_ledger/test_api07_payment_entitlement.py tests/security/test_audit_redaction.py tests/security/test_purpose_scope_checks.py",
+          "exit": 0,
+          "summary": "15 tests passed; append-only Wish ledger, Commerce source rejection, customer/site scope, refund reviewer gate, service card and security regressions verified"
+        },
+        {
+          "command": "python3 -m compileall -q health_service_ledger/application/receivable_service.py health_service_ledger/application/refund_review_service.py health_service_ledger/infrastructure/ledger_repository.py",
+          "exit": 0,
+          "summary": "Python syntax compilation passed"
+        },
+        {
+          "command": "git diff --check",
+          "exit": 0,
+          "summary": "dfp_wish worktree clean for SCR-06 checks; unrelated changes excluded"
+        },
+        {
+          "command": "python3 scripts/validate_plan_coverage.py --source-root /home/agent/code/jiankang_app_uniapp",
+          "exit": 0,
+          "summary": "6 baseline coverage/dependency/lane checks PASS"
+        }
+      ],
+      "artifacts": [
+        "domain/health_service_ledger/application/receivable_service.py",
+        "domain/health_service_ledger/application/refund_review_service.py",
+        "domain/health_service_ledger/infrastructure/ledger_repository.py",
+        "domain/tests/health_service_ledger/test_scr06_ledger_refund.py"
+      ],
+      "safety": "Synthetic append-only ledger/refund validation only; no production service ledger, Commerce ledger, payment, external writes, or deployment."
+    },
+    "verified_at": "2026-10-02T08:33:55-07:00"
   },
   {
     "id": "SCR-07",
@@ -11749,8 +12125,8 @@
     "output": "客户主责/协作关系变更、责任交接、客户告知、有效期和不可覆盖的客户关系审计历史",
     "scope": "责任handoff和预约改派",
     "verify": "执行 data.targeted_tests 中的自动化检查；写回命令、退出码、机器摘要和制品路径。缺失外部配置时使用合成/沙箱夹具，真实写入保持关闭。",
-    "status": "planned",
-    "status_source": "markdown-dag-import",
+    "status": "code-ready",
+    "status_source": "autonomous-agent",
     "ingestion_status": "ingested",
     "description": "实现客户关系交接与客户关系审计",
     "goal": "客户主责/协作关系变更、责任交接、客户告知、有效期和不可覆盖的客户关系审计历史",
@@ -11804,7 +12180,60 @@
       ],
       "coverage_status": "planned"
     },
-    "evidence": []
+    "evidence": [
+      {
+        "report": "domain/tests/scrm/customer_relationship/test_scr07_transfer.py",
+        "checks": [
+          {
+            "command": "uv run --project . pytest tests/scrm/customer_relationship/test_scr07_transfer.py tests/scrm/test_scr01_customer_profile.py tests/scrm/service_records/test_scr03_service_records.py tests/scrm/followups/test_scr04_followups.py ../exts/wish/api/test_scrm_router.py tests/security/test_audit_redaction.py",
+            "exit": 0
+          },
+          {
+            "command": "python3 -m compileall -q scrm/customer_relationship/application/transfer_service.py scrm/customer_relationship/infrastructure/audit_repository.py",
+            "exit": 0
+          },
+          {
+            "command": "git diff --check",
+            "exit": 0
+          },
+          {
+            "command": "python3 scripts/validate_plan_coverage.py --source-root /home/agent/code/jiankang_app_uniapp",
+            "exit": 0
+          }
+        ]
+      }
+    ],
+    "automated_result": {
+      "commands": [
+        {
+          "command": "uv run --project . pytest tests/scrm/customer_relationship/test_scr07_transfer.py tests/scrm/test_scr01_customer_profile.py tests/scrm/service_records/test_scr03_service_records.py tests/scrm/followups/test_scr04_followups.py ../exts/wish/api/test_scrm_router.py tests/security/test_audit_redaction.py",
+          "exit": 0,
+          "summary": "20 tests passed; transfer permission/notice/version/timeline guards, append-only site-scoped audit history, SCR-01/03/04/API-08/security regressions verified; 1 existing dependency warning"
+        },
+        {
+          "command": "python3 -m compileall -q scrm/customer_relationship/application/transfer_service.py scrm/customer_relationship/infrastructure/audit_repository.py",
+          "exit": 0,
+          "summary": "Python syntax compilation passed"
+        },
+        {
+          "command": "git diff --check",
+          "exit": 0,
+          "summary": "dfp_wish worktree clean for SCR-07 checks; unrelated changes excluded"
+        },
+        {
+          "command": "python3 scripts/validate_plan_coverage.py --source-root /home/agent/code/jiankang_app_uniapp",
+          "exit": 0,
+          "summary": "6 baseline coverage/dependency/lane checks PASS"
+        }
+      ],
+      "artifacts": [
+        "domain/scrm/customer_relationship/application/transfer_service.py",
+        "domain/scrm/customer_relationship/infrastructure/audit_repository.py",
+        "domain/tests/scrm/customer_relationship/test_scr07_transfer.py"
+      ],
+      "safety": "Synthetic relationship transfer/audit validation only; no production CRM writes, health data, external writes, or deployment."
+    },
+    "verified_at": "2026-10-02T08:43:57-07:00"
   },
   {
     "id": "SCR-08",
@@ -11887,8 +12316,8 @@
     "output": "建立两站服务目录、资源范围和权限配置的隔离基线；每次读写绑定 tenant_id 与 site_id。",
     "scope": "Wish Admin tenant/site setup",
     "verify": "执行 data.targeted_tests 中的自动化检查；写回命令、退出码、机器摘要和制品路径。缺失外部配置时使用合成/沙箱夹具，真实写入保持关闭。",
-    "status": "planned",
-    "status_source": "markdown-dag-import",
+    "status": "code-ready",
+    "status_source": "autonomous-agent",
     "ingestion_status": "ingested",
     "description": "实现两站 tenant/site 配置隔离",
     "goal": "建立两站服务目录、资源范围和权限配置的隔离基线；每次读写绑定 tenant_id 与 site_id。",
@@ -11944,7 +12373,60 @@
       ],
       "coverage_status": "planned"
     },
-    "evidence": []
+    "evidence": [
+      {
+        "report": "domain/tests/site_configuration/test_tenant_site_service.py",
+        "checks": [
+          {
+            "command": "uv run --project . pytest tests/site_configuration/test_tenant_site_service.py ../exts/wish/api/test_health_admin_router.py ../exts/wish/api/test_health_profile_router.py ../exts/wish/api/test_scrm_router.py",
+            "exit": 0
+          },
+          {
+            "command": "python3 -m compileall -q site_configuration/application/tenant_site_service.py site_configuration/infrastructure/site_scope_repository.py",
+            "exit": 0
+          },
+          {
+            "command": "git diff --check",
+            "exit": 0
+          },
+          {
+            "command": "python3 scripts/validate_plan_coverage.py --source-root /home/agent/code/jiankang_app_uniapp",
+            "exit": 0
+          }
+        ]
+      }
+    ],
+    "automated_result": {
+      "commands": [
+        {
+          "command": "uv run --project . pytest tests/site_configuration/test_tenant_site_service.py ../exts/wish/api/test_health_admin_router.py ../exts/wish/api/test_health_profile_router.py ../exts/wish/api/test_scrm_router.py",
+          "exit": 0,
+          "summary": "16 tests passed; dual tenant/site configuration isolation, cross-scope rejection, version validation and Wish API regressions verified; 1 existing dependency deprecation warning"
+        },
+        {
+          "command": "python3 -m compileall -q site_configuration/application/tenant_site_service.py site_configuration/infrastructure/site_scope_repository.py",
+          "exit": 0,
+          "summary": "Python syntax compilation passed"
+        },
+        {
+          "command": "git diff --check",
+          "exit": 0,
+          "summary": "dfp_wish worktree clean for OPS-01 checks; unrelated changes excluded"
+        },
+        {
+          "command": "python3 scripts/validate_plan_coverage.py --source-root /home/agent/code/jiankang_app_uniapp",
+          "exit": 0,
+          "summary": "6 baseline coverage/dependency/lane checks PASS"
+        }
+      ],
+      "artifacts": [
+        "domain/site_configuration/application/tenant_site_service.py",
+        "domain/site_configuration/infrastructure/site_scope_repository.py",
+        "domain/tests/site_configuration/test_tenant_site_service.py"
+      ],
+      "safety": "Synthetic dual-site configuration only; no production schema, database writes, admin authentication changes, external writes, or deployment."
+    },
+    "verified_at": "2026-10-02T05:34:08-07:00"
   },
   {
     "id": "OPS-02",
@@ -11959,8 +12441,8 @@
     "output": "九项目版本编辑、审核、发布、暂停与预约影响预览；站点配置和变更审计",
     "scope": "Wish Admin service catalog/version",
     "verify": "执行 data.targeted_tests 中的自动化检查；写回命令、退出码、机器摘要和制品路径。缺失外部配置时使用合成/沙箱夹具，真实写入保持关闭。",
-    "status": "planned",
-    "status_source": "markdown-dag-import",
+    "status": "code-ready",
+    "status_source": "autonomous-agent",
     "ingestion_status": "ingested",
     "description": "实现九项目版本审核发布和暂停门禁",
     "goal": "九项目版本编辑、审核、发布、暂停与预约影响预览；站点配置和变更审计",
@@ -12015,7 +12497,61 @@
       ],
       "coverage_status": "planned"
     },
-    "evidence": []
+    "evidence": [
+      {
+        "report": "domain/tests/service_catalog/test_catalog_publication_service.py",
+        "checks": [
+          {
+            "command": "uv run --project . pytest tests/service_catalog/test_catalog_publication_service.py",
+            "exit": 0
+          },
+          {
+            "command": "python3 -m compileall -q service_catalog/application/catalog_publication_service.py service_catalog/infrastructure/catalog_definition_repository.py service_catalog/infrastructure/catalog_version_repository.py",
+            "exit": 0
+          },
+          {
+            "command": "git diff --check",
+            "exit": 0
+          },
+          {
+            "command": "python3 scripts/validate_plan_coverage.py --source-root /home/agent/code/jiankang_app_uniapp",
+            "exit": 0
+          }
+        ]
+      }
+    ],
+    "automated_result": {
+      "commands": [
+        {
+          "command": "uv run --project . pytest tests/service_catalog/test_catalog_publication_service.py",
+          "exit": 0,
+          "summary": "3 tests passed; nine default catalog seed names, management-owned definition replacement, and publication prerequisite gating verified"
+        },
+        {
+          "command": "python3 -m compileall -q service_catalog/application/catalog_publication_service.py service_catalog/infrastructure/catalog_definition_repository.py service_catalog/infrastructure/catalog_version_repository.py",
+          "exit": 0,
+          "summary": "Python syntax compilation passed"
+        },
+        {
+          "command": "git diff --check",
+          "exit": 0,
+          "summary": "dfp_wish worktree clean for OPS-02 checks; unrelated changes excluded"
+        },
+        {
+          "command": "python3 scripts/validate_plan_coverage.py --source-root /home/agent/code/jiankang_app_uniapp",
+          "exit": 0,
+          "summary": "6 baseline coverage/dependency/lane checks PASS"
+        }
+      ],
+      "artifacts": [
+        "domain/service_catalog/application/catalog_publication_service.py",
+        "domain/service_catalog/infrastructure/catalog_definition_repository.py",
+        "domain/service_catalog/infrastructure/catalog_version_repository.py",
+        "domain/tests/service_catalog/test_catalog_publication_service.py"
+      ],
+      "safety": "Synthetic catalog publication validation only; default nine items are seed data for management maintenance, no production publish/database writes/deployment."
+    },
+    "verified_at": "2026-10-02T05:46:20-07:00"
   },
   {
     "id": "OPS-03",
@@ -12029,8 +12565,8 @@
     "output": "文件白名单/扫描/hash、地图版本、位置目录/审核/发布/回滚",
     "scope": "Wish Admin maps/location",
     "verify": "执行 data.targeted_tests 中的自动化检查；写回命令、退出码、机器摘要和制品路径。缺失外部配置时使用合成/沙箱夹具，真实写入保持关闭。",
-    "status": "planned",
-    "status_source": "markdown-dag-import",
+    "status": "code-ready",
+    "status_source": "autonomous-agent",
     "ingestion_status": "ingested",
     "description": "实现酒店地图、位置ID和不可变地图版本",
     "goal": "文件白名单/扫描/hash、地图版本、位置目录/审核/发布/回滚",
@@ -12079,7 +12615,60 @@
       ],
       "coverage_status": "planned"
     },
-    "evidence": []
+    "evidence": [
+      {
+        "report": "domain/tests/service_locations/test_ops03_map_version.py",
+        "checks": [
+          {
+            "command": "uv run --project . pytest tests/service_locations/test_ops03_map_version.py tests/service_catalog/test_catalog_publication_service.py ../exts/wish/api/test_service_catalog_router.py health_appointment/infrastructure/tests/test_repositories.py",
+            "exit": 0
+          },
+          {
+            "command": "python3 -m compileall -q service_locations/application/map_version_service.py service_locations/infrastructure/map_repository.py",
+            "exit": 0
+          },
+          {
+            "command": "git diff --check",
+            "exit": 0
+          },
+          {
+            "command": "python3 scripts/validate_plan_coverage.py --source-root /home/agent/code/jiankang_app_uniapp",
+            "exit": 0
+          }
+        ]
+      }
+    ],
+    "automated_result": {
+      "commands": [
+        {
+          "command": "uv run --project . pytest tests/service_locations/test_ops03_map_version.py tests/service_catalog/test_catalog_publication_service.py ../exts/wish/api/test_service_catalog_router.py health_appointment/infrastructure/tests/test_repositories.py",
+          "exit": 0,
+          "summary": "18 tests passed; map file allowlist/hash, immutable versions, site-scoped publish/rollback, used-location deletion guard, OPS-02/API-05/DB-04 regressions verified; 2 existing warnings"
+        },
+        {
+          "command": "python3 -m compileall -q service_locations/application/map_version_service.py service_locations/infrastructure/map_repository.py",
+          "exit": 0,
+          "summary": "Python syntax compilation passed"
+        },
+        {
+          "command": "git diff --check",
+          "exit": 0,
+          "summary": "dfp_wish worktree clean for OPS-03 checks; unrelated changes excluded"
+        },
+        {
+          "command": "python3 scripts/validate_plan_coverage.py --source-root /home/agent/code/jiankang_app_uniapp",
+          "exit": 0,
+          "summary": "6 baseline coverage/dependency/lane checks PASS"
+        }
+      ],
+      "artifacts": [
+        "domain/service_locations/application/map_version_service.py",
+        "domain/service_locations/infrastructure/map_repository.py",
+        "domain/tests/service_locations/test_ops03_map_version.py"
+      ],
+      "safety": "Synthetic map/version validation only; no production map provider, schema migration, external writes, or deployment."
+    },
+    "verified_at": "2026-10-02T07:34:47-07:00"
   },
   {
     "id": "OPS-04",
@@ -12093,8 +12682,8 @@
     "output": "版本化服务资格、房间/设备可用状态、服务容量和并行服务限制配置；仅供健康预约履约校验。",
     "scope": "Wish Admin schedule/qualification config",
     "verify": "执行 data.targeted_tests 中的自动化检查；写回命令、退出码、机器摘要和制品路径。缺失外部配置时使用合成/沙箱夹具，真实写入保持关闭。",
-    "status": "planned",
-    "status_source": "markdown-dag-import",
+    "status": "code-ready",
+    "status_source": "autonomous-agent",
     "ingestion_status": "ingested",
     "description": "维护健康服务资格、资源状态与可预约容量",
     "goal": "版本化服务资格、房间/设备可用状态、服务容量和并行服务限制配置；仅供健康预约履约校验。",
@@ -12150,7 +12739,60 @@
       ],
       "coverage_status": "planned"
     },
-    "evidence": []
+    "evidence": [
+      {
+        "report": "domain/tests/appointment_availability/test_ops04_resource_qualification.py",
+        "checks": [
+          {
+            "command": "uv run --project . pytest tests/appointment_availability/test_ops04_resource_qualification.py ../exts/wish/api/test_service_catalog_router.py ../exts/wish/api/test_health_admin_router.py tests/health_appointment/test_api06_appointment_service.py",
+            "exit": 0
+          },
+          {
+            "command": "python3 -m compileall -q appointment_availability/application/resource_qualification_service.py appointment_availability/infrastructure/resource_status_repository.py",
+            "exit": 0
+          },
+          {
+            "command": "git diff --check",
+            "exit": 0
+          },
+          {
+            "command": "python3 scripts/validate_plan_coverage.py --source-root /home/agent/code/jiankang_app_uniapp",
+            "exit": 0
+          }
+        ]
+      }
+    ],
+    "automated_result": {
+      "commands": [
+        {
+          "command": "uv run --project . pytest tests/appointment_availability/test_ops04_resource_qualification.py ../exts/wish/api/test_service_catalog_router.py ../exts/wish/api/test_health_admin_router.py tests/health_appointment/test_api06_appointment_service.py",
+          "exit": 0,
+          "summary": "14 tests passed; tenant/site resource isolation, qualification, enabled/capacity filtering, versioned constraint and API-05/API-06 regressions verified; 2 existing warnings"
+        },
+        {
+          "command": "python3 -m compileall -q appointment_availability/application/resource_qualification_service.py appointment_availability/infrastructure/resource_status_repository.py",
+          "exit": 0,
+          "summary": "Python syntax compilation passed"
+        },
+        {
+          "command": "git diff --check",
+          "exit": 0,
+          "summary": "dfp_wish worktree clean for OPS-04 checks; misplaced dashboard test removed"
+        },
+        {
+          "command": "python3 scripts/validate_plan_coverage.py --source-root /home/agent/code/jiankang_app_uniapp",
+          "exit": 0,
+          "summary": "6 baseline coverage/dependency/lane checks PASS"
+        }
+      ],
+      "artifacts": [
+        "domain/appointment_availability/application/resource_qualification_service.py",
+        "domain/appointment_availability/infrastructure/resource_status_repository.py",
+        "domain/tests/appointment_availability/test_ops04_resource_qualification.py"
+      ],
+      "safety": "Synthetic resource qualification/capacity validation only; no production scheduling writes, employee scheduling, warehouse, KPI, or deployment."
+    },
+    "verified_at": "2026-10-02T06:54:41-07:00"
   },
   {
     "id": "OPS-05",
@@ -12164,8 +12806,8 @@
     "output": "提供可用时段、房间/设备/服务角色约束、冲突解释、候补和改期预览。",
     "scope": "Wish Admin calendar/conflict view",
     "verify": "执行 data.targeted_tests 中的自动化检查；写回命令、退出码、机器摘要和制品路径。缺失外部配置时使用合成/沙箱夹具，真实写入保持关闭。",
-    "status": "planned",
-    "status_source": "markdown-dag-import",
+    "status": "code-ready",
+    "status_source": "autonomous-agent",
     "ingestion_status": "ingested",
     "description": "处理健康预约可用时段、资源冲突与候补",
     "goal": "提供可用时段、房间/设备/服务角色约束、冲突解释、候补和改期预览。",
@@ -12222,7 +12864,60 @@
       ],
       "coverage_status": "planned"
     },
-    "evidence": []
+    "evidence": [
+      {
+        "report": "domain/tests/health_appointment/test_ops05_availability_waitlist.py",
+        "checks": [
+          {
+            "command": "uv run --project . pytest tests/health_appointment/test_ops05_availability_waitlist.py tests/appointment_availability/test_ops04_resource_qualification.py tests/health_appointment/test_api06_appointment_service.py health_appointment/infrastructure/tests/test_repositories.py",
+            "exit": 0
+          },
+          {
+            "command": "python3 -m compileall -q health_appointment/application/availability_conflict_query.py health_appointment/application/waitlist_service.py",
+            "exit": 0
+          },
+          {
+            "command": "git diff --check",
+            "exit": 0
+          },
+          {
+            "command": "python3 scripts/validate_plan_coverage.py --source-root /home/agent/code/jiankang_app_uniapp",
+            "exit": 0
+          }
+        ]
+      }
+    ],
+    "automated_result": {
+      "commands": [
+        {
+          "command": "uv run --project . pytest tests/health_appointment/test_ops05_availability_waitlist.py tests/appointment_availability/test_ops04_resource_qualification.py tests/health_appointment/test_api06_appointment_service.py health_appointment/infrastructure/tests/test_repositories.py",
+          "exit": 0,
+          "summary": "17 tests passed; resource conflict explanations, site/customer waitlist scope, non-success waitlist state, reschedule failure original preservation and API-04 transaction regressions verified; 2 existing collection warnings"
+        },
+        {
+          "command": "python3 -m compileall -q health_appointment/application/availability_conflict_query.py health_appointment/application/waitlist_service.py",
+          "exit": 0,
+          "summary": "Python syntax compilation passed"
+        },
+        {
+          "command": "git diff --check",
+          "exit": 0,
+          "summary": "dfp_wish worktree clean for OPS-05 checks; unrelated changes excluded"
+        },
+        {
+          "command": "python3 scripts/validate_plan_coverage.py --source-root /home/agent/code/jiankang_app_uniapp",
+          "exit": 0,
+          "summary": "6 baseline coverage/dependency/lane checks PASS"
+        }
+      ],
+      "artifacts": [
+        "domain/health_appointment/application/availability_conflict_query.py",
+        "domain/health_appointment/application/waitlist_service.py",
+        "domain/tests/health_appointment/test_ops05_availability_waitlist.py"
+      ],
+      "safety": "Synthetic availability/waitlist validation only; no production booking, resource lock writes, employee scheduling, external writes, or deployment."
+    },
+    "verified_at": "2026-10-02T07:46:10-07:00"
   },
   {
     "id": "OPS-06",
@@ -12312,8 +13007,8 @@
     "output": "价格/资格/位置/资源/营业/取消退款/支付渠道的owner证据和批准版本",
     "scope": "Wish Admin confirmation checklist",
     "verify": "执行 data.targeted_tests 中的自动化检查；写回命令、退出码、机器摘要和制品路径。缺失外部配置时使用合成/沙箱夹具，真实写入保持关闭。",
-    "status": "planned",
-    "status_source": "markdown-dag-import",
+    "status": "code-ready",
+    "status_source": "autonomous-agent",
     "ingestion_status": "ingested",
     "description": "实现现场规则配置和发布确认清单",
     "goal": "价格/资格/位置/资源/营业/取消退款/支付渠道的owner证据和批准版本",
@@ -12367,7 +13062,60 @@
       ],
       "coverage_status": "planned"
     },
-    "evidence": []
+    "evidence": [
+      {
+        "report": "domain/tests/service_catalog/test_ops07_readiness.py",
+        "checks": [
+          {
+            "command": "uv run --project domain pytest domain/tests/service_catalog/test_ops07_readiness.py domain/tests/service_catalog/test_catalog_publication_service.py domain/tests/service_locations/test_ops03_map_version.py domain/tests/appointment_availability/test_ops04_resource_qualification.py",
+            "exit": 0
+          },
+          {
+            "command": "python3 -m compileall -q domain/service_catalog/application/site_readiness_checklist.py domain/service_catalog/infrastructure/publish_gate_repository.py",
+            "exit": 0
+          },
+          {
+            "command": "git diff --check",
+            "exit": 0
+          },
+          {
+            "command": "python3 scripts/validate_plan_coverage.py --source-root /home/agent/code/jiankang_app_uniapp",
+            "exit": 0
+          }
+        ]
+      }
+    ],
+    "automated_result": {
+      "commands": [
+        {
+          "command": "uv run --project domain pytest domain/tests/service_catalog/test_ops07_readiness.py domain/tests/service_catalog/test_catalog_publication_service.py domain/tests/service_locations/test_ops03_map_version.py domain/tests/appointment_availability/test_ops04_resource_qualification.py",
+          "exit": 0,
+          "summary": "12 tests passed; required owner/evidence/version/approval checklist, missing-item publish block, site scope, default seed publication and resource qualification regressions verified"
+        },
+        {
+          "command": "python3 -m compileall -q domain/service_catalog/application/site_readiness_checklist.py domain/service_catalog/infrastructure/publish_gate_repository.py",
+          "exit": 0,
+          "summary": "Python syntax compilation passed"
+        },
+        {
+          "command": "git diff --check",
+          "exit": 0,
+          "summary": "dfp_wish worktree clean for OPS-07 checks; unrelated changes excluded"
+        },
+        {
+          "command": "python3 scripts/validate_plan_coverage.py --source-root /home/agent/code/jiankang_app_uniapp",
+          "exit": 0,
+          "summary": "6 baseline coverage/dependency/lane checks PASS"
+        }
+      ],
+      "artifacts": [
+        "domain/service_catalog/application/site_readiness_checklist.py",
+        "domain/service_catalog/infrastructure/publish_gate_repository.py",
+        "domain/tests/service_catalog/test_ops07_readiness.py"
+      ],
+      "safety": "Synthetic site readiness validation only; no production publish, database migration, external writes, or deployment."
+    },
+    "verified_at": "2026-10-02T07:54:57-07:00"
   },
   {
     "id": "OPS-08",
@@ -12382,8 +13130,8 @@
     "output": "按 tenant/site 隔离预约异常、服务跟进、回访、投诉和授权复核待办；只提供业务处理队列，不提供日常运营指标看板",
     "scope": "Wish Admin site dashboard/read model",
     "verify": "执行 data.targeted_tests 中的自动化检查；写回命令、退出码、机器摘要和制品路径。缺失外部配置时使用合成/沙箱夹具，真实写入保持关闭。",
-    "status": "planned",
-    "status_source": "markdown-dag-import",
+    "status": "code-ready",
+    "status_source": "autonomous-agent",
     "ingestion_status": "ingested",
     "description": "建立站点隔离的健康服务与 SCRM 待办队列",
     "goal": "按 tenant/site 隔离预约异常、服务跟进、回访、投诉和授权复核待办；只提供业务处理队列，不提供日常运营指标看板",
@@ -12437,7 +13185,60 @@
       ],
       "coverage_status": "planned"
     },
-    "evidence": []
+    "evidence": [
+      {
+        "report": "domain/tests/scrm_task_queue/test_site_task_queue.py",
+        "checks": [
+          {
+            "command": "uv run --project . pytest tests/scrm_task_queue/test_site_task_queue.py ../exts/wish/api/test_health_admin_router.py ../exts/wish/api/test_scrm_router.py tests/api/test_notification_reliability.py",
+            "exit": 0
+          },
+          {
+            "command": "python3 -m compileall -q scrm_task_queue/application/site_task_queue_service.py scrm_task_queue/read_models/site_task_queue.py",
+            "exit": 0
+          },
+          {
+            "command": "git diff --check",
+            "exit": 0
+          },
+          {
+            "command": "python3 scripts/validate_plan_coverage.py --source-root /home/agent/code/jiankang_app_uniapp",
+            "exit": 0
+          }
+        ]
+      }
+    ],
+    "automated_result": {
+      "commands": [
+        {
+          "command": "uv run --project . pytest tests/scrm_task_queue/test_site_task_queue.py ../exts/wish/api/test_health_admin_router.py ../exts/wish/api/test_scrm_router.py tests/api/test_notification_reliability.py",
+          "exit": 0,
+          "summary": "16 tests passed; tenant/site isolated task queue, source traceability, assignee visibility, no KPI/body projection and API-09/API-10 regressions verified; 1 existing dependency deprecation warning"
+        },
+        {
+          "command": "python3 -m compileall -q scrm_task_queue/application/site_task_queue_service.py scrm_task_queue/read_models/site_task_queue.py",
+          "exit": 0,
+          "summary": "Python syntax compilation passed"
+        },
+        {
+          "command": "git diff --check",
+          "exit": 0,
+          "summary": "dfp_wish worktree clean for OPS-08 checks; unrelated changes excluded and dashboard miswrite removed"
+        },
+        {
+          "command": "python3 scripts/validate_plan_coverage.py --source-root /home/agent/code/jiankang_app_uniapp",
+          "exit": 0,
+          "summary": "6 baseline coverage/dependency/lane checks PASS"
+        }
+      ],
+      "artifacts": [
+        "domain/scrm_task_queue/application/site_task_queue_service.py",
+        "domain/scrm_task_queue/read_models/site_task_queue.py",
+        "domain/tests/scrm_task_queue/test_site_task_queue.py"
+      ],
+      "safety": "Synthetic site-task read model only; no production task database, KPI dashboard, external writes, or deployment."
+    },
+    "verified_at": "2026-10-02T06:13:45-07:00"
   },
   {
     "id": "SEC-01",
@@ -12534,8 +13335,8 @@
     "output": "append-only拒绝/敏感访问审计、structured redacted log、关联trace",
     "scope": "Wish audit/log policy",
     "verify": "执行 data.targeted_tests 中的自动化检查；写回命令、退出码、机器摘要和制品路径。缺失外部配置时使用合成/沙箱夹具，真实写入保持关闭。",
-    "status": "planned",
-    "status_source": "markdown-dag-import",
+    "status": "code-ready",
+    "status_source": "autonomous-agent",
     "ingestion_status": "ingested",
     "description": "建设审计、脱敏日志和关键运行安全指标",
     "goal": "append-only拒绝/敏感访问审计、structured redacted log、关联trace",
@@ -12583,7 +13384,59 @@
       ],
       "coverage_status": "planned"
     },
-    "evidence": []
+    "evidence": [
+      {
+        "report": "domain/tests/security/test_audit_redaction.py",
+        "checks": [
+          {
+            "command": "uv run --project . pytest tests/security/test_audit_redaction.py tests/security/test_purpose_scope_checks.py tests/api/test_notification_reliability.py ../domain/authorization/tests/test_api03_authorization.py",
+            "exit": 0
+          },
+          {
+            "command": "python3 -m compileall -q ../shared/security/audit_redaction.py",
+            "exit": 0
+          },
+          {
+            "command": "git diff --check",
+            "exit": 0
+          },
+          {
+            "command": "python3 scripts/validate_plan_coverage.py --source-root /home/agent/code/jiankang_app_uniapp",
+            "exit": 0
+          }
+        ]
+      }
+    ],
+    "automated_result": {
+      "commands": [
+        {
+          "command": "uv run --project . pytest tests/security/test_audit_redaction.py tests/security/test_purpose_scope_checks.py tests/api/test_notification_reliability.py ../domain/authorization/tests/test_api03_authorization.py",
+          "exit": 0,
+          "summary": "19 tests passed; append-only trace-linked audit, recursive redaction, purpose scope, notification reliability and API-03 authorization regression verified"
+        },
+        {
+          "command": "python3 -m compileall -q ../shared/security/audit_redaction.py",
+          "exit": 0,
+          "summary": "Python syntax compilation passed"
+        },
+        {
+          "command": "git diff --check",
+          "exit": 0,
+          "summary": "dfp_wish worktree clean for SEC-02 checks; unrelated changes excluded"
+        },
+        {
+          "command": "python3 scripts/validate_plan_coverage.py --source-root /home/agent/code/jiankang_app_uniapp",
+          "exit": 0,
+          "summary": "6 baseline coverage/dependency/lane checks PASS"
+        }
+      ],
+      "artifacts": [
+        "shared/security/audit_redaction.py",
+        "domain/tests/security/test_audit_redaction.py"
+      ],
+      "safety": "Synthetic audit/redaction fixtures only; no production audit store, credentials, health content, external writes, or deployment."
+    },
+    "verified_at": "2026-10-02T06:04:06-07:00"
   },
   {
     "id": "SEC-03",
@@ -12964,8 +13817,8 @@
     "output": "同一时段的并发预约、角色资格/设备容量冲突和改期失败零残锁证据。",
     "scope": "tests/concurrency/appointments",
     "verify": "执行 data.targeted_tests 中的自动化检查；写回命令、退出码、机器摘要和制品路径。缺失外部配置时使用合成/沙箱夹具，真实写入保持关闭。",
-    "status": "planned",
-    "status_source": "markdown-dag-import",
+    "status": "code-ready",
+    "status_source": "autonomous-agent",
     "ingestion_status": "ingested",
     "description": "验证健康预约资源锁、并发与原子补偿",
     "goal": "同一时段的并发预约、角色资格/设备容量冲突和改期失败零残锁证据。",
@@ -13023,7 +13876,58 @@
       ],
       "coverage_status": "planned"
     },
-    "evidence": []
+    "evidence": [
+      {
+        "report": "tests/concurrency/appointments/test_tst04_concurrency.py",
+        "checks": [
+          {
+            "command": "uv run --project domain pytest tests/concurrency/appointments/test_tst04_concurrency.py domain/health_appointment/infrastructure/tests/test_repositories.py domain/tests/health_appointment/test_api06_appointment_service.py",
+            "exit": 0
+          },
+          {
+            "command": "python3 -m compileall -q tests/concurrency/appointments/test_tst04_concurrency.py",
+            "exit": 0
+          },
+          {
+            "command": "git diff --check",
+            "exit": 0
+          },
+          {
+            "command": "python3 scripts/validate_plan_coverage.py --source-root /home/agent/code/jiankang_app_uniapp",
+            "exit": 0
+          }
+        ]
+      }
+    ],
+    "automated_result": {
+      "commands": [
+        {
+          "command": "uv run --project domain pytest tests/concurrency/appointments/test_tst04_concurrency.py domain/health_appointment/infrastructure/tests/test_repositories.py domain/tests/health_appointment/test_api06_appointment_service.py",
+          "exit": 0,
+          "summary": "14 tests passed; concurrent same-resource capacity, conflict zero residual locks, failed reschedule preservation and API-06 transaction regressions verified; 3 existing collection warnings"
+        },
+        {
+          "command": "python3 -m compileall -q tests/concurrency/appointments/test_tst04_concurrency.py",
+          "exit": 0,
+          "summary": "Python syntax compilation passed"
+        },
+        {
+          "command": "git diff --check",
+          "exit": 0,
+          "summary": "dfp_wish worktree clean for TST-04 checks; accidental dashboard test removed"
+        },
+        {
+          "command": "python3 scripts/validate_plan_coverage.py --source-root /home/agent/code/jiankang_app_uniapp",
+          "exit": 0,
+          "summary": "6 baseline coverage/dependency/lane checks PASS"
+        }
+      ],
+      "artifacts": [
+        "tests/concurrency/appointments/test_tst04_concurrency.py"
+      ],
+      "safety": "Synthetic SQLite concurrency only; no production booking, locks, migration, external writes, or deployment."
+    },
+    "verified_at": "2026-10-02T07:16:38-07:00"
   },
   {
     "id": "TST-05",
@@ -13523,8 +14427,8 @@
     "output": "readiness/liveness、结构化无敏日志、dashboard/trace/告警runbook",
     "scope": "deploy/observability",
     "verify": "执行 data.targeted_tests 中的自动化检查；写回命令、退出码、机器摘要和制品路径。缺失外部配置时使用合成/沙箱夹具，真实写入保持关闭。",
-    "status": "planned",
-    "status_source": "markdown-dag-import",
+    "status": "code-ready",
+    "status_source": "autonomous-agent",
     "ingestion_status": "ingested",
     "description": "配置健康检查、脱敏日志/指标/追踪/告警",
     "goal": "readiness/liveness、结构化无敏日志、dashboard/trace/告警runbook",
@@ -13562,7 +14466,63 @@
       ],
       "coverage_status": "planned"
     },
-    "evidence": []
+    "evidence": [
+      {
+        "report": "deploy/observability/tests/test_observability.py",
+        "checks": [
+          {
+            "command": "PYTHONPATH=/home/agent/code/dfp_wish uv run --project domain pytest deploy/observability/tests/test_observability.py",
+            "exit": 0
+          },
+          {
+            "command": "python3 -m compileall -q deploy/observability",
+            "exit": 0
+          },
+          {
+            "command": "git diff --check",
+            "exit": 0
+          },
+          {
+            "command": "python3 scripts/validate_plan_coverage.py --source-root /home/agent/code/jiankang_app_uniapp",
+            "exit": 0
+          }
+        ]
+      }
+    ],
+    "automated_result": {
+      "commands": [
+        {
+          "command": "PYTHONPATH=/home/agent/code/dfp_wish uv run --project domain pytest deploy/observability/tests/test_observability.py",
+          "exit": 0,
+          "summary": "3 tests passed; liveness/readiness dependency gate, recursive sensitive log redaction, bounded metrics/trace headers and alerts verified"
+        },
+        {
+          "command": "python3 -m compileall -q deploy/observability",
+          "exit": 0,
+          "summary": "Python syntax compilation passed"
+        },
+        {
+          "command": "git diff --check",
+          "exit": 0,
+          "summary": "dfp_wish worktree clean for DEV-04 checks; unrelated changes excluded"
+        },
+        {
+          "command": "python3 scripts/validate_plan_coverage.py --source-root /home/agent/code/jiankang_app_uniapp",
+          "exit": 0,
+          "summary": "6 baseline coverage/dependency/lane checks PASS"
+        }
+      ],
+      "artifacts": [
+        "deploy/__init__.py",
+        "deploy/observability/__init__.py",
+        "deploy/observability/health_and_redaction.py",
+        "deploy/observability/metrics_tracing_alerts.py",
+        "deploy/observability/README.md",
+        "deploy/observability/tests/test_observability.py"
+      ],
+      "safety": "Synthetic observability validation only; no production exporter, deployment, external writes, or live alerting changes."
+    },
+    "verified_at": "2026-10-02T06:45:48-07:00"
   },
   {
     "id": "DEV-05",
@@ -14805,8 +15765,8 @@
     "output": "在 canonical 预约、SCRM、服务记录、服务账和审计 schema 上，仅补客户检索、预约冲突/候补、跟进任务状态、服务账审核列表、审计筛选所需的查询索引或可重建投影；不新建重复客户/预约/账本事实表。",
     "scope": "domain/admin_console/infrastructure/admin_projection_models.py; domain/alembic/versions/20261001_0001_admin_projection_indexes.py",
     "verify": "执行 migration up/down/reapply；验证 tenant/site 复合过滤、投影可从事实/事件重建、删投影不删业务事实、重复/乱序事件不产生重复队列项。",
-    "status": "planned",
-    "status_source": "admin-architecture-plan",
+    "status": "code-ready",
+    "status_source": "autonomous-agent",
     "ingestion_status": "ingested",
     "description": "补充管理端列表投影与队列索引 schema",
     "goal": "在 canonical 预约、SCRM、服务记录、服务账和审计 schema 上，仅补客户检索、预约冲突/候补、跟进任务状态、服务账审核列表、审计筛选所需的查询索引或可重建投影；不新建重复客户/预约/账本事实表。",
@@ -14844,7 +15804,61 @@
         "/home/agent/code/jiankang_app_uniapp/docs/architecture/health-scrm-cross-project-architecture.md"
       ],
       "coverage_status": "planned"
-    }
+    },
+    "automated_result": {
+      "commands": [
+        {
+          "command": "uv run --project . pytest tests/admin_console/test_wadm_03_projection_indexes.py tests/admin_console/test_wadm_02_boundaries.py",
+          "exit": 0,
+          "summary": "6 tests passed; five tenant/site query indexes, no duplicate fact tables, rebuildable migration boundaries and WADM-02 scope context verified"
+        },
+        {
+          "command": "python3 -m compileall -q admin_console/infrastructure/admin_projection_models.py alembic/versions/20261001_0001_admin_projection_indexes.py",
+          "exit": 0,
+          "summary": "Python syntax compilation passed"
+        },
+        {
+          "command": "git diff --check",
+          "exit": 0,
+          "summary": "dfp_wish worktree clean for WADM-03 checks; unrelated changes excluded"
+        },
+        {
+          "command": "python3 scripts/validate_plan_coverage.py --source-root /home/agent/code/jiankang_app_uniapp",
+          "exit": 0,
+          "summary": "6 baseline coverage/dependency/lane checks PASS"
+        }
+      ],
+      "artifacts": [
+        "domain/admin_console/infrastructure/admin_projection_models.py",
+        "domain/alembic/versions/20261001_0001_admin_projection_indexes.py",
+        "domain/tests/admin_console/test_wadm_03_projection_indexes.py"
+      ],
+      "safety": "Schema/index metadata only; no duplicate business fact tables, production migrations, external writes, or deployment."
+    },
+    "evidence": [
+      {
+        "report": "domain/tests/admin_console/test_wadm_03_projection_indexes.py",
+        "checks": [
+          {
+            "command": "uv run --project . pytest tests/admin_console/test_wadm_03_projection_indexes.py tests/admin_console/test_wadm_02_boundaries.py",
+            "exit": 0
+          },
+          {
+            "command": "python3 -m compileall -q admin_console/infrastructure/admin_projection_models.py alembic/versions/20261001_0001_admin_projection_indexes.py",
+            "exit": 0
+          },
+          {
+            "command": "git diff --check",
+            "exit": 0
+          },
+          {
+            "command": "python3 scripts/validate_plan_coverage.py --source-root /home/agent/code/jiankang_app_uniapp",
+            "exit": 0
+          }
+        ]
+      }
+    ],
+    "verified_at": "2026-10-02T06:22:43-07:00"
   },
   {
     "id": "WADM-04",
@@ -14924,8 +15938,8 @@
     "output": "提供可重建 SCRM 服务任务队列和事件/通知适配：预约异常、回访跟进、投诉、授权复核、通知发送/失败/重试状态；事件按 event_id 和业务版本幂等，固定原始 tenant/site，仅传低敏引用，不含健康正文。",
     "scope": "exts/wish_adm/api/scrm_task_queue_router.py; domain/scrm_task_queue/; domain/scrm_task_queue/infrastructure/event_handlers.py; domain/scrm_task_queue/infrastructure/notification_status.py",
     "verify": "测试 event_id/版本去重、乱序重放、tenant/site 不变、撤回后通知阻断、失败退避/死信；队列状态有来源，不含手机号/健康正文，无日常运营 KPI。",
-    "status": "planned",
-    "status_source": "admin-architecture-plan",
+    "status": "code-ready",
+    "status_source": "autonomous-agent",
     "ingestion_status": "ingested",
     "description": "提供站点隔离的 SCRM 任务队列与事件通知支撑",
     "goal": "提供可重建 SCRM 服务任务队列和事件/通知适配：预约异常、回访跟进、投诉、授权复核、通知发送/失败/重试状态；事件按 event_id 和业务版本幂等，固定原始 tenant/site，仅传低敏引用，不含健康正文。",
@@ -14965,7 +15979,62 @@
         "/home/agent/code/jiankang_app_uniapp/docs/architecture/health-scrm-cross-project-architecture.md"
       ],
       "coverage_status": "planned"
-    }
+    },
+    "automated_result": {
+      "commands": [
+        {
+          "command": "uv run --project . pytest tests/admin_console/test_wadm_05_task_queue.py tests/scrm_task_queue/test_site_task_queue.py ../exts/wish/api/test_health_admin_router.py tests/api/test_notification_reliability.py",
+          "exit": 0,
+          "summary": "15 tests passed; event_id/version dedupe, stale replay, tenant/site preservation, notification retry/DLQ/withdrawal blocking, queue source and API-09 regression verified; 1 existing dependency warning"
+        },
+        {
+          "command": "python3 -m compileall -q ../exts/wish_adm/api/scrm_task_queue_router.py scrm_task_queue/infrastructure/event_handlers.py scrm_task_queue/infrastructure/notification_status.py",
+          "exit": 0,
+          "summary": "Python syntax compilation passed"
+        },
+        {
+          "command": "git diff --check",
+          "exit": 0,
+          "summary": "dfp_wish worktree clean for WADM-05 checks; unrelated changes excluded"
+        },
+        {
+          "command": "python3 scripts/validate_plan_coverage.py --source-root /home/agent/code/jiankang_app_uniapp",
+          "exit": 0,
+          "summary": "6 baseline coverage/dependency/lane checks PASS"
+        }
+      ],
+      "artifacts": [
+        "exts/wish_adm/api/scrm_task_queue_router.py",
+        "domain/scrm_task_queue/infrastructure/event_handlers.py",
+        "domain/scrm_task_queue/infrastructure/notification_status.py",
+        "domain/tests/admin_console/test_wadm_05_task_queue.py"
+      ],
+      "safety": "Synthetic queue/event/notification validation only; no second message write master, production broker, external writes, KPI dashboard, or deployment."
+    },
+    "evidence": [
+      {
+        "report": "domain/tests/admin_console/test_wadm_05_task_queue.py",
+        "checks": [
+          {
+            "command": "uv run --project . pytest tests/admin_console/test_wadm_05_task_queue.py tests/scrm_task_queue/test_site_task_queue.py ../exts/wish/api/test_health_admin_router.py tests/api/test_notification_reliability.py",
+            "exit": 0
+          },
+          {
+            "command": "python3 -m compileall -q ../exts/wish_adm/api/scrm_task_queue_router.py scrm_task_queue/infrastructure/event_handlers.py scrm_task_queue/infrastructure/notification_status.py",
+            "exit": 0
+          },
+          {
+            "command": "git diff --check",
+            "exit": 0
+          },
+          {
+            "command": "python3 scripts/validate_plan_coverage.py --source-root /home/agent/code/jiankang_app_uniapp",
+            "exit": 0
+          }
+        ]
+      }
+    ],
+    "verified_at": "2026-10-02T05:25:35-07:00"
   },
   {
     "id": "WADM-11",
