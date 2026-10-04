@@ -21225,6 +21225,36 @@
             "Configure production origins/redirect/cookie topology and perform isolated IdP smoke with approved secrets."
           ]
         },
+        "latest_current_user_fail_closed_hydration": {
+          "status": "partial; legacy getCurrentUser adapter now delegates to the validated fail-closed SSO session hydration path",
+          "commit": "e0108d9",
+          "push": "success",
+          "changed_paths": [
+            "dfp_wish/apps/wish-adm/src/adapters/auth.ts",
+            "dfp_wish/apps/wish-adm/src/adapters/auth.test.ts"
+          ],
+          "checks": [
+            {
+              "command": "npm test -- --run src/adapters/auth.test.ts",
+              "workdir": "dfp_wish/apps/wish-adm",
+              "exit": 0,
+              "summary": "8 auth adapter tests passed, including getCurrentUser network failure clearing stale identity and resolving unauthenticated."
+            },
+            {
+              "command": "npx eslint src/adapters/auth.ts src/adapters/auth.test.ts",
+              "workdir": "dfp_wish/apps/wish-adm",
+              "exit": 0
+            },
+            {
+              "command": "git diff --check",
+              "workdir": "dfp_wish/apps/wish-adm",
+              "exit": 0
+            }
+          ],
+          "open": [
+            "Production IdP integration, trusted origins, migration approval and canonical IAM/site scope remain incomplete."
+          ]
+        },
         "latest_oauth_operator_lookup_envelope_guard": {
           "status": "partial; OAuth callback validates IAM envelope/data shapes and fails closed with sanitized 401 before session issuance",
           "commit": "a5a0156",
