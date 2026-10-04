@@ -18744,6 +18744,39 @@
       },
       {
         "report": "progress.md",
+        "commit": "961208e",
+        "push": "success",
+        "changed_paths": [
+          "dfp_wish/apps/wish-adm/src/app/(modules)/appointments/_components/site-service-config/site-service-config-panel.tsx",
+          "dfp_wish/apps/wish-adm/src/app/(modules)/appointments/_components/site-service-config/site-service-config-panel.test.tsx"
+        ],
+        "checks": [
+          {
+            "command": "npm test -- --run 'src/app/(modules)/appointments/_components/site-service-config/site-service-config-panel.test.tsx' 'src/app/(modules)/appointments/page.test.tsx'",
+            "workdir": "dfp_wish/apps/wish-adm",
+            "exit": 0,
+            "summary": "11 service catalog/appointment tests passed; changing service filter clears stale draft/version/preview context."
+          },
+          {
+            "command": "npx eslint 'src/app/(modules)/appointments/_components/site-service-config/site-service-config-panel.tsx' 'src/app/(modules)/appointments/_components/site-service-config/site-service-config-panel.test.tsx'",
+            "workdir": "dfp_wish/apps/wish-adm",
+            "exit": 0
+          },
+          {
+            "command": "npm run build",
+            "workdir": "dfp_wish/apps/wish-adm",
+            "exit": 0
+          },
+          {
+            "command": "git diff --check",
+            "workdir": "dfp_wish",
+            "exit": 0
+          }
+        ],
+        "status": "partial; filter-dependent client context reset delivered; canonical upstream and persistence remain open"
+      },
+      {
+        "report": "progress.md",
         "commit": "0ff0c89",
         "push": "success",
         "changed_paths": [
