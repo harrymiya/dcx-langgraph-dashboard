@@ -21226,6 +21226,38 @@
             "Configure production origins/redirect/cookie topology and perform isolated IdP smoke with approved secrets."
           ]
         },
+        "latest_production_seed_operator_guard": {
+          "status": "partial; production OAuth and protected API authorization reject the fixed migration seed operator independently of subject configuration",
+          "commit": "c579887",
+          "push": "success",
+          "changed_paths": [
+            "dfp_wish/exts/wish_adm/api/_auth.py",
+            "dfp_wish/exts/wish_adm/api/auth_router.py",
+            "dfp_wish/exts/wish_adm/api/test_operator_auth.py",
+            "dfp_wish/exts/wish_adm/api/test_auth_oauth_callback.py"
+          ],
+          "checks": [
+            {
+              "command": "uv run --frozen --project deerflow/backend --group dev python -m pytest exts/wish_adm/api/test_operator_auth.py exts/wish_adm/api/test_auth_oauth_callback.py exts/wish_adm/api/test_auth_router.py exts/wish_adm/api/test_feishu_contact.py -q",
+              "workdir": "dfp_wish",
+              "exit": 0,
+              "summary": "56 focused SSO/operator tests passed, including production denial for the seeded operator ID in both OAuth callback and protected API authentication."
+            },
+            {
+              "command": "python3 -m compileall -q exts/wish_adm/api/_auth.py exts/wish_adm/api/auth_router.py exts/wish_adm/api/test_operator_auth.py exts/wish_adm/api/test_auth_oauth_callback.py",
+              "workdir": "dfp_wish",
+              "exit": 0
+            },
+            {
+              "command": "git diff --check",
+              "workdir": "dfp_wish",
+              "exit": 0
+            }
+          ],
+          "open": [
+            "Trusted production origins, approved migration execution, revocation secret deployment, canonical IAM role/site scope and real isolated IdP smoke remain incomplete."
+          ]
+        },
         "latest_cookie_csrf_origin_guard": {
           "status": "partial; all cookie-authenticated unsafe admin requests now require a configured exact trusted Origin, beyond logout-only validation",
           "commit": "d4b5215, ee30100",
