@@ -21226,6 +21226,36 @@
             "Configure production origins/redirect/cookie topology and perform isolated IdP smoke with approved secrets."
           ]
         },
+        "latest_operator_response_guard": {
+          "status": "partial; malformed IAM lookup envelopes are rejected before they can cause authorization errors or 500 responses",
+          "commit": "3cbc8cf",
+          "push": "success",
+          "changed_paths": [
+            "dfp_wish/exts/wish_adm/api/_auth.py",
+            "dfp_wish/exts/wish_adm/api/test_operator_auth.py"
+          ],
+          "checks": [
+            {
+              "command": "uv run --frozen --project deerflow/backend --group dev python -m pytest exts/wish_adm/api/test_operator_auth.py exts/wish_adm/api/test_auth_oauth_callback.py exts/wish_adm/api/test_auth_router.py -q",
+              "workdir": "dfp_wish",
+              "exit": 0,
+              "summary": "43 operator/OAuth/router tests passed; null, list, string and array operator lookup payloads fail closed."
+            },
+            {
+              "command": "python3 -m compileall -q exts/wish_adm/api/_auth.py exts/wish_adm/api/test_operator_auth.py",
+              "workdir": "dfp_wish",
+              "exit": 0
+            },
+            {
+              "command": "git diff --check",
+              "workdir": "dfp_wish",
+              "exit": 0
+            }
+          ],
+          "open": [
+            "Production IAM/operator role/site composition, authorized non-production migration, revocation secret deployment and isolated IdP smoke remain pending."
+          ]
+        },
         "latest_persistent_revocation_slice": {
           "status": "partial; WADM-17 remains planned pending deployment configuration, migration, and isolated environment smoke",
           "commit": "40c1ed9, ce381df, 517ed5c",
