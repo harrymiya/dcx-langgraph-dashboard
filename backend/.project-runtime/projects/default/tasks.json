@@ -13281,7 +13281,19 @@
       ],
       "coverage_status": "planned"
     },
-    "evidence": []
+    "evidence": [
+      {
+        "report": "progress.md",
+        "checks": [
+          {
+            "command": "node --test tests/health/hlt-02-location.test.mjs",
+            "workdir": "jiankang_app_uniapp",
+            "exit": 0,
+            "summary": "HLT-02 location evidence: 6 tests passed."
+          }
+        ]
+      }
+    ]
   },
   {
     "id": "HLT-06",
@@ -13659,6 +13671,32 @@
       "coverage_status": "planned"
     },
     "evidence": [
+      {
+        "report": "progress.md",
+        "checks": [
+          {
+            "command": "node --test tests/health/hlt-04-appointments.test.mjs tests/health/hlt-03-availability.test.mjs tests/health/hlt-01-catalog.test.mjs tests/health/hlt-06-profile.test.mjs tests/health/session.test.mjs",
+            "workdir": "jiankang_app_uniapp",
+            "exit": 0,
+            "summary": "HLT-04 appointment list/detail/payment/reschedule/cancel/waitlist contract regression passed; canonical Wish BFF remains fail-closed."
+          },
+          {
+            "command": "node tests/health/hlt-04-appointments-uts-static-check.mjs",
+            "workdir": "jiankang_app_uniapp",
+            "exit": 0,
+            "summary": "Appointment repository and pages strict UTS/static checks passed."
+          },
+          {
+            "command": "git diff --check",
+            "workdir": "jiankang_app_uniapp",
+            "exit": 0
+          }
+        ],
+        "status": "partial; task remains planned pending canonical Wish APP BFF/API handlers and production persistence",
+        "open": [
+          "Default appointment adapter remains fail-closed; no local appointment/payment/refund fact is created."
+        ]
+      },
       {
         "report": "domain/tests/scrm/test_scr01_customer_profile.py",
         "checks": [
