@@ -20098,6 +20098,34 @@
     "evidence": [
       {
         "report": "progress.md",
+        "commit": "b38f923",
+        "push": "success",
+        "changed_paths": [
+          "dfp_wish/exts/wish_adm/api/auth_router.py",
+          "dfp_wish/exts/wish_adm/api/test_auth_oauth_callback.py"
+        ],
+        "checks": [
+          {
+            "command": "PYTHONPATH=deerflow/backend uv run --frozen --project deerflow/backend --group dev python -m pytest exts/wish_adm/api/test_auth_oauth_callback.py exts/wish_adm/api/test_auth_router.py exts/wish_adm/api/test_operator_auth.py exts/wish_adm/api/test_feishu_contact.py -q",
+            "workdir": "dfp_wish",
+            "exit": 0,
+            "summary": "38 OAuth/operator tests passed; successful callback emits exactly one deletion header for each one-time OAuth cookie."
+          },
+          {
+            "command": "python3 -m compileall -q exts/wish_adm/api/auth_router.py exts/wish_adm/api/test_auth_oauth_callback.py",
+            "workdir": "dfp_wish",
+            "exit": 0
+          },
+          {
+            "command": "git diff --check",
+            "workdir": "dfp_wish",
+            "exit": 0
+          }
+        ],
+        "status": "partial; callback cookie headers normalized; production SSO deployment integration remains open"
+      },
+      {
+        "report": "progress.md",
         "commit": "81f9dc3",
         "push": "success",
         "changed_paths": [
