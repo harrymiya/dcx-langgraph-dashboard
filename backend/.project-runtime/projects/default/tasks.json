@@ -20411,7 +20411,6 @@
       },
       {
         "report": "dfp_wish/domain/customer_followup_admin/WADM-14-run-report.md",
-
         "checks": [
           {
             "command": "uv run --project domain pytest domain/tests/customer_followup_admin/test_followup_projection.py exts/wish_adm/api/test_followup_admin_router.py domain/tests/scrm/followups/test_scr04_followups.py domain/tests/scrm_task_queue/test_site_task_queue.py",
@@ -21224,6 +21223,36 @@
           "summary": "35 focused tests pass: strict HTTPS redirect parsing, malformed/credential-bearing redirect rejection, bounded Feishu timeout, malformed identity rejection, and verified operator-subject binding.",
           "open": [
             "Configure production origins/redirect/cookie topology and perform isolated IdP smoke with approved secrets."
+          ]
+        },
+        "latest_uncached_operator_lookup_outages": {
+          "status": "partial; DDD lookup transport exceptions and non-success envelopes fail closed without caching, allowing immediate recovery after transient IAM outages",
+          "commit": "e966242",
+          "push": "success",
+          "changed_paths": [
+            "dfp_wish/exts/wish_adm/api/_auth.py",
+            "dfp_wish/exts/wish_adm/api/test_operator_auth.py"
+          ],
+          "checks": [
+            {
+              "command": "uv run --frozen --project deerflow/backend --group dev python -m pytest exts/wish_adm/api/test_operator_auth.py exts/wish_adm/api/test_auth_oauth_callback.py exts/wish_adm/api/test_auth_router.py exts/wish_adm/api/test_feishu_contact.py -q",
+              "workdir": "dfp_wish",
+              "exit": 0,
+              "summary": "58 focused SSO/operator tests passed, including immediate recovery after 503 and exception-to-401 behavior."
+            },
+            {
+              "command": "python3 -m compileall -q exts/wish_adm/api/_auth.py exts/wish_adm/api/test_operator_auth.py",
+              "workdir": "dfp_wish",
+              "exit": 0
+            },
+            {
+              "command": "git diff --check HEAD^ HEAD",
+              "workdir": "dfp_wish",
+              "exit": 0
+            }
+          ],
+          "open": [
+            "Production IdP integration, trusted origins, migration approval, and deployed canonical IAM role/site scope remain outstanding."
           ]
         },
         "latest_dev_preview_session_recovery": {
@@ -22420,25 +22449,6 @@
         "push": "not pushed; commit failed because repository-local Git author identity is unavailable; no git configuration was changed."
       }
     ],
-    "automated_result": {
-      "status": "partial; source/API reuse contract verified, real client-to-server and database integration not verified",
-      "changed_paths": [
-        "mapp_server/tests/vcom_02_source_contract.py"
-      ],
-      "checks": [
-        {
-          "command": "python3 tests/vcom_02_source_contract.py",
-          "exit": 0,
-          "summary": "38 APP/MAPP Admin/original MAPP API-service-database source-contract assertions passed."
-        },
-        {
-          "command": "git diff --check",
-          "exit": 0
-        }
-      ],
-      "commit": null,
-      "push": "failed: git identity is not configured in this repository; left file staged and did not change git config"
-    },
     "data": {
       "task_id": "VCOM-02",
       "title": "核验并复用商城核心原有 MAPP API/领域服务",
