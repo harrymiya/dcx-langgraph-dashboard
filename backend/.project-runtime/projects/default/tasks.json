@@ -18486,6 +18486,46 @@
         "open": [
           "UI auto-load is implemented, but service records remain unavailable until the canonical Wish upstream is registered."
         ]
+      },
+      {
+        "report": "progress.md",
+        "commit": "82071ca",
+        "push": "success",
+        "changed_paths": [
+          "dfp_wish/apps/wish-adm/src/app/(modules)/appointments/page.tsx",
+          "dfp_wish/apps/wish-adm/src/app/(modules)/appointments/page.test.tsx",
+          "dfp_wish/apps/wish-adm/src/app/(modules)/appointments/_components/appointments-api.ts",
+          "dfp_wish/apps/wish-adm/src/components/shell/nav.ts"
+        ],
+        "checks": [
+          {
+            "command": "npm test -- --run 'src/app/(modules)/appointments/page.test.tsx' 'src/app/(modules)/dashboard/page.test.tsx'",
+            "workdir": "dfp_wish/apps/wish-adm",
+            "exit": 0,
+            "summary": "3 appointment/dashboard page tests passed."
+          },
+          {
+            "command": "npx eslint 'src/app/(modules)/appointments/page.tsx' 'src/app/(modules)/appointments/page.test.tsx' 'src/app/(modules)/appointments/_components/appointments-api.ts' 'src/components/shell/nav.ts'",
+            "workdir": "dfp_wish/apps/wish-adm",
+            "exit": 0,
+            "summary": "Appointment page/API/nav lint passed."
+          },
+          {
+            "command": "npm run build",
+            "workdir": "dfp_wish/apps/wish-adm",
+            "exit": 0,
+            "summary": "Wish Admin build passed and emitted /appointments."
+          },
+          {
+            "command": "git diff --check",
+            "workdir": "dfp_wish",
+            "exit": 0
+          }
+        ],
+        "status": "partial; task remains planned pending canonical appointment API/DDD/database and Admin BFF composition",
+        "open": [
+          "Page is actionable and fail-safe, but the appointment upstream is not implemented; no local appointment fact or mock production data is used."
+        ]
       }
     ]
   },
