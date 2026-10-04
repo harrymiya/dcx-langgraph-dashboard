@@ -21226,6 +21226,36 @@
             "Configure production origins/redirect/cookie topology and perform isolated IdP smoke with approved secrets."
           ]
         },
+        "latest_cookie_csrf_origin_guard": {
+          "status": "partial; all cookie-authenticated unsafe admin requests now require a configured exact trusted Origin, beyond logout-only validation",
+          "commit": "d4b5215",
+          "push": "success",
+          "changed_paths": [
+            "dfp_wish/exts/wish_adm/api/_auth.py",
+            "dfp_wish/exts/wish_adm/api/test_operator_auth.py"
+          ],
+          "checks": [
+            {
+              "command": "uv run --frozen --project deerflow/backend --group dev python -m pytest exts/wish_adm/api/test_operator_auth.py exts/wish_adm/api/test_auth_oauth_callback.py exts/wish_adm/api/test_auth_router.py -q",
+              "workdir": "dfp_wish",
+              "exit": 0,
+              "summary": "49 tests passed; cookie mutations reject missing/hostile/malformed origins and allow configured exact origin; bearer-only writes remain unchanged."
+            },
+            {
+              "command": "python3 -m compileall -q exts/wish_adm/api/_auth.py exts/wish_adm/api/test_operator_auth.py",
+              "workdir": "dfp_wish",
+              "exit": 0
+            },
+            {
+              "command": "git diff --check",
+              "workdir": "dfp_wish",
+              "exit": 0
+            }
+          ],
+          "open": [
+            "Trusted production origin configuration and isolated IdP/deployment smoke remain outstanding; no production SSO closure claimed."
+          ]
+        },
         "latest_operator_response_guard": {
           "status": "partial; malformed IAM lookup envelopes are rejected before they can cause authorization errors or 500 responses",
           "commit": "3cbc8cf",
