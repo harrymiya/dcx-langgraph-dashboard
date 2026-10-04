@@ -22191,7 +22191,35 @@
     "goal": "证明 APP 与 MAPP 管理端对商品目录、分类、搜索、促销展示和关联详情使用原 MAPP server/API 与领域服务；原服务继续作为唯一权威后端。",
     "acceptance": "完成 API 源码映射与契约验收：证明 APP 与 MAPP 管理端对商品目录、分类、搜索、促销展示和关联详情进入原 MAPP server/API、共用原有授权和状态规则；若存在管理操作缺口，只在原 MAPP 服务内增补并定向验收，不建立平行后端。",
     "implementation": "核对 APP 与管理端 API client、原 MAPP controller/service、角色/tenant/site 校验和数据库访问的源码链；复用现有业务规则。仅对已证明缺失的管理端操作扩展原 handler/service，并说明为什么原接口不可复用。",
-    "evidence": [],
+    "evidence": [
+      {
+        "type": "source-contract-check",
+        "artifact": "mapp_server/tests/vcom_02_source_contract.py",
+        "command": "python3 tests/vcom_02_source_contract.py",
+        "exit": 0,
+        "summary": "38 source assertions map APP catalog/product detail calls and MAPP merchant/platform catalog pages to the original MAPP controllers, services, ProductDao, and eb_product/eb_product_category models. This proves source reuse paths, not runtime/database integration.",
+        "push": "not pushed; commit failed because repository-local Git author identity is unavailable; no git configuration was changed."
+      }
+    ],
+    "automated_result": {
+      "status": "partial; source/API reuse contract verified, real client-to-server and database integration not verified",
+      "changed_paths": [
+        "mapp_server/tests/vcom_02_source_contract.py"
+      ],
+      "checks": [
+        {
+          "command": "python3 tests/vcom_02_source_contract.py",
+          "exit": 0,
+          "summary": "38 APP/MAPP Admin/original MAPP API-service-database source-contract assertions passed."
+        },
+        {
+          "command": "git diff --check",
+          "exit": 0
+        }
+      ],
+      "commit": null,
+      "push": "failed: git identity is not configured in this repository; left file staged and did not change git config"
+    },
     "data": {
       "task_id": "VCOM-02",
       "title": "核验并复用商城核心原有 MAPP API/领域服务",
