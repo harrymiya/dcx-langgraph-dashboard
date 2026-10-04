@@ -18698,6 +18698,43 @@
       },
       {
         "report": "progress.md",
+        "commit": "9f78a99",
+        "push": "success",
+        "changed_paths": [
+          "dfp_wish/domain/customer_profile_admin/unified_subjects.py",
+          "dfp_wish/tests/customer_profile_admin/test_unified_subjects.py"
+        ],
+        "checks": [
+          {
+            "command": "uv run --frozen --project domain --group test python -m pytest domain/tests/customer_profile_admin/test_unified_subjects.py -q",
+            "workdir": "dfp_wish",
+            "exit": 0,
+            "summary": "8 customer profile projection tests passed; same subject ID is permitted across kinds, duplicate kind+ID is rejected."
+          },
+          {
+            "command": "uv run --frozen --project domain --group test python -m pytest domain/tests/security/test_purpose_scope_checks.py domain/tests/security/test_audit_redaction.py -q",
+            "workdir": "dfp_wish",
+            "exit": 0,
+            "summary": "7 security scope/redaction regression tests passed."
+          },
+          {
+            "command": "python3 -m compileall -q domain/customer_profile_admin",
+            "workdir": "dfp_wish",
+            "exit": 0
+          },
+          {
+            "command": "git diff --check",
+            "workdir": "dfp_wish",
+            "exit": 0
+          }
+        ],
+        "status": "partial; duplicate canonical subject rows now fail closed; persistent customer/relationship integration remains incomplete",
+        "open": [
+          "An extra combined OAuth/router run encountered existing jwt_service fixture AttributeError failures unrelated to these changed files; focused domain and security suites passed."
+        ]
+      },
+      {
+        "report": "progress.md",
         "commit": "7f325ba",
         "push": "success",
         "changed_paths": [
