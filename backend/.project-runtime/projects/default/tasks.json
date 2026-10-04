@@ -18322,7 +18322,66 @@
       ],
       "coverage_status": "planned"
     },
-    "evidence": []
+    "evidence": [
+      {
+        "report": "progress.md",
+        "commit": "13b2b1f",
+        "push": "success",
+        "changed_paths": [
+          "dfp_wish/.env.example",
+          "dfp_wish/docker-compose.yml",
+          "dfp_wish/exts/wish_adm/api/_auth.py",
+          "dfp_wish/exts/wish_adm/api/auth_router.py",
+          "dfp_wish/exts/wish_adm/api/test_auth_oauth_callback.py",
+          "dfp_wish/exts/wish_adm/api/test_auth_router.py",
+          "dfp_wish/exts/wish_adm/api/test_operator_auth.py"
+        ],
+        "checks": [
+          {
+            "command": "uv run --frozen --project deerflow/backend --group dev python -m pytest exts/wish_adm/api/test_auth_oauth_callback.py exts/wish_adm/api/test_auth_router.py exts/wish_adm/api/test_operator_auth.py exts/wish_adm/api/test_feishu_contact.py -q",
+            "workdir": "dfp_wish",
+            "exit": 0,
+            "summary": "36 focused admin SSO/session tests passed."
+          },
+          {
+            "command": "python3 -m compileall -q exts/wish_adm/api/auth_router.py exts/wish_adm/api/_auth.py exts/wish_adm/services/feishu_contact.py",
+            "workdir": "dfp_wish",
+            "exit": 0,
+            "summary": "Auth gateway modules compile."
+          },
+          {
+            "command": "docker compose config --quiet",
+            "workdir": "dfp_wish",
+            "exit": 0,
+            "summary": "Compose config validates with mock auth default false and explicit SSO/origin/revocation variables."
+          },
+          {
+            "command": "git diff --check",
+            "workdir": "dfp_wish",
+            "exit": 0,
+            "summary": "Scoped Wish changes are whitespace-clean."
+          },
+          {
+            "command": "python3 dcx-langgraph-dashboard/scripts/validate_plan_coverage.py --source-root /home/agent/code/jiankang_app_uniapp",
+            "workdir": "/home/agent/code",
+            "exit": 0,
+            "summary": "All seven plan coverage checks pass for 173 tasks and 163 routes."
+          }
+        ],
+        "artifacts": [
+          "dfp_wish/docker-compose.yml",
+          "dfp_wish/.env.example",
+          "dfp_wish/exts/wish_adm/api/auth_router.py",
+          "dfp_wish/exts/wish_adm/api/_auth.py"
+        ],
+        "status": "partial; task remains planned pending non-production migration, deployment secret injection, and isolated gateway-to-DDD/IdP smoke",
+        "open": [
+          "Configure the same high-entropy WISH_ADM_SESSION_REVOCATION_SECRET in gateway and DDD deployment secret stores.",
+          "Apply migration 20261004_0001_operator_session_revocation through the authorized non-production workflow.",
+          "Run isolated gateway-to-DDD revocation and Feishu provider smoke with secret rotation/failure checks."
+        ]
+      }
+    ]
   },
   {
     "id": "MER-02",
