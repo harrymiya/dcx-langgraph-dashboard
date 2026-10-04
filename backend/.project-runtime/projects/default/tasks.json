@@ -19738,6 +19738,40 @@
       },
       {
         "report": "progress.md",
+        "commit": "035b3f2",
+        "push": "success",
+        "changed_paths": [
+          "dfp_wish/domain/service_record_admin/projection.py",
+          "dfp_wish/domain/tests/service_record_admin/test_admin_projection.py"
+        ],
+        "checks": [
+          {
+            "command": "uv run --frozen --project domain --group test python -m pytest domain/tests/service_record_admin/test_admin_projection.py domain/tests/scrm/privacy/test_scr02_projection.py domain/tests/scrm/service_records/test_scr03_service_records.py -q",
+            "workdir": "dfp_wish",
+            "exit": 0,
+            "summary": "12 service-record projection/privacy/domain tests passed; duplicate media reference IDs fail closed."
+          },
+          {
+            "command": "uv run --frozen --project deerflow/backend --group dev python -m pytest exts/wish_adm/api/test_service_record_admin_router.py -q",
+            "workdir": "dfp_wish",
+            "exit": 0,
+            "summary": "6 service-record admin router tests passed."
+          },
+          {
+            "command": "python3 -m compileall -q domain/service_record_admin",
+            "workdir": "dfp_wish",
+            "exit": 0
+          },
+          {
+            "command": "git diff --check",
+            "workdir": "dfp_wish",
+            "exit": 0
+          }
+        ],
+        "status": "partial; duplicate media refs rejected; canonical service-record persistence/correction UoW remains incomplete"
+      },
+      {
+        "report": "progress.md",
         "commit": "db00d72",
         "push": "success",
         "changed_paths": [
