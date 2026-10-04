@@ -17612,6 +17612,42 @@
         ]
       },
       {
+        "report": "progress.md",
+        "commit": "906630c",
+        "push": "success",
+        "changed_paths": [
+          "dfp_wish/apps/wish-adm/src/app/(modules)/dashboard/page.tsx",
+          "dfp_wish/apps/wish-adm/src/app/(modules)/dashboard/page.test.tsx"
+        ],
+        "checks": [
+          {
+            "command": "npm test -- --run 'src/app/(modules)/dashboard/page.test.tsx' 'src/app/(modules)/appointments/page.test.tsx'",
+            "workdir": "dfp_wish/apps/wish-adm",
+            "exit": 0,
+            "summary": "3 dashboard/appointment page tests passed; home exposes direct common-workspace shortcuts without unverified counters."
+          },
+          {
+            "command": "npx eslint 'src/app/(modules)/dashboard/page.tsx' 'src/app/(modules)/dashboard/page.test.tsx'",
+            "workdir": "dfp_wish/apps/wish-adm",
+            "exit": 0
+          },
+          {
+            "command": "npm run build",
+            "workdir": "dfp_wish/apps/wish-adm",
+            "exit": 0
+          },
+          {
+            "command": "git diff --check",
+            "workdir": "dfp_wish",
+            "exit": 0
+          }
+        ],
+        "status": "partial; admin navigation page slice delivered, shared BFF contract and canonical six-domain services remain governed by their own tasks",
+        "open": [
+          "Dashboard only adds navigable links; it creates no local workflow facts or fake operational counters."
+        ]
+      },
+      {
         "report": "apps/wish-adm/src/app/(modules)/_shared/admin-api-contracts.test.ts",
         "checks": [
           {
