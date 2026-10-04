@@ -13023,6 +13023,36 @@
       },
       "delivery_wave": "I1-健康服务纵切",
       "automated_result": {
+        "latest_concurrent_waitlist_replay_regression": {
+          "status": "partial; simultaneous duplicate clicks are idempotently coalesced by repository",
+          "commit": "701d782",
+          "push": "success",
+          "changed_files": [
+            "jiankang_app_uniapp/tests/health/hlt-04-appointments.test.mjs"
+          ],
+          "commands": [
+            {
+              "command": "node --test tests/health/hlt-04-appointments.test.mjs",
+              "workdir": "jiankang_app_uniapp",
+              "exit": 0,
+              "summary": "18 tests passed; concurrent same-key waitlist requests resolve with one adapter call."
+            },
+            {
+              "command": "node tests/health/hlt-04-appointments-uts-static-check.mjs",
+              "workdir": "jiankang_app_uniapp",
+              "exit": 0,
+              "summary": "Appointment scripts parse and repository strict type check passes."
+            },
+            {
+              "command": "git diff --check",
+              "workdir": "jiankang_app_uniapp",
+              "exit": 0
+            }
+          ],
+          "open": [
+            "Synthetic adapter regression does not establish canonical Wish API persistence or cross-client integration."
+          ]
+        },
         "latest_invalid_cancel_reference_regression": {
           "status": "partial; invalid references are rejected before adapter access",
           "commit": "c876478",
