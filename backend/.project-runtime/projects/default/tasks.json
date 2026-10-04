@@ -17690,6 +17690,48 @@
         ]
       },
       {
+        "report": "progress.md",
+        "commit": "68935e7",
+        "push": "success",
+        "changed_paths": [
+          "dfp_wish/exts/wish_adm/services/menu_data.py",
+          "dfp_wish/exts/wish_adm/api/test_menu_tree.py"
+        ],
+        "checks": [
+          {
+            "command": "PYTHONPATH=deerflow/backend uv run --frozen --project deerflow/backend --group dev python -m pytest exts/wish_adm/api/test_menu_tree.py::test_admin_sees_full_tree exts/wish_adm/api/test_menu_tree.py::test_service_catalog_menu_is_visible_to_admin_and_manager_only -q",
+            "workdir": "dfp_wish",
+            "exit": 0,
+            "summary": "2 backend menu/role regression tests passed; /appointments remains role-gated and selected as destination."
+          },
+          {
+            "command": "npm test -- --run 'src/components/shell/nav.test.ts' 'src/app/(modules)/dashboard/page.test.tsx' 'src/app/(modules)/appointments/page.test.tsx'",
+            "workdir": "dfp_wish/apps/wish-adm",
+            "exit": 0,
+            "summary": "13 frontend navigation/dashboard/appointment tests passed."
+          },
+          {
+            "command": "npx eslint 'src/components/shell/nav.ts' 'src/components/shell/nav.test.ts'",
+            "workdir": "dfp_wish/apps/wish-adm",
+            "exit": 0
+          },
+          {
+            "command": "npm run build",
+            "workdir": "dfp_wish/apps/wish-adm",
+            "exit": 0
+          },
+          {
+            "command": "git diff --check",
+            "workdir": "dfp_wish",
+            "exit": 0
+          }
+        ],
+        "status": "partial; appointment menu breadcrumb aligned; module API/domain closures remain owned by their tasks",
+        "open": [
+          "Only menu path/label alignment changed; no roles or permission grants were broadened."
+        ]
+      },
+      {
         "report": "apps/wish-adm/src/app/(modules)/_shared/admin-api-contracts.test.ts",
         "checks": [
           {
