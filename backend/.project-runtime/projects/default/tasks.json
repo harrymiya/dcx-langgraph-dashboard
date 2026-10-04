@@ -18286,6 +18286,37 @@
         ]
       },
       {
+        "report": "progress.md",
+        "commit": "fd86ac8",
+        "push": "success",
+        "changed_paths": [
+          "dfp_wish/exts/wish_adm/bootstrap.py",
+          "dfp_wish/exts/wish_adm/test_bootstrap_service_catalog.py"
+        ],
+        "checks": [
+          {
+            "command": "PYTHONPATH=deerflow/backend uv run --frozen --project deerflow/backend --group dev python -m pytest exts/wish_adm/test_bootstrap_service_catalog.py exts/wish_adm/api/test_customer_profile_router.py exts/wish_adm/api/test_followup_admin_router.py -q",
+            "workdir": "dfp_wish",
+            "exit": 0,
+            "summary": "10 bootstrap/customer-profile/follow-up router tests passed; customer profile router is registered."
+          },
+          {
+            "command": "python3 -m compileall -q exts/wish_adm/bootstrap.py exts/wish_adm/api/customer_profile_router.py exts/wish_adm/api/followup_admin_router.py",
+            "workdir": "dfp_wish",
+            "exit": 0
+          },
+          {
+            "command": "git diff --check",
+            "workdir": "dfp_wish",
+            "exit": 0
+          }
+        ],
+        "status": "partial; task remains planned pending canonical Wish customer/relationship API, repository/database and formal operator scope",
+        "open": [
+          "Customer page and BFF route are connected; canonical customer upstream remains unavailable and projections fail closed."
+        ]
+      },
+      {
         "report": "dfp_wish/domain/customer_profile_admin/WADM-11-run-report.md",
         "checks": [
           {
