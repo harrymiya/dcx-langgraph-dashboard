@@ -1,10 +1,12 @@
 # DFP Wish 健康服务与 SCRM DAG 架构索引
 
-本文索引 `backend/tasks.json` 的 APP、DFP Wish 后端和管理工作台任务。任务仍全部为 `planned`；设计、目标代码路径和验收场景均不构成功能已实现或通过验收的证据。
+本文索引 `backend/tasks.json` 的 APP、DFP Wish 后端和管理工作台任务。方案源 task definitions 均为 `planned`；活跃实施状态以 `backend/.project-runtime/projects/default/tasks.json` 为准。设计、目标代码路径和验收场景不构成功能已实现或通过验收的证据。
 
 ## 正式架构基线
 
-指定小程序仅选择迁移清单映射到 35 个任务 ID 的页面迁入 APP：`COM-01..06`、`ORD-01..05`、`MEM-01..10`、`CNT-01..07`、`USR-01..06`、`MER-01`。任务只迁移 APP 前端页面/入口，正式链路为 `APP 页面/入口 → MAPP server → 原有业务数据/服务`。未被这些任务选择的客户路由继续沿用 `小程序原客户端 → MAPP server`；员工/商户工作台及范围外记录保留迁移清单标注的既有入口。APP 首页三个第三方小程序按钮只拉起其他第三方小程序，是外部入口，不属于本次迁移且不进入迁移任务。13 个明确属于 Wish 的任务单独走 `wish-formal-business` 泳道，链路为 `APP → Wish APP BFF → Wish API/application service → DDD`，不得接入 MAPP server。
+163 条来源路由全部进入全量交付 DAG：40 个 `formal-app-migration` 任务（`COM-01..06`、`ORD-01..05`、`MEM-01..10`、`CNT-01..07`、`USR-01..06`、`MER-01..06`）承接 159 条 MAPP 客户与员工/商户页面，只迁移 APP 前端并调用 `MAPP server → 原有业务数据/服务`。主壳/Wish 所属其余 4 条路由由 FND/HWI 任务承接。员工/商户页面使用独立 manager 身份及 tenant/site/role 授权，旧 MAPP 路由仅作逐页切流前回退。APP 首页三个第三方小程序按钮仍是外部入口；13 个明确属于 Wish 的任务走 `wish-formal-business` 泳道 `APP → Wish APP BFF → Wish API/application service → DDD`，不得接入 MAPP server。
+
+`formal-app-migration` 的任务职责是迁移 APP 页面并复用原 MAPP server/API 和数据库，不在迁移项目另建后端/数据写主。六个 MAPP/Commerce 业务域以 VCOM/VORD/VMEM/VCNT/VUSR/VMER 各四项任务补齐管理导航/页面、核验 APP/Admin 到原 MAPP API/数据库的复用和端到端集成；仅当管理端所需操作在原系统缺失时，才扩展原 MAPP 权威代码。Wish 原生工作域的排除规则只限制 Wish 写主，不能排除 MAPP/Commerce 管理端交付。细目见 `GOV-01.data.vertical_closure_registry`、[垂直闭环矩阵](../../../jiankang_app_uniapp/docs/architecture/vertical-business-closure-matrix.md) 和[管理端导航原型](../../../jiankang_app_uniapp/docs/prototypes/business-admin-navigation-prototype.html)。
 
 正式主链固定为：
 
@@ -18,13 +20,13 @@ Wish 正式业务泳道：APP -> Wish APP BFF -> Wish API/application service ->
 
 ## 正式 APP 迁移业务与兼容回退泳道
 
-`formal-app-migration` 只登记 allowlist 中的 35 个小程序页面/入口迁移任务。机器范围登记在 `backend/tasks.json` 的 `GOV-01.data.migration_scope_policy`；每个所选任务必须有 `migration_scope: selected-page`、`migration_backend: MAPP server`、`migration_source_file` 和 `migration_source_page_ids`，页面 ID 必须对应手机端清单 `DAG task ID` 列映射。Agent 认领时须同时校验 registry、task lane 和来源页字段；字段缺失或不匹配时拒绝按迁移任务执行。迁移任务只交付 APP 前端页面/状态与 feature/repository，按原服务契约访问 MAPP server 原有业务数据/服务，不得依赖 Wish APP BFF、Wish API 或 Wish DDD。
+`formal-app-migration` 登记 allowlist 中的 40 个 MAPP 页面/入口迁移任务，承接 159 条客户及员工/商户页面；163 条 route 都必须有有效任务映射。机器范围登记在 `backend/tasks.json` 的 `GOV-01.data.migration_scope_policy`；每个所选任务必须有 `migration_scope: selected-page`、`migration_backend: MAPP server`、`migration_source_file` 和 `migration_source_page_ids`，页面 ID 必须对应手机端清单 `DAG task ID` 列映射。Agent 认领时须同时校验 registry、task lane 和来源页字段；字段缺失或不匹配时拒绝按迁移任务执行。迁移任务只交付 APP 前端页面/状态与 feature/repository，按原服务契约访问 MAPP server 原有业务数据/服务，不得依赖 Wish APP BFF、Wish API 或 Wish DDD。
 
 明确属于 Wish 的 13 个原生任务为 `APPBFF-01`、`HLT-01..07`、`HWI-01..05`，单独使用 `wish-formal-business`，任务字段标记 `migration_scope: wish-native`、`migration_backend: null` 和 Wish `backend_target_chain`。它们按 Wish API/DDD、schema、事件、管理工作域、测试与回退形成纵向闭环，不得接入 MAPP server。Wish 业务依赖 APPBFF-01 是合理的；它不得被误读为小程序迁移任务依赖。
 
 `legacy-compatibility-fallback` 是独立的受控回退泳道，只包含历史 route 登记、短期 adapter 和安全回退。它不改变 MAPP server 作为小程序迁移页面后端目标的边界；MAPP server 不新增独立登录、长期 token 或与本次页面迁移无关的新业务 API。
 
-`backend/tasks.json` 的 `data.migration_lane` 按任务边界标注。精确 allowlist、排除规则和 Wish 链定义在 `GOV-01.data.migration_scope_policy`；35 项迁移任务各自记录清单文件和页面 ID，13 项 Wish 原生任务记录 Wish 后端链且 `migration_backend` 为空。`GOV-03`、`FND-05`、`FND-08` 为 `legacy-compatibility-fallback`；共享身份契约/实现及安全门禁 `GOV-02`、`GOV-05`、`FND-01`、`API-02`、`API-03`、`IDN-01`、`SEC-*`、`TST-05`、`TST-06` 为 `cross-cutting-security-gate`。未跨越这些业务边界的通用平台任务可不填写该字段。
+`backend/tasks.json` 的 `data.migration_lane` 按任务边界标注。精确 allowlist、排除规则和 Wish 链定义在 `GOV-01.data.migration_scope_policy`；40 项迁移任务各自记录清单文件、route_inventory_page_ids 和 migration_source_page_ids，13 项 Wish 原生任务记录 Wish 后端链且 `migration_backend` 为空。`GOV-03`、`FND-05`、`FND-08` 为 `legacy-compatibility-fallback`；共享身份契约/实现及安全门禁 `GOV-02`、`GOV-05`、`FND-01`、`API-02`、`API-03`、`IDN-01`、`SEC-*`、`TST-05`、`TST-06` 为 `cross-cutting-security-gate`。未跨越这些业务边界的通用平台任务可不填写该字段。
 
 小程序前端迁移任务可以直接依赖 `IDN-01` 获取 APP session 边界契约，但不得依赖 `APPBFF-01`、Wish API 或 Wish DDD；Wish BFF/DDD 依赖仅适用于任务本身明确属于 Wish 的业务。桥接实现/适配任务 `FND-01`、`API-02`、`APPBFF-01`、`FND-08` 和安全验收 `TST-05`、`SEC-04` 按各自职责依赖 `IDN-01`；`TST-05`、`SEC-04` 对 Wish 业务链的安全验收依赖 `APPBFF-01`。`IDN-01` 是设计前置，不反向依赖下游实现。
 
@@ -83,10 +85,10 @@ APP 全局退出使 APP session 失效，并撤销该 session 派生的待兑换
 | IDN-S12 业务边界 | 一条正式迁移页面请求和一条明确属于 Wish 的新业务请求 | 前者直连 MAPP 原契约；后者走 APP BFF → Wish API/application → DDD；MAPP 边界不变 |
 | IDN-S13 登录连续性 | 历史微信登录/授权与可选手机号核验来源；已登录 APP 客户打开兼容页 | 历史身份只用于映射；APP 手机号 + 短信验证码是唯一客户登录；兼容页不二次登录 |
 
-管理员 `AUTH` 登录、认证、session、token、凭据与配置完全排除；不新增或调整任何 `AUTH` 任务。上述为目标设计和文档覆盖，不证明 APP、Wish、MAPP 或 adapter 已实现；真实服务、生产身份数据与外部写入保持关闭。未来并发消费、签名验证和运行时拒绝审计由相应实现/安全任务验收。
+管理端生产组织 SSO、认证 session 生命周期、登出/撤销与配置属于最终交付，由 WADM-17 实现；不得再以旧范围说明将管理员登录排除。上述为目标设计和文档覆盖，不证明 APP、Wish、MAPP 或 adapter 已实现；真实服务、生产身份数据与外部写入保持关闭。未来并发消费、签名验证和运行时拒绝审计由相应实现/安全任务验收。
 ## 任务统计与来源
 
-任务图共 **143 项**：**97 项 MVP 必须**、**46 项 MVP 后续**；当前任务状态均为 `planned`。`__start__`、`__end__` 是控制节点，不计入业务任务。管理工作台本轮增加的 **12 个任务**是 `WADM-00..05` 与 `WADM-11..16`；`APPBFF-01` 是单独的 APP 后端渠道任务，`IDN-01` 是客户会话桥接设计前置。
+产品方案任务图共 **173 项**：**98 项 MVP 必须**、**75 项 MVP 后续**；权威计划节点保持 `planned`，活跃 runtime 保存当前执行状态。`__start__`、`__end__` 是控制节点，不计入业务任务。管理工作台及身份当前共 **13 个任务**：`WADM-00..05` 与 `WADM-11..17`；`APPBFF-01` 是单独的 APP 后端渠道任务，`IDN-01` 是客户会话桥接设计前置。
 
 架构规划参考手机端总体方案、数据架构、DFP Wish 后台服务设计和既有任务索引。`backend/tasks.json` 的 `deps` 是唯一机器依赖源；`data.depends_on` 仅作一致性展示。
 
@@ -157,7 +159,7 @@ APP 全局退出使 APP session 失效，并撤销该 session 派生的待兑换
 
 ## 授权、数据与事件规则
 
-- 每次读写都由 Wish 服务端根据授权主体解析 tenant/site；请求中的 `site_id` 不能覆盖授权范围。APP BFF 和 Admin BFF 复用 `API-03` 角色/站点策略，不新增管理员身份认证任务。
+- 每次读写都由 Wish 服务端根据授权主体解析 tenant/site；请求中的 `site_id` 不能覆盖授权范围。APP BFF 和 Admin BFF 复用 `API-03` 角色/站点策略；管理端组织身份、operator 映射和管理员 session 由 `WADM-17` 单独处理。
 - 客户 APP session 是唯一登录来源；迁移 bridge 仅短时单次续接身份。退出、撤销、过期、越权或桥接失败要 fail closed 并写入脱敏审计，fallback 只回 APP 原生安全页/APP 登录入口。
 - 客户、健康数据、预约、服务记录、服务账和审计采用最小字段投影。家属/代理关系本身不构成健康字段授权；跨站访问要有具体对象、站点、用途和有效期授权。
 - Wish 是健康服务、SCRM 和健康服务账唯一权威写端；Commerce/MER 是商城订单和商城账唯一权威写端。禁止双写、账本合并或将商城购买推导成健康预约/参与事实。
@@ -165,21 +167,21 @@ APP 全局退出使 APP session 失效，并撤销该 session 派生的待兑换
 - 预约可用性、房间/设备/服务角色约束、容量、冲突、候补、改期和取消属于健康服务履约主线；它们不建立员工日历，也不维护员工班次、休假或调班。
 - 历史 route/外链 fallback 由 APP 路由 allowlist 和短期 adapter 控制；fallback 不改变业务写主。MAPP server 是小程序迁移前端调用的原业务后端，不是 Wish API/DDD 的替代或子集。
 
-## 本轮明确排除
+## Wish 原生域排除（MAPP 页面迁移仍执行）
 
-- 管理员登录、验证码、认证、session、token 或凭据问题；不新增或调整 AUTH 任务。`IDN-01` 仅设计客户 APP session bridge，不改变管理员认证范围。
-- 员工排班管理、班次、休假、调班、员工日历和人员资源维护界面。
-- 物料/耗材库存、低库存、仓库、采购、盘点或仓库成本。服务记录可写本次用品文本。
-- 绩效、提成、薪酬、员工结算；日常运营 KPI/日报；日常收银工作台；商户经营管理。
-- 新建第二套小程序业务后台或管理平台；MAPP server 按既有服务契约承载指定小程序迁移页面和未迁移小程序原客户端。
+- 不得新建未经来源登记的身份任务；Wish Admin 组织 SSO 已由 `WADM-17` 纳入交付，使用 Feishu OAuth/IAM、当前 `union_id` → operator contract 和服务端 active/role/tenant/site 校验。`IDN-01` 仅负责客户 APP migration bridge，不取代管理员认证。
+- Wish 不新增员工排班管理、班次、休假、调班、员工日历和人员资源维护界面；健康预约仅消费已确认的可用性/资源状态。
+- Wish 不新增物料/耗材库存、低库存、仓库、采购、盘点或仓库成本域；服务记录可写本次用品文本。MAPP 来源商品/库存页面 MP160–MP162 由 MER-06 迁入 APP 并调用 MAPP/Commerce 原服务。
+- Wish 不新增绩效、提成、薪酬、员工结算、额外运营 KPI/日报或 Wish 商城收银/经营后台。该边界只限定 Wish 健康/SCRM 域；MAPP/Commerce 管理端必须按垂直闭环矩阵建设。MAPP 来源页 MP141–MP159 由 MER-03..05 迁入 APP 并调用 MAPP/Commerce 原服务，不进入 Wish 服务账。
+- 不在 Wish 健康/SCRM 内新建重复的 MAPP 后台或第二写主。MAPP/Commerce 的原平台端、商家端继续按六个垂直域任务补齐管理页面；API 和数据库沿用原 MAPP 权威实现并由源码/集成验收核验，只有确认管理操作缺少能力时才扩展原服务。APP 迁移页继续调用该权威 MAPP 服务。
 
 ## 校验口径
 
-任务图校验应确认全部 **143** 个任务状态为 `planned`，ID 唯一，`deps` 全部存在且无环，`data.depends_on` 与 `deps` 一致；MVP 统计由 `data.scope == "MVP必须"` 计算，后续统计由 `data.scope == "MVP后续"` 计算。迁移任务必须使用独占 `formal-app-migration`、声明 `backend_target: MAPP server`，且不依赖 Wish APP BFF/DDD；明确属于 Wish 的任务使用 `wish-formal-business`。其他迁移边界的 `data.migration_lane` 可为 `legacy-compatibility-fallback` 或 `cross-cutting-security-gate`。新增任务必须有唯一 `file_claims`、可执行 `targeted_tests` 和任务级 `rollback_or_fallback`；新增数据不填写 owner、commit、evidence 或 verified_at。
+任务图校验应确认基线含 **173** 个任务（98/75），ID 唯一，`deps` 全部存在且无环，`data.depends_on` 与 `deps` 一致；MVP 统计由 `data.scope == "MVP必须"` 计算，后续统计由 `data.scope == "MVP后续"` 计算。迁移任务必须使用独占 `formal-app-migration`、声明 `backend_target: MAPP server`，且不依赖 Wish APP BFF/DDD；明确属于 Wish 的任务使用 `wish-formal-business`。其他迁移边界的 `data.migration_lane` 可为 `legacy-compatibility-fallback` 或 `cross-cutting-security-gate`。新增任务必须有唯一 `file_claims`、可执行 `targeted_tests` 和任务级 `rollback_or_fallback`；新增数据不填写 owner、commit、evidence 或 verified_at。
 
 ## 上位方案全量覆盖 registry
 
-手机端总体设计是 DAG 的上位基线。DAG 需要追踪总体方案、迁移清单和跨项目架构中的可执行事项、当前保留项、明确范围外项及架构约束类别；35 个 `formal-app-migration` 页面任务和 13 个 Wish 原生任务只是其中两类，不构成完整覆盖声明。
+手机端总体设计是 DAG 的上位基线。DAG 需要追踪总体方案、迁移清单和跨项目架构中的可执行事项、当前保留项、明确范围外项及架构约束类别；40 个 `formal-app-migration` 页面任务、163 条 route-to-task 映射和 13 个 Wish 原生任务均须逐项覆盖，不构成完整覆盖声明。
 
 机器登记唯一位于 `backend/tasks.json` 的 `GOV-01.data.overall_plan_coverage.requirements_registry`。每项必须有唯一 `source_id`、`source_file`、`source_section`、`coverage_status`、`mapped_task_ids`、`client`、`backend_target` 和 `migration_lane`；每个任务必须在 `data` 中写入非空 `source_of_truth`、`source_item_ids` 和 `coverage_status`。允许的覆盖状态为 `planned`、`current-state-retained`、`out-of-scope-with-reason`，范围外条目须给出 `coverage_reason`。`current-state-retained` 仅表示来源文档要求保留该基线，不表示运行时已验证。registry 和任务映射必须完全双向，不得出现未映射项、孤立任务或来源为空的通用任务。
 
@@ -189,7 +191,7 @@ APP 全局退出使 APP session 失效，并撤销该 session 派生的待兑换
 python scripts/validate_plan_coverage.py --source-root /home/agent/code/jiankang_app_uniapp
 ```
 
-脚本检查 registry 非空、来源/状态/泳道字段、任务映射双向完整、143 个任务均为 planned、97/46 范围统计、ID 唯一、依赖存在且 `data.depends_on` 与 `deps` 一致、DAG 无环、35/13 两条后端泳道边界，以及可用时 35 个迁移任务的 MP 页面 ID 与上游清单精确相等。登记状态和脚本通过只证明覆盖与结构校验，不证明业务实现。
+脚本检查 registry 非空、来源/状态/泳道字段、任务映射双向完整、173 个基线任务、98/75 范围统计、9 个垂直业务闭环与 24 个 MAPP 管理/原后端复用核验/集成节点、ID 唯一、依赖存在且 `data.depends_on` 与 `deps` 一致、DAG 无环、40/13 两条后端泳道边界，以及 163 条页面到任务的完整映射和 40 个正式迁移任务的 MP 页面 ID。登记状态和脚本通过只证明覆盖与结构校验，不证明业务实现。
 
 ## WADM-00 管理端兼容基线登记（既有能力，不验收）
 
@@ -203,4 +205,4 @@ python scripts/validate_plan_coverage.py --source-root /home/agent/code/jiankang
 | 6 | 运营成员 | apps/wish-adm/src/app/(modules)/operators | 保留 |
 | 7 | 用户查询 | exts/wish_adm/api/users_router.py | 只读，不扩权 |
 
-六个前台业务域（客户档案/健康记录/预约/履约/SCRM/服务账）纵向支撑管理端同名工作域；交付边界以各 WADM 任务 file_claim 为准。明确排除：管理员认证改造、排班/库存/绩效/收银/商户经营。
+六个 Wish 前台业务域（客户档案/健康记录/预约/履约/SCRM/服务账）纵向支撑管理端同名工作域，边界以各 WADM task file_claim 为准；Wish Admin 组织 SSO 由 WADM-17 实施。MAPP 商户/员工移动页面（订单、售后、收银、库存）由 APP `MER-02..06` 迁移任务单独承接，不进入 Wish 服务账或疗愈师页面。未出现在来源路由和上位方案中的排班、薪酬、仓储成本及新增运营 BI 继续不扩展。

@@ -236,6 +236,12 @@ export async function createProjectStore({ runtimeRoot, seedTasks, seedProject }
       for (const field of runtimeFields) {
         if (Object.prototype.hasOwnProperty.call(saved, field)) task[field] = saved[field];
       }
+      const savedData = saved.data && typeof saved.data === "object" ? saved.data : {};
+      const definitionData = definition.data && typeof definition.data === "object" ? definition.data : {};
+      task.data = { ...savedData, ...definitionData };
+      if (Object.prototype.hasOwnProperty.call(savedData, "automated_result")) {
+        task.data.automated_result = savedData.automated_result;
+      }
       return task;
     });
     const knownIds = new Set(seedTasks.map((task) => task.id));

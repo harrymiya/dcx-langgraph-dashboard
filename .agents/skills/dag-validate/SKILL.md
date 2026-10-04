@@ -1,38 +1,28 @@
 ---
 name: dag-validate
-description: 跑基线覆盖率校验加本轮实施证据验收，解读 FAIL 并限制重试
+description: 按任务风险执行专项验收，并在图定义变化或发布阶段运行对应全量门禁
 ---
 
-# dag-validate：机器校验（双层）
+# 任务验收
 
-每轮收尾调用。两层都 PASS 才算过，没有“大概行”。
+## 普通实现任务
 
-## A 层：基线冻结门禁（cwd 固定 `/home/agent/code`）
+- 执行所选任务 data.targeted_tests、verify 或 acceptance 中与本轮目标对应的命令，记录实际命令、退出码、摘要和制品路径。
+- 对本任务修改的每个目标仓运行 git diff --check，并核对变更路径属于登记范围。
+- 根据目标平台选择必要的类型检查、构建或静态检查。无需为孤立模块重复跑跨端 E2E 和全套项目基线覆盖校验。
 
-```sh
-python3 dcx-langgraph-dashboard/scripts/validate_plan_coverage.py --source-root /home/agent/code/jiankang_app_uniapp
-```
+## DAG、registry 或迁移映射变化
 
-期望 6 行全 PASS（143 planned / 97+46 / 58 双向 / 35+13 泳道 / 状态集 / 清单逐项）。FAIL 即修即回滚，不顺势改基线 `backend/tasks.json`。
+运行：
 
-## B 层：本轮实施证据
+    python3 dcx-langgraph-dashboard/scripts/validate_plan_coverage.py --source-root /home/agent/code/jiankang_app_uniapp
 
-- 跑本轮任务的 `targeted_tests`（任务 `data.targeted_tests` / `verify` 注明的命令），要求 exit 0，记录命令、退出码、机器摘要。
-- `git diff --check` 两边仓库 exit 0；制品路径存在（测试/构建/契约产物）。
-- 缺外部配置用合成/沙箱夹具，真实写入保持关闭。
+记录 6 项机器输出。修复任务 ID、依赖、来源双向映射或泳道差异后重跑；基线应保持 149 项、98/51、40 项 MAPP 页面迁移、163 条路由逐项有 DAG 任务，以及 13 项 Wish 原生业务。
 
-## FAIL 处理
+## 集成/发布任务
 
-1. 把首个 `FAIL <原因>` 原样记入 `progress.md`。
-2. 只修本轮引入的漂移，不顺手重构无关任务。
-3. 同一 FAIL 最多重试 3 次；超限即停轮，在 progress 记 `BLOCKED: <原因>`。
-4. 常见根因速查：
-   - `expected 143 tasks` → 基线被动过，回滚基线。
-   - `data.depends_on does not match deps` → 以顶层 `deps` 为准同步。
-   - `migration page IDs do not match inventory` → 以清单表为准回填。
-   - `task/registry coverage links are not bidirectional` → 同步两侧链接。
-   - 本轮测试非 0 → 修代码/夹具，不改状态蒙混。
+执行任务登记的完整客户端/管理端/API/数据库集成、目标平台 build、隔离环境 E2E、权限负向、部署与回滚验收。release-ready 需要全部明确验收项通过；真实生产写入使用独立授权和环境。
 
-## 纪律
+## 失败处理
 
-- A 层未全 PASS 或 B 层非 0，不得标 `code-ready`，不得写 `<promise>DONE</promise>`；不许用 Markdown 叙述代替机器证据。
+将失败隔离在本任务，保留首条真实命令和错误、修复可确定的根因。仍失败时记录缺失前置并保持任务未完成，继续其他 ready task；不要重复跑相同失败命令，也不要停止整个 loop。

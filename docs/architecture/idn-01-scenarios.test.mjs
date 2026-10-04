@@ -59,9 +59,10 @@ test('生命周期失败均 fail closed、最小审计并安全回 APP 原生页
   assert.match(section, /不得记录 bridge、旧 token、nonce、原始 jti/);
 });
 
-test('管理员 AUTH 明确排除', () => {
-  assert.match(section, /管理员 `AUTH` 登录、认证、session、token、凭据与配置完全排除/);
-  assert.match(section, /不新增或调整任何 `AUTH` 任务/);
+test('管理员组织 SSO 属于最终交付且与客户 bridge 独立', () => {
+  assert.match(section, /管理端生产组织 SSO、认证 session 生命周期、登出\/撤销与配置属于最终交付/);
+  assert.match(section, /WADM-17/);
+  assert.match(section, /管理员身份体系与客户 session 分离/);
 });
 
 test('设计报告声明只做静态文档验收，不接真实服务或生产数据', () => {

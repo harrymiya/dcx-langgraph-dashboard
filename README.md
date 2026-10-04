@@ -9,20 +9,20 @@
 - 开发环境通过 Vite /langgraph 代理访问项目内的 http://127.0.0.1:8123
 - 开发/预览环境通过 Vite /api/agents/launch 在本机打开 Konsole，并在所选工作目录启动 Agent CLI
 
-当前项目内置 143 个业务节点（97 个 MVP 必须、46 个 MVP 后续）；LangGraph API 会额外返回 `__start__`、`__end__`
-两个控制节点。当前 143 项均为 `planned` 设计任务；DAG 与验收场景不代表业务已经实现。页面会根据接口响应实时计算数量。
+当前产品方案内置 173 个业务任务（98 个 MVP 必须、75 个 MVP 后续；含 24 个 MAPP 管理导航/页面、原 API/数据库复用核验与集成任务）；MAPP 页面迁移继续调用原 MAPP server/API 和数据库，不在迁移项目另建后端或数据写主。LangGraph API 会额外返回 `__start__`、`__end__`
+两个控制节点。方案源 173 项均为 `planned` 设计任务；default runtime 保存实际实施状态，DAG 与验收场景不代表业务已经实现。页面会根据接口响应实时计算数量。
 
 ## 任务图架构边界
 
-指定小程序页面选择性迁入 APP：只有 35 个清单任务 `COM-01..06`、`ORD-01..05`、`MEM-01..10`、`CNT-01..07`、`USR-01..06`、`MER-01` 属于 `formal-app-migration`，只迁移 APP 前端页面/入口，链路为 `APP 页面/入口 -> MAPP server -> 原有业务数据/服务`。范围登记在 `backend/tasks.json` 的 `GOV-01.data.migration_scope_policy`；任务级来源页 ID 与手机端迁移清单逐项对应。未选客户路由继续由原小程序客户端调用 MAPP server；员工/商户工作台和范围外记录保留清单标注的既有入口。APP 首页三个第三方小程序按钮只拉起外部小程序，不进入迁移任务。13 个 Wish 原生任务 `APPBFF-01`、`HLT-01..07`、`HWI-01..05` 单独走 `APP -> Wish APP BFF -> Wish API/application service -> DDD`，不接 MAPP server。`IDN-01` 的一次性 bridge 只用于需要续接身份的未迁移历史 route，不改变正式迁入页面直连 MAPP server 的边界。所有目标架构均为设计/未实现；管理员登录与认证不属于本阶段。
+MAPP 页面全量迁入 APP：163 条来源路由均映射到 DAG 任务；40 个 `formal-app-migration` 任务（`COM-01..06`、`ORD-01..05`、`MEM-01..10`、`CNT-01..07`、`USR-01..06`、`MER-01..06`）承接 159 条 MAPP 客户与员工/商户页面，并调用 MAPP server 原服务。主壳/Wish 所属 4 条路由由 FND/HWI 任务承接；staff 页面使用独立 manager 身份和 tenant/site/role 授权。旧 MAPP 路由只作逐页完成前回退。范围登记在 `GOV-01.data.migration_scope_policy`，任务级 route page IDs 必须与手机端清单逐项一致。三个第三方小程序按钮为外部入口。13 个 Wish 原生任务单独走 `APP -> Wish APP BFF -> Wish API/application service -> DDD`，不接 MAPP server。管理员生产 SSO 由 WADM-17 纳入最终交付，使用 `union_id` → operator 权威映射。
 
-总体方案是 DAG 的上位基线，143 个任务必须通过 `backend/tasks.json` 中 `GOV-01.data.overall_plan_coverage.requirements_registry` 覆盖全部可执行事项、保留项、范围外事项和架构约束类别。每个 registry 项与任务的 `source_item_ids` 双向登记来源，不能仅凭 35 个页面迁移任务和 13 个 Wish 原生任务宣称全量覆盖。修改 registry、来源映射或任务依赖后运行：
+总体方案是 DAG 的上位基线，173 个任务及 9 个垂直业务闭环必须通过 `backend/tasks.json` 中 `GOV-01.data.overall_plan_coverage.requirements_registry` 覆盖全部可执行事项、保留项、范围外事项和架构约束类别。每个 registry 项与任务的 `source_item_ids` 双向登记来源，不能只凭 lane 数量宣称全量覆盖，163 条路由与其余方案要求均须逐项登记。修改 registry、来源映射或任务依赖后运行：
 
 ```sh
 python scripts/validate_plan_coverage.py --source-root /home/agent/code/jiankang_app_uniapp
 ```
 
-该命令校验来源覆盖、任务状态与数量、依赖一致性和无环，并在上游仓库可用时逐项核对 35 个任务的 MP 页面 ID。
+该命令校验来源覆盖、任务状态与数量、依赖一致性和无环，并在上游仓库可用时逐项核对 40 个任务的 MP 页面 ID 与 163 条路由到任务的完整映射。
 
 ![Refactor Control Room 演示](docs/demo.png)
 

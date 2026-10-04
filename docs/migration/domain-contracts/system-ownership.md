@@ -9,7 +9,7 @@
 | 来源（相对 `/home/agent/code/jiankang_app_uniapp`） | 对应章节 |
 | --- | --- |
 | `docs/ruixin-health-app-scrm-complete-design.md` | §1.1 客户登录、§6 权威域、§7 双站与双账隔离、§8 迁移 |
-| `docs/architecture/health-scrm-cross-project-architecture.md` | §2 系统与身份边界、§3 纵向模块、§6 管理员认证排除、§7 分层与写主 |
+| `docs/architecture/health-scrm-cross-project-architecture.md` | §2 系统与身份边界、§3 纵向模块、§6 Wish Admin 生产组织 SSO、§7 分层与写主 |
 | `docs/migration/mapp-page-migration-inventory.md` | 来源基线及 MP001–MP163 逐项映射 |
 
 `contract-policy.json` 是本目录验收用的机器契约，引用 GOV-02 的全部 `source_item_ids`，不另建需求 registry、任务 allowlist、API schema 或路由中心。来源 SHA-256 与执行命令保存在 `verification-results.json`。GOV-01 仍为 `planned`；其已有来源台账可用，但独立 MAPP checkout 的 Git 对象未经本任务验证，不能把声明的 release SHA 当作代码验证结果。
@@ -19,20 +19,20 @@
 | 泳道/入口 | 固定调用链 | 禁止行为 |
 | --- | --- | --- |
 | `formal-app-migration` | APP 页面/状态 → feature/repository → MAPP server → 原有业务数据/服务 | 仅迁移前端；不依赖 Wish APP BFF/API/DDD，不强制经过 bridge |
-| 未迁移小程序原客户端 | 小程序原客户端 → MAPP server → 原有业务数据/服务 | 不与 APP 迁移泳道合并，不新建迁移任务 |
+| 迁移期间的 MAPP route 回退 | 切流前：原小程序客户端 → MAPP server → 原有业务数据/服务 | 只作逐页验收前回退；163 条路由均有 DAG 页面任务 |
 | `wish-formal-business` | APP → Wish APP BFF → Wish API/application service → DDD → repository/UoW/事务 → Wish DB/Outbox/Event → read model/audit | 不接 MAPP server；APP/BFF 不直连 DB、ORM 或写事件总线 |
-| Wish 管理工作域 | 管理工作台 → Wish Admin BFF → 同一 Wish API/application service/DDD 与写主 | 不复制领域状态机、不建立第二套服务账；管理员认证保持范围外 |
+| Wish 管理工作域 | 组织 SSO → union_id/operator 权限映射 → Wish Admin BFF → 同一 Wish API/application service/DDD 与写主 | 不复制领域状态机、不建立第二套服务账；生产禁用 seed/mock 与自助提权 |
 | `legacy-compatibility-fallback` | APP session → Wish 服务端一次性 bridge → allowlisted 历史 route/短期 adapter | bridge 只续接身份，不授权新业务，不成为正式迁移页入口 |
 | 首页三个第三方小程序按钮 | APP 外部入口 → 对应第三方小程序 | 不创建迁移任务，不连接本图 MAPP server |
 
-迁移认领必须读取 GOV-01 唯一 allowlist（35 项）和任务的 lane、`migration_scope: selected-page`、`migration_backend: MAPP server`、来源文件及 MP 页面 ID；与清单不匹配即拒绝认领。13 个 Wish 原生任务使用 `wish-native`、空 `migration_backend` 和 Wish 后端链。数量不是全量方案覆盖证明，覆盖仍由 GOV-01 registry 双向校验。
+迁移认领必须读取 GOV-01 唯一 allowlist（40 项），并校验 163 条路由全部映射到有效任务和任务的 lane、`migration_scope: selected-page`、`migration_backend: MAPP server`、来源文件及 MP 页面 ID；与清单不匹配即拒绝认领。13 个 Wish 原生任务使用 `wish-native`、空 `migration_backend` 和 Wish 后端链。数量不是全量方案覆盖证明，覆盖仍由 GOV-01 registry 双向校验。
 
 ## 唯一事实写主与拒绝责任
 
 | 事实/责任 | 唯一权威方 | 其他系统可做什么 / 拒绝方 |
 | --- | --- | --- |
 | APP 客户认证凭证、APP session | 经确认的客户身份源；APP 是唯一客户登录入口 | Wish 不保存密码/验证码；FND-01 的 APP session 边界拒绝第二次登录流程 |
-| 租户、组织、员工主体、平台角色 | 平台/IAM 既有控制面 | Wish 只保存受验证引用与业务授权；本轮不调查或修改管理员认证 |
+| 租户、组织、员工主体、平台角色 | 平台/IAM 既有控制面 | Wish 只保存受验证引用与业务授权；Wish Admin production SSO 通过 Feishu OAuth/IAM 和当前 union_id → operator contract 服务端核验 active 状态、角色及 tenant/site scope |
 | 客户主档、身份映射、关系、purpose consent、SCRM | Wish CRM/consent/SCRM | Wish application/DDD 拒绝未经验证映射、同号自动合并和未经授权的读取/写入 |
 | 健康数据/报告 | 经业务和隐私 owner 确认的健康域，由 Wish 按授权引用/服务 | owner 未确认前不导入；Commerce、营销、普通日志不复制健康正文 |
 | 健康目录、预约/资源锁、履约/SOP、服务记录 | Wish 服务域 | Wish application/DDD 拒绝越权；记录更正追加，不能用商城购买推导预约或参与事实 |

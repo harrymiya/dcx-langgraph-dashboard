@@ -1,35 +1,26 @@
 ---
 name: dag-record
-description: 把单轮实施结果写回实施轨 tasks.json 与 progress.md，保持连续体不断
+description: 将当前任务的实现、专项验收和交付证据写回活跃执行轨
 ---
 
-# dag-record：写回证据与连续体
+# 写回执行记录
 
-每轮在 `dag-validate` 双层 PASS 后调用。本 skill 是 loop 跨轮记忆的唯一载体。
+每个已完成或遇到真实阻塞的任务及时记录。只修改当前任务记录，不展开或重写整个任务图。
 
-## 1. 写实施轨 `backend/.project-runtime/projects/default/tasks.json`
+## 实施轨
 
-- 只改本轮 `next_task`：`status` 按验收推进（`planned`→`contract-ready`→`code-ready`，发布项才到 `release-ready`），补 `automated_result`（命令、退出码、摘要、制品路径、安全降级说明）与相关证据字段；不改 `id`/`deps`，不碰 `AUTH`，不动基线 `backend/tasks.json`。
-- 基线登记（`GOV-01` registry 双向链接）如需同步，只在 validator 要求时改，且改后立即重跑 A 层，PASS 才算成功。
+文件：dcx-langgraph-dashboard/backend/.project-runtime/projects/default/tasks.json
 
-## 2. 写 `/home/agent/code/progress.md`（每轮必写）
+完成专项实现和 targeted_tests 后，将状态从 planned/contract-ready 推进为 code-ready，并写入机器可读的 automated_result：目标仓、变更路径、命令、退出码、摘要、制品、commit/push 结果、安全降级或遗留项。完整部署与跨端集成验收通过后，发布任务才可标 release-ready。失败任务保留原状态并记录 blocker，不伪装完成。
 
-在文件尾追加一轮小节：
+不改冻结方案基线 backend/tasks.json，除非发现可追溯的方案覆盖缺口；确需修改时同步 source registry、deps、目标路径与来源映射，再运行完整计划 validator。
 
-```text
-## <日期> <TASK_ID> <一句话>
-- DONE: <本轮完成的实施轨 id；就绪集由 dag-claim-next 从实施轨重算，本行仅审计用>
-- 做了什么：（改了哪些 target_paths，测试命令+退出码，一行一条）
-- 校验：A 层 validator 全 PASS + B 层 targeted_tests exit 0
-- 下轮 next_hint：（按实施轨 deps 拓扑建议 1 个，不要写死）
-- open/blocked：（无则写 无）
-```
+## progress.md
 
-- 旧 `DONE_TASKS:` 累积行已废弃（实施轨状态即真相），保留历史行不再追加新格式即可。
-- 大批量落地（≥3 任务）时同步追加 `dcx-langgraph-dashboard/docs/reports/tasks/RUN-<日期>-<范围>.md`（命令、退出码、commit、推送实录，参照 `RUN-20261001-gov-ux-fnd.md`）。
-- `git commit/push` 仅用户明确要求才做；默认只留工作区文件 + 校验日志。
+保持滚动摘要而非重复历史日志，记录：
+- 当前 WIP/task id 和已改目标；
+- 最近完成项的测试/commit/push 结果；
+- 具体 open/blocker 与直接依赖；
+- 从活跃 DAG 重算的 next task。
 
-## 3. 一轮小结输出
-
-- 3~5 行中文：next_task、改动点、双层校验结果、下轮起点。
-- 只有同时满足（实施轨就绪集为空 + A/B 全 PASS + 无 open 项）才在末尾另起一行输出 `<promise>DONE</promise>`；否则绝不输出。
+保留最近 10 个完成记录。详细执行日志留在对应仓库 docs/reports/tasks，周期性将更早内容归档，禁止重复追加相同 BLOCKED 说明。
