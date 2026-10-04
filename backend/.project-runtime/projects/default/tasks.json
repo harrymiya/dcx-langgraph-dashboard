@@ -4362,9 +4362,27 @@
             "exit": 0
           }
         ]
+      },
+      {
+        "report": "progress.md",
+        "commit": "0b45011",
+        "push": "success",
+        "checks": [
+          {
+            "command": "node --test pages/commerce/catalog/com-01-contract.test.mjs pages/commerce/product/com-03-contract.test.mjs pages/commerce/cart/com-04-contract.test.mjs pages/commerce/checkout/com-05-contract.test.mjs pages/commerce/orders/ord-01-contract.test.mjs pages/commerce/payment/ord-02-contract.test.mjs pages/commerce/logistics/ord-03-contract.test.mjs pages/commerce/after-sales/ord-04-contract.test.mjs pages/commerce/reviews/ord-05-contract.test.mjs tests/auth/navigation.test.mjs",
+            "workdir": "jiankang_app_uniapp",
+            "exit": 0,
+            "summary": "52 Commerce/order/auth tests passed; 20 Commerce routes registered; order details now link payment/logistics/after-sales."
+          },
+          {
+            "command": "git diff --check",
+            "workdir": "jiankang_app_uniapp",
+            "exit": 0
+          }
+        ]
       }
     ],
-    "verified_at": "2026-10-02T02:12:14-07:00"
+    "verified_at": "2026-10-02T09:29:31+08:00"
   },
   {
     "id": "COM-02",
@@ -4613,6 +4631,24 @@
             "exit": 0
           }
         ]
+      },
+      {
+        "report": "progress.md",
+        "commit": "0b45011",
+        "push": "success",
+        "checks": [
+          {
+            "command": "node --test pages/commerce/product/com-03-contract.test.mjs pages/commerce/catalog/com-01-contract.test.mjs pages/commerce/orders/ord-01-contract.test.mjs tests/auth/navigation.test.mjs",
+            "workdir": "jiankang_app_uniapp",
+            "exit": 0,
+            "summary": "Product detail image fallback and Commerce route registration verified."
+          },
+          {
+            "command": "git diff --check",
+            "workdir": "jiankang_app_uniapp",
+            "exit": 0
+          }
+        ]
       }
     ],
     "verified_at": "2026-10-01T17:34:46-07:00"
@@ -4744,6 +4780,24 @@
           },
           {
             "command": "python3 scripts/validate_plan_coverage.py --source-root /home/agent/code/jiankang_app_uniapp",
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "report": "progress.md",
+        "commit": "0b45011",
+        "push": "success",
+        "checks": [
+          {
+            "command": "node --test pages/commerce/cart/com-04-contract.test.mjs pages/commerce/orders/ord-01-contract.test.mjs pages/commerce/payment/ord-02-contract.test.mjs pages/commerce/logistics/ord-03-contract.test.mjs pages/commerce/after-sales/ord-04-contract.test.mjs",
+            "workdir": "jiankang_app_uniapp",
+            "exit": 0,
+            "summary": "Cart to order/payment/logistics/after-sales contract chain passed."
+          },
+          {
+            "command": "git diff --check",
+            "workdir": "jiankang_app_uniapp",
             "exit": 0
           }
         ]
@@ -5015,6 +5069,24 @@
             "exit": 0
           }
         ]
+      },
+      {
+        "report": "progress.md",
+        "commit": "0b45011",
+        "push": "success",
+        "checks": [
+          {
+            "command": "node --test pages/commerce/checkout/com-05-contract.test.mjs pages/commerce/orders/ord-01-contract.test.mjs pages/commerce/payment/ord-02-contract.test.mjs pages/commerce/logistics/ord-03-contract.test.mjs pages/commerce/after-sales/ord-04-contract.test.mjs pages/commerce/reviews/ord-05-contract.test.mjs",
+            "workdir": "jiankang_app_uniapp",
+            "exit": 0,
+            "summary": "Checkout handoff and post-order operational routes passed."
+          },
+          {
+            "command": "git diff --check",
+            "workdir": "jiankang_app_uniapp",
+            "exit": 0
+          }
+        ]
       }
     ],
     "verified_at": "2026-10-01T19:18:36-07:00"
@@ -5157,6 +5229,24 @@
           },
           {
             "command": "python3 scripts/validate_plan_coverage.py --source-root /home/agent/code/jiankang_app_uniapp",
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "report": "progress.md",
+        "commit": "0b45011",
+        "push": "success",
+        "checks": [
+          {
+            "command": "node --test pages/commerce/orders/ord-01-contract.test.mjs pages/commerce/payment/ord-02-contract.test.mjs pages/commerce/logistics/ord-03-contract.test.mjs pages/commerce/after-sales/ord-04-contract.test.mjs pages/commerce/reviews/ord-05-contract.test.mjs",
+            "workdir": "jiankang_app_uniapp",
+            "exit": 0,
+            "summary": "Order list/detail now exposes payment, logistics, and after-sales routes; 25 order contract tests passed."
+          },
+          {
+            "command": "git diff --check",
+            "workdir": "jiankang_app_uniapp",
             "exit": 0
           }
         ]
@@ -5310,6 +5400,24 @@
             "exit": 0
           }
         ]
+      },
+      {
+        "report": "progress.md",
+        "commit": "0b45011",
+        "push": "success",
+        "checks": [
+          {
+            "command": "node --test pages/commerce/payment/ord-02-contract.test.mjs pages/commerce/orders/ord-01-contract.test.mjs",
+            "workdir": "jiankang_app_uniapp",
+            "exit": 0,
+            "summary": "Payment status/start contract remains MAPP-only and never guesses success."
+          },
+          {
+            "command": "git diff --check",
+            "workdir": "jiankang_app_uniapp",
+            "exit": 0
+          }
+        ]
       }
     ],
     "verified_at": "2026-10-01T23:35:17-07:00"
@@ -5458,6 +5566,24 @@
             "exit": 0
           }
         ]
+      },
+      {
+        "report": "progress.md",
+        "commit": "0b45011",
+        "push": "success",
+        "checks": [
+          {
+            "command": "node --test pages/commerce/logistics/ord-03-contract.test.mjs pages/commerce/orders/ord-01-contract.test.mjs",
+            "workdir": "jiankang_app_uniapp",
+            "exit": 0,
+            "summary": "Logistics read-only MAPP contract and order detail route are verified."
+          },
+          {
+            "command": "git diff --check",
+            "workdir": "jiankang_app_uniapp",
+            "exit": 0
+          }
+        ]
       }
     ],
     "verified_at": "2026-10-01T23:43:57-07:00"
@@ -5601,6 +5727,24 @@
             "exit": 0
           }
         ]
+      },
+      {
+        "report": "progress.md",
+        "commit": "0b45011",
+        "push": "success",
+        "checks": [
+          {
+            "command": "node --test pages/commerce/after-sales/ord-04-contract.test.mjs pages/commerce/orders/ord-01-contract.test.mjs",
+            "workdir": "jiankang_app_uniapp",
+            "exit": 0,
+            "summary": "After-sales read/write session gates and order detail route are verified."
+          },
+          {
+            "command": "git diff --check",
+            "workdir": "jiankang_app_uniapp",
+            "exit": 0
+          }
+        ]
       }
     ],
     "verified_at": "2026-10-01T17:56:14-07:00"
@@ -5741,6 +5885,24 @@
           },
           {
             "command": "python3 scripts/validate_plan_coverage.py --source-root /home/agent/code/jiankang_app_uniapp",
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "report": "progress.md",
+        "commit": "0b45011",
+        "push": "success",
+        "checks": [
+          {
+            "command": "node --test pages/commerce/reviews/ord-05-contract.test.mjs pages/commerce/product/com-03-contract.test.mjs",
+            "workdir": "jiankang_app_uniapp",
+            "exit": 0,
+            "summary": "Reviews MAPP contract/session gate and product image fallback are verified."
+          },
+          {
+            "command": "git diff --check",
+            "workdir": "jiankang_app_uniapp",
             "exit": 0
           }
         ]
@@ -6787,8 +6949,8 @@
     "output": "pages/commerce/referral下实施、逐路由映射、route fragment/契约和操作证据；覆盖pages/users/user_spread_user/index,pages/users/user_spread_code/index,pages/users/promoter-list/index,pages/users/promoter-apply/index,pages/users/promoter-order/index,pages/users/promoter_rank/index；APP 前端调用 MAPP server 原有服务",
     "scope": "pages/commerce/referral",
     "verify": "执行 data.targeted_tests 中的自动化检查；写回命令、退出码、机器摘要和制品路径。缺失外部配置时使用合成/沙箱夹具，真实写入保持关闭。 自动确认 APP 迁移页面调用 MAPP server，且没有 Wish APP BFF/DDD 依赖。",
-    "status": "code-ready",
-    "status_source": "autonomous-agent",
+    "status": "planned",
+    "status_source": "reconciliation-audit",
     "ingestion_status": "ingested",
     "description": "迁移推广员、推广码和订单归因",
     "goal": "pages/commerce/referral下实施、逐路由映射、route fragment/契约和操作证据；覆盖pages/users/user_spread_user/index,pages/users/user_spread_code/index,pages/users/promoter-list/index,pages/users/promoter-apply/index,pages/users/promoter-order/index,pages/users/promoter_rank/index",
