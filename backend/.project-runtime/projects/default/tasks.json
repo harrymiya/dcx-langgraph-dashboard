@@ -21226,6 +21226,36 @@
             "Configure production origins/redirect/cookie topology and perform isolated IdP smoke with approved secrets."
           ]
         },
+        "latest_sso_return_path_alignment": {
+          "status": "partial; browser SSO preserves the requested registered module destination instead of silently routing to dashboard",
+          "commit": "2d656ac",
+          "push": "success",
+          "changed_paths": [
+            "dfp_wish/apps/wish-adm/src/adapters/auth.ts",
+            "dfp_wish/apps/wish-adm/src/adapters/auth.test.ts"
+          ],
+          "checks": [
+            {
+              "command": "npm test -- --run src/adapters/auth.test.ts",
+              "workdir": "dfp_wish/apps/wish-adm",
+              "exit": 0,
+              "summary": "5 SSO adapter tests passed; all registered module destinations are preserved and untrusted external return paths still fall back to dashboard."
+            },
+            {
+              "command": "npx eslint src/adapters/auth.ts src/adapters/auth.test.ts",
+              "workdir": "dfp_wish/apps/wish-adm",
+              "exit": 0
+            },
+            {
+              "command": "git diff --check",
+              "workdir": "dfp_wish/apps/wish-adm",
+              "exit": 0
+            }
+          ],
+          "open": [
+            "Trusted production origins, authorized migration, deployed revocation secret, canonical IAM site scope and isolated IdP smoke remain pending."
+          ]
+        },
         "latest_no_implicit_operator_seed_deployment": {
           "status": "partial; Compose and env example no longer default a new DDD deployment to the development seed operator identity",
           "commit": "f0b7895",
