@@ -12753,6 +12753,35 @@
     "evidence": [
       {
         "report": "progress.md",
+        "commit": "66df5af",
+        "push": "success",
+        "changed_paths": [
+          "jiankang_app_uniapp/features/health/location/repository.ts",
+          "jiankang_app_uniapp/tests/health/hlt-02-location.test.mjs"
+        ],
+        "checks": [
+          {
+            "command": "node --test tests/health/hlt-02-location.test.mjs tests/health/hlt-03-availability.test.mjs tests/health/hlt-04-appointments.test.mjs",
+            "workdir": "jiankang_app_uniapp",
+            "exit": 0,
+            "summary": "43 HLT-02/03/04 tests passed; expiry requires timezone-qualified ISO datetime and malformed expiry hides details."
+          },
+          {
+            "command": "node tests/health/hlt-02-location-uts-static-check.mjs && node tests/health/hlt-03-availability-uts-static-check.mjs && node tests/health/hlt-04-appointments-uts-static-check.mjs",
+            "workdir": "jiankang_app_uniapp",
+            "exit": 0,
+            "summary": "Location, availability and appointment UTS syntax/type/route checks passed."
+          },
+          {
+            "command": "git diff --check",
+            "workdir": "jiankang_app_uniapp",
+            "exit": 0
+          }
+        ],
+        "status": "partial; timestamp contract tightened; canonical Wish location endpoints and persistent map/room data remain open"
+      },
+      {
+        "report": "progress.md",
         "checks": [
           {
             "command": "node --test tests/health/hlt-02-location.test.mjs",
