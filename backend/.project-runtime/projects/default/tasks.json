@@ -18698,6 +18698,39 @@
       },
       {
         "report": "progress.md",
+        "commit": "7f325ba",
+        "push": "success",
+        "changed_paths": [
+          "dfp_wish/apps/wish-adm/src/app/(modules)/customers/_components/customers-panel.tsx",
+          "dfp_wish/apps/wish-adm/src/app/(modules)/customers/_components/customers-panel.test.tsx"
+        ],
+        "checks": [
+          {
+            "command": "npm test -- --run 'src/app/(modules)/customers/_components/customers-panel.test.tsx' 'src/app/(modules)/dashboard/page.test.tsx'",
+            "workdir": "dfp_wish/apps/wish-adm",
+            "exit": 0,
+            "summary": "8 customer/dashboard tests passed; selected subject identity disambiguates same IDs across subject kinds."
+          },
+          {
+            "command": "npx eslint 'src/app/(modules)/customers/_components/customers-panel.tsx' 'src/app/(modules)/customers/_components/customers-panel.test.tsx'",
+            "workdir": "dfp_wish/apps/wish-adm",
+            "exit": 0
+          },
+          {
+            "command": "npm run build",
+            "workdir": "dfp_wish/apps/wish-adm",
+            "exit": 0
+          },
+          {
+            "command": "git diff --check",
+            "workdir": "dfp_wish",
+            "exit": 0
+          }
+        ],
+        "status": "partial; UI subject selection collision fixed; canonical customer/relationship persistence remains incomplete"
+      },
+      {
+        "report": "progress.md",
         "commit": "b6f605c",
         "push": "success",
         "changed_paths": [
