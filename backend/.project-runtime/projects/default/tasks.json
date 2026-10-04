@@ -19516,6 +19516,34 @@
     "evidence": [
       {
         "report": "progress.md",
+        "commit": "5dd1a72",
+        "push": "success",
+        "changed_paths": [
+          "dfp_wish/domain/customer_followup_admin/followup_projection.py",
+          "dfp_wish/domain/tests/customer_followup_admin/test_followup_projection.py"
+        ],
+        "checks": [
+          {
+            "command": "uv run --frozen --project domain --group test python -m pytest domain/tests/customer_followup_admin/test_followup_projection.py domain/tests/scrm/followups/test_scr04_followups.py domain/tests/scrm_task_queue/test_site_task_queue.py -q",
+            "workdir": "dfp_wish",
+            "exit": 0,
+            "summary": "13 follow-up projection/SCRM/task queue tests passed; duplicate taskId rows fail closed."
+          },
+          {
+            "command": "python3 -m compileall -q domain/customer_followup_admin",
+            "workdir": "dfp_wish",
+            "exit": 0
+          },
+          {
+            "command": "git diff --check",
+            "workdir": "dfp_wish",
+            "exit": 0
+          }
+        ],
+        "status": "partial; queue projection identity hardened; canonical queue repository/UoW remains incomplete"
+      },
+      {
+        "report": "progress.md",
         "commit": "807167d",
         "push": "success",
         "changed_paths": [
