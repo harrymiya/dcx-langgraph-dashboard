@@ -20098,6 +20098,34 @@
     "evidence": [
       {
         "report": "progress.md",
+        "commit": "eb03a4a",
+        "push": "success",
+        "changed_paths": [
+          "dfp_wish/exts/wish_adm/api/auth_router.py",
+          "dfp_wish/exts/wish_adm/api/test_auth_oauth_callback.py"
+        ],
+        "checks": [
+          {
+            "command": "PYTHONPATH=deerflow/backend uv run --frozen --project deerflow/backend --group dev python -m pytest exts/wish_adm/api/test_auth_oauth_callback.py exts/wish_adm/api/test_auth_router.py exts/wish_adm/api/test_operator_auth.py exts/wish_adm/api/test_feishu_contact.py -q",
+            "workdir": "dfp_wish",
+            "exit": 0,
+            "summary": "40 OAuth/operator tests passed; whitespace/control-character union_id values fail closed before IAM lookup/session issuance."
+          },
+          {
+            "command": "python3 -m compileall -q exts/wish_adm/api/auth_router.py exts/wish_adm/api/test_auth_oauth_callback.py",
+            "workdir": "dfp_wish",
+            "exit": 0
+          },
+          {
+            "command": "git diff --check",
+            "workdir": "dfp_wish",
+            "exit": 0
+          }
+        ],
+        "status": "partial; malformed subject guard implemented; trusted deployment scope integration remains incomplete"
+      },
+      {
+        "report": "progress.md",
         "commit": "b38f923",
         "push": "success",
         "changed_paths": [
