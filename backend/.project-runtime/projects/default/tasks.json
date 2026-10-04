@@ -21226,6 +21226,36 @@
             "Configure production origins/redirect/cookie topology and perform isolated IdP smoke with approved secrets."
           ]
         },
+        "latest_logout_revocation_response_check": {
+          "status": "partial; browser logout now treats non-2xx revocation responses as unconfirmed and never reports a successful server logout",
+          "commit": "b3fc855",
+          "push": "success",
+          "changed_paths": [
+            "dfp_wish/apps/wish-adm/src/adapters/auth.ts",
+            "dfp_wish/apps/wish-adm/src/adapters/auth.test.ts"
+          ],
+          "checks": [
+            {
+              "command": "npm test -- --run src/adapters/auth.test.ts",
+              "workdir": "dfp_wish/apps/wish-adm",
+              "exit": 0,
+              "summary": "6 adapter tests passed; network rejection and HTTP 503 both clear cached identity and route to logout-unconfirmed."
+            },
+            {
+              "command": "npx eslint src/adapters/auth.ts src/adapters/auth.test.ts",
+              "workdir": "dfp_wish/apps/wish-adm",
+              "exit": 0
+            },
+            {
+              "command": "git diff --check",
+              "workdir": "dfp_wish/apps/wish-adm",
+              "exit": 0
+            }
+          ],
+          "open": [
+            "Production SSO deployment, trusted origins, IAM scope and isolated provider smoke remain incomplete."
+          ]
+        },
         "latest_sso_session_hydration_fail_closed": {
           "status": "partial; rejected network/malformed/inactive /me responses clear cached identity and resolve to unauthenticated state",
           "commit": "315c931",
