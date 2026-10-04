@@ -21228,7 +21228,7 @@
         },
         "latest_production_seed_operator_guard": {
           "status": "partial; production OAuth and protected API authorization reject the fixed migration seed operator independently of subject configuration",
-          "commit": "c579887",
+          "commit": "c579887, c207e71",
           "push": "success",
           "changed_paths": [
             "dfp_wish/exts/wish_adm/api/_auth.py",
