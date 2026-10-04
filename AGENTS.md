@@ -1,6 +1,6 @@
 # LangGraph DAG 架构与任务拆解约束
 
-本项目只负责任务图、依赖、状态和机器验收证据，不承载手机端、管理端或 Wish 业务实现。当前任务图是总体方案的正确子集；任务设计不等于功能已实现。
+本项目只负责任务拆分、依赖和状态，不承载手机端、管理端或 Wish 业务实现。DAG 用来安排工作；任务设计本身不代表功能已实现。
 
 ## 每个垂直业务必须有可执行的全栈闭环
 
@@ -17,8 +17,7 @@
 - MAPP server 不独立登录、不重新询问密码/验证码、不签发长期 token；既有 MAPP 业务后端继续承载正式迁入前端所调用的原有业务和未迁移小程序业务。旧 token 仅服务端兑换并立即失效。APP logout 撤销派生 bridge。
 - 只有明确属于 Wish 的正式业务由 Wish API/application/DDD 解析 principal、tenant/site、subject、relationship、purpose、consent 和 field scope；客户端自报范围不是授权事实。Wish 路径中的重放、过期、撤销、越权、站点不匹配和桥接失败必须 fail closed、留下脱敏最小审计，并安全回 APP 原生页/明确错误。
 - 每个明确属于 Wish 的纵向模块任务必须串起 APP 入口、Wish APP BFF、Wish API/DDD、schema/repository/UoW/事务、Outbox/事件、read model/audit、管理工作域、测试和回退；管理端只能通过 Wish Admin BFF 进入同一 Wish 写主。小程序前端迁移任务不接入 Wish BFF/DDD，除非该任务本身明确是 Wish 业务。
-- 管理端生产 SSO 属于当前交付范围，不得再按旧 ARCH-14/OUT-04 规则排除；为组织 SSO 补齐正式 DAG 与覆盖登记。沿用 DFP Wish Feishu OAuth/IAM 和现行 `union_id` → operator contract；服务端核验 operator 启用状态、角色和 tenant/site 范围，不接受自助提权、生产 seed/mock 或客户端自报角色。凭据仅由部署密钥注入，不入库。
-- 本仓 DAG 负责调度、依赖和机器证据。跨仓产品范围、唯一 OpenCode 实施者、持续推进与任务状态流转以 `/home/agent/code/AGENTS.md` 和 `loop-prompt.md` 为准；历史“只做设计/状态全 planned/不实现认证”条款不得阻止真实实现或证据记录。
+- 管理端生产 SSO 属于当前交付，由既有 `WADM-17` 任务承接；与客户和疗愈师会话隔离，不新增无关 `AUTH-*` 任务。沿用 DFP Wish Feishu OAuth/IAM 和现行 `union_id` → operator contract；服务端核验 operator 启用状态、角色和 tenant/site 范围，不接受自助提权、生产 seed/mock 或客户端自报角色，凭据仅由部署密钥注入、不入库。基线 `backend/tasks.json` 保持设计状态 `planned`；实施代码并通过本任务直接相关的自动化测试后，可在运行时任务快照标记 `code-ready` 关闭开发任务。
 
 以上是目标设计/未实现约束；DAG 任务不是生产实现证据。
 
@@ -82,13 +81,13 @@ Wish API/application/DDD 只为明确属于 Wish 的业务解析 principal 与�
 
 每个任务必须有唯一 `id`、目标、范围、`deps`、`delivery_wave`、`target_paths_or_modules`、`file_claims`、`targeted_tests` 和 `rollback_or_fallback`。40 个 MAPP 页面迁移任务还必须满足 GOV-01 范围登记及 `migration_scope`、`migration_backend`、`migration_source_file`、`migration_source_page_ids` 字段校验；Wish 原生任务必须声明 Wish 后端链且 `migration_backend` 为空。其余迁移边界字段保持：历史来源/短期兼容使用 `legacy-compatibility-fallback`，共享身份与安全验收使用 `cross-cutting-security-gate`；`GOV-03`、`FND-05`、`FND-08` 属于前者；共享身份契约/实现与安全门禁（包括 `GOV-02`、`GOV-05`、`FND-01`、`API-02`、`API-03`、`IDN-01`、`SEC-*`、`TST-05`、`TST-06`）属于后者。APP 首页三个第三方小程序按钮只作为外部入口说明，不新增到迁移任务。共享 API 契约、schema、导航和事件 envelope 必须指定唯一写入任务。`deps` 是 DAG 唯一依赖源；如保留 `data.depends_on` 展示字段，必须与 `deps` 完全一致，不得用 `ROOT` 等未知哨兵代替空依赖。
 
-所有新增设计任务默认 `planned`。没有任务级 owner、领取记录、commit、自动化测试命令与退出码、制品路径和验收结果，不得标记 `in-progress` 或 `done`。`merge-status` 只能证明合并发生，不能证明业务任务完成。
+所有新增设计任务默认 `planned`。实施循环按依赖领取任务，实现后运行本任务直接相关的自动化测试；测试通过即可在运行时任务快照中标记 `code-ready`。不要求任务级 commit、截图、制品或额外证据调查；人后续负责复测和验收。`merge-status` 本身不改变任务状态。
 
 依赖门禁必须满足：任务 ID 唯一、依赖全部存在、依赖无环、横向集成晚于参与模块纵向闭环。`__start__` 和 `__end__` 是控制节点，不计入业务任务数。
 
 ## 范围保护
 
-- 管理员登录、认证、session 生命周期和 SSO 配置属于当前交付；使用可信组织身份服务，不提交密钥，不把 mock/seed 当作上线能力。
+- 管理端登录、认证、session 生命周期和 SSO 配置属于当前交付，由 `WADM-17` 使用可信组织身份服务承接；不新增无关 `AUTH-*` 任务，不提交密钥，不把 mock/seed 当作上线能力。客户、疗愈师和管理员会话保持隔离。
 - 管理端订单、消息/广播、协议/同意、合规、App 发布、运营成员和用户查询是既有兼容能力，保留并做回归保护。
 - 健康预约的目录、容量、房间/设备/服务角色可用性、资源冲突和候补属于主线履约约束；不因此建设员工排班、班次、请假、调班或员工日历。
 - Wish 原生域不新增员工排班/请假/调班、绩效/提成/薪酬、额外运营 BI、库存/仓储或商城收银/经营后台；这是 Wish 健康/SCRM 的后端和新管理工作域边界，不取消 MAPP 来源页面迁移。MP040、MP046、MP141–MP162 必须由 MER-02..06 迁入 APP、使用独立 manager session 与服务端 tenant/site/role 校验，并继续调用 MAPP/Commerce 现有服务；不得据此新建 Wish 商户后台、Wish 商城账或重复 MAPP 写主。健康预约仍只消费已确认的可用资源，不增加员工排班日历。
@@ -96,7 +95,7 @@ Wish API/application/DDD 只为明确属于 Wish 的业务解析 principal 与�
 
 ## 验收规则
 
-当前处于产品实施期。OpenCode 按活跃 runtime DAG 持续实现代码、运行任务专项验收并写回机器证据；总体方案、原型和计划 validator 不能代替功能实现。隔离环境与合成数据用于开发验收，真实数据、资金和生产变更按各目标系统既有授权执行。任务结果写入 runtime 与源任务登记，不以 Markdown 叙述替代机器证据。
+当前处于产品实施期。OpenCode 按活跃 runtime DAG 持续实现代码；每个任务运行直接相关的自动化测试并将实际结果写回 runtime 与源任务登记。测试通过后可将运行时任务标记为 `code-ready` 并关闭开发任务；该状态不代表人工复测、业务验收或生产发布通过。无需为普通任务逐项收集截图、制品或额外外部证明。总体方案、原型和计划 validator 不能代替功能实现。隔离环境与合成数据用于开发验收，真实数据、资金和生产变更按各目标系统既有授权执行。
 
 ## 上位方案覆盖登记与校验
 

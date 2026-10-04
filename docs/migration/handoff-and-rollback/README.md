@@ -1,13 +1,14 @@
 # Agent Handoff, Status, and Rollback Contract
 
-GOV-04 owns this directory only. This contract describes planned agent coordination and machine evidence; it is not evidence that product tasks are implemented. Do not add a human-review status gate.
+GOV-04 owns this directory only. DAG tasks split implementation work and express dependencies. Do not add a per-task human-review gate; people retest and accept after task closure.
 
 ## Status and ownership
 
 - `planned`: eligible for claim when dependencies and retry time permit.
 - `in-progress`: one worker owns a time-bounded lease. Record `owner`, `claimed_at`, `lease_expires_at`, `status_source`, and increment `autonomous_attempt`.
 - `blocked`: execution failed or cannot proceed. Record `last_error`, `last_report`, `last_checks`, `autonomous_failure`, and `retry_after`; release the lease. A retry must create a new attempt and preserve the prior failure evidence.
-- `code-ready`, `contract-ready`, `release-ready`: machine completion states only. Set them only after every required automated check exits 0, dependencies are ready, and a report path plus non-empty summary are recorded. Preserve checks and timestamps in evidence.
+- `code-ready`: development task closed after implementation and directly relevant automated tests pass. Human retesting and acceptance happen later. A concise summary and the test result are enough; no extra evidence package is required.
+- `contract-ready`, `release-ready`: retain for existing specialized workflows, but ordinary implementation tasks close as `code-ready`.
 
 Claiming and completion must be based on the latest task snapshot. A worker may heartbeat, complete, block, or release only its own active lease. Expired leases may be reclaimed. Never infer completion from a merge or a Markdown narrative.
 
@@ -32,7 +33,7 @@ Claiming and completion must be based on the latest task snapshot. A worker may 
 }
 ```
 
-Record every command actually run and its exit code, including failed attempts. Use synthetic or sandbox fixtures if external configuration is unavailable; explicitly state the limitation and keep real writes disabled. Never fabricate a passing result or artifact path.
+Record the actual relevant test command and result. Do not investigate external evidence or create acceptance artifacts for ordinary tasks. Keep existing authorization requirements for real health data, payments, messages, production deployment, and external writes; never report an unrun check as passing.
 
 ## File claims and shared writes
 
@@ -40,7 +41,7 @@ Each task claims the narrowest owned paths before editing. Reject overlapping cl
 
 ## Block, resume, retry
 
-On a failed check, write a blocked record with exact failure, command, exit code, report, and retry time; release the lease. Resume only after the retry time and dependency gates pass, then acquire a fresh lease and increment the attempt. Re-run the failed check and all checks invalidated by the change. Keep old failure evidence; do not turn a failed run into success by overwriting its record.
+On a failed relevant check, fix and rerun it. If work cannot continue, mark the task blocked with a concise reason and release the lease. Resume after the dependency and retry gates pass. Do not create a broader failure dossier.
 
 ## Task rollback record
 

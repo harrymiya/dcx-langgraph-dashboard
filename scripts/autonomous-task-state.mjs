@@ -5,8 +5,8 @@ function parseTime(value, fallback = 0) {
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
-function activeMvp(task) {
-  return task?.data?.scope === "MVP必须";
+function activeTask(task) {
+  return ["MVP必须", "MVP后续"].includes(task?.data?.scope) && !/^AUTH-/i.test(task.id ?? "");
 }
 
 function dependenciesReady(task, byId) {
@@ -18,7 +18,7 @@ function retryIsReady(task, nowMs) {
 }
 
 function eligible(task, byId, nowMs) {
-  if (!activeMvp(task) || !dependenciesReady(task, byId)) return false;
+  if (!activeTask(task) || !dependenciesReady(task, byId)) return false;
   if (task.status === "planned") return true;
   if (task.status === "blocked") return retryIsReady(task, nowMs);
   return task.status === "in-progress" && parseTime(task.lease_expires_at, 0) <= nowMs;
@@ -29,7 +29,7 @@ function readyCounts(tasks, nowMs) {
   let readyCount = 0;
   let blockedCount = 0;
   for (const task of tasks) {
-    if (!activeMvp(task)) continue;
+    if (!activeTask(task)) continue;
     if (task.status === "blocked") blockedCount += 1;
     if (eligible(task, byId, nowMs)) readyCount += 1;
   }

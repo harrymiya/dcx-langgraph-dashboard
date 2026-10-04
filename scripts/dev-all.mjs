@@ -97,12 +97,16 @@ function ensureLangGraph() {
   const configured = process.env.LANGGRAPH_BIN
     ? findExecutable(process.env.LANGGRAPH_BIN)
     : null;
-  if (configured) return configured;
+  if (configured) return { command: configured, args: [] };
 
-  if (existsSync(langgraphInVenv) && existsSync(pythonInVenv)) return langgraphInVenv;
+  if (existsSync(pythonInVenv)) {
+    return existsSync(langgraphInVenv)
+      ? { command: langgraphInVenv, args: [] }
+      : { command: pythonInVenv, args: ["-m", "langgraph_cli"] };
+  }
 
   const systemLangGraph = findExecutable("langgraph");
-  if (systemLangGraph) return systemLangGraph;
+  if (systemLangGraph) return { command: systemLangGraph, args: [] };
 
   const configuredPython = process.env.LANGGRAPH_PYTHON
     ? findExecutable(process.env.LANGGRAPH_PYTHON)
@@ -120,10 +124,9 @@ function ensureLangGraph() {
     ["-m", "pip", "install", "-r", join(backendRoot, "requirements.txt")],
     "安装 LangGraph 依赖",
   );
-  if (!existsSync(langgraphInVenv)) {
-    throw new Error("LangGraph 安装后仍未找到可执行文件：" + langgraphInVenv);
-  }
-  return langgraphInVenv;
+  return existsSync(langgraphInVenv)
+    ? { command: langgraphInVenv, args: [] }
+    : { command: pythonInVenv, args: ["-m", "langgraph_cli"] };
 }
 
 async function waitForAgentBoard() {
@@ -179,8 +182,8 @@ async function main() {
 
   console.log(`[backend] LangGraph API ${backendPort} 启动中…`);
   backendProcess = spawn(
-    langgraph,
-    ["dev", "--config", backendConfig, "--host", "127.0.0.1", "--port", backendPort, "--no-browser"],
+    langgraph.command,
+    [...langgraph.args, "dev", "--config", backendConfig, "--host", "127.0.0.1", "--port", backendPort, "--no-browser"],
     { cwd: backendRoot, env: sharedEnv, stdio: "inherit" },
   );
   backendProcess.on("error", (error) => {
