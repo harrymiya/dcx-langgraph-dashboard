@@ -13205,6 +13205,37 @@
             "Synthetic adapter contract verification is not canonical Wish endpoint/persistence integration."
           ]
         },
+        "latest_slot_interval_validation": {
+          "status": "partial; malformed or non-positive slot time ranges are rejected as stale",
+          "commit": "38d26e6",
+          "push": "success",
+          "changed_files": [
+            "jiankang_app_uniapp/features/health/appointments/availability-repository.ts",
+            "jiankang_app_uniapp/tests/health/hlt-03-availability.test.mjs"
+          ],
+          "commands": [
+            {
+              "command": "node --test tests/health/hlt-03-availability.test.mjs tests/health/hlt-04-appointments.test.mjs",
+              "workdir": "jiankang_app_uniapp",
+              "exit": 0,
+              "summary": "37 HLT-03/04 tests passed; malformed and reversed slot intervals expose no availability."
+            },
+            {
+              "command": "node tests/health/hlt-03-availability-uts-static-check.mjs && node tests/health/hlt-04-appointments-uts-static-check.mjs",
+              "workdir": "jiankang_app_uniapp",
+              "exit": 0,
+              "summary": "Availability and appointment UTS syntax and strict repository type checks passed."
+            },
+            {
+              "command": "git diff --check",
+              "workdir": "jiankang_app_uniapp",
+              "exit": 0
+            }
+          ],
+          "open": [
+            "Canonical Wish availability schema/source persistence and client integration are still incomplete."
+          ]
+        },
         "latest_availability_date_validation": {
           "status": "partial; malformed calendar dates are rejected before availability adapter invocation",
           "commit": "dd9d140",
