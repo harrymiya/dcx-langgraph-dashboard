@@ -17604,6 +17604,39 @@
           "DB-02 canonical schema remains target-only with no physical DDL; no deployment migration ran.",
           "Canonical readiness/resource persistence and Wish API trusted-scope composition are not yet implemented; BFF writes remain disabled."
         ]
+      },
+      {
+        "report": "progress.md",
+        "commit": "425dc2a",
+        "push": "success",
+        "changed_paths": [
+          "dfp_wish/apps/wish-adm/src/app/(modules)/appointments/_components/site-service-config/site-service-config-panel.tsx",
+          "dfp_wish/apps/wish-adm/src/app/(modules)/appointments/_components/site-service-config/site-service-config-panel.test.tsx"
+        ],
+        "checks": [
+          {
+            "command": "npm test -- --run 'src/app/(modules)/appointments/_components/site-service-config/site-service-config-panel.test.tsx'",
+            "workdir": "dfp_wish/apps/wish-adm",
+            "exit": 0,
+            "summary": "15 focused service catalog UI tests passed; page entry now auto-loads and retains refresh control."
+          },
+          {
+            "command": "npx eslint 'src/app/(modules)/appointments/_components/site-service-config/site-service-config-panel.tsx'",
+            "workdir": "dfp_wish/apps/wish-adm",
+            "exit": 0,
+            "summary": "Changed service catalog panel passes ESLint."
+          },
+          {
+            "command": "git diff --check",
+            "workdir": "dfp_wish",
+            "exit": 0,
+            "summary": "Wish UI changes are whitespace-clean."
+          }
+        ],
+        "status": "partial; task remains planned pending canonical Wish API/repository composition and persistent readiness/resource integration",
+        "open": [
+          "UI auto-load is implemented, but service catalog data still depends on canonical Wish upstream and remote writes remain fail-closed."
+        ]
       }
     ]
   },
@@ -17753,6 +17786,39 @@
       "coverage_status": "planned"
     },
     "evidence": [
+      {
+        "report": "progress.md",
+        "commit": "425dc2a",
+        "push": "success",
+        "changed_paths": [
+          "dfp_wish/apps/wish-adm/src/app/(modules)/customers/_components/customers-panel.tsx",
+          "dfp_wish/apps/wish-adm/src/app/(modules)/customers/_components/customers-panel.test.tsx"
+        ],
+        "checks": [
+          {
+            "command": "npm test -- --run 'src/app/(modules)/customers/_components/customers-panel.test.tsx'",
+            "workdir": "dfp_wish/apps/wish-adm",
+            "exit": 0,
+            "summary": "15 focused customer UI tests passed; page entry now auto-loads and retains refresh control."
+          },
+          {
+            "command": "npx eslint 'src/app/(modules)/customers/_components/customers-panel.tsx'",
+            "workdir": "dfp_wish/apps/wish-adm",
+            "exit": 0,
+            "summary": "Changed customer panel passes ESLint."
+          },
+          {
+            "command": "git diff --check",
+            "workdir": "dfp_wish",
+            "exit": 0,
+            "summary": "Wish UI changes are whitespace-clean."
+          }
+        ],
+        "status": "partial; task remains planned pending canonical Wish customer/relationship handlers and repository composition",
+        "open": [
+          "UI auto-load is implemented, but customer data still depends on canonical Wish upstream and must not be replaced with local fixtures."
+        ]
+      },
       {
         "report": "dfp_wish/domain/customer_profile_admin/WADM-11-run-report.md",
         "checks": [
@@ -17920,7 +17986,42 @@
         "/home/agent/code/jiankang_app_uniapp/docs/architecture/health-scrm-cross-project-architecture.md"
       ],
       "coverage_status": "planned"
-    }
+    },
+    "evidence": [
+      {
+        "report": "progress.md",
+        "commit": "425dc2a",
+        "push": "success",
+        "changed_paths": [
+          "dfp_wish/apps/wish-adm/src/app/(modules)/service-records/_components/service-records-panel.tsx",
+          "dfp_wish/apps/wish-adm/src/app/(modules)/service-records/_components/service-records-panel.test.tsx"
+        ],
+        "checks": [
+          {
+            "command": "npm test -- --run 'src/app/(modules)/service-records/_components/service-records-panel.test.tsx'",
+            "workdir": "dfp_wish/apps/wish-adm",
+            "exit": 0,
+            "summary": "15 focused service record UI tests passed; page entry now auto-loads and retains refresh control."
+          },
+          {
+            "command": "npx eslint 'src/app/(modules)/service-records/_components/service-records-panel.tsx'",
+            "workdir": "dfp_wish/apps/wish-adm",
+            "exit": 0,
+            "summary": "Changed service record panel passes ESLint."
+          },
+          {
+            "command": "git diff --check",
+            "workdir": "dfp_wish",
+            "exit": 0,
+            "summary": "Wish UI changes are whitespace-clean."
+          }
+        ],
+        "status": "partial; task remains planned pending canonical Wish service-record endpoint and repository composition",
+        "open": [
+          "UI auto-load is implemented, but service records remain unavailable until the canonical Wish upstream is registered."
+        ]
+      }
+    ]
   },
   {
     "id": "WADM-14",
@@ -17982,6 +18083,39 @@
       "coverage_status": "planned"
     },
     "evidence": [
+      {
+        "report": "progress.md",
+        "commit": "425dc2a",
+        "push": "success",
+        "changed_paths": [
+          "dfp_wish/apps/wish-adm/src/app/(modules)/follow-ups/_components/followups-panel.tsx",
+          "dfp_wish/apps/wish-adm/src/app/(modules)/follow-ups/_components/followups-panel.test.tsx"
+        ],
+        "checks": [
+          {
+            "command": "npm test -- --run 'src/app/(modules)/follow-ups/_components/followups-panel.test.tsx'",
+            "workdir": "dfp_wish/apps/wish-adm",
+            "exit": 0,
+            "summary": "15 focused follow-up UI tests passed; page entry now auto-loads and retains refresh control."
+          },
+          {
+            "command": "npx eslint 'src/app/(modules)/follow-ups/_components/followups-panel.tsx'",
+            "workdir": "dfp_wish/apps/wish-adm",
+            "exit": 0,
+            "summary": "Changed follow-up panel passes ESLint."
+          },
+          {
+            "command": "git diff --check",
+            "workdir": "dfp_wish",
+            "exit": 0,
+            "summary": "Wish UI changes are whitespace-clean."
+          }
+        ],
+        "status": "partial; task remains planned pending canonical Wish follow-up queue endpoint and repository composition",
+        "open": [
+          "UI auto-load is implemented, but follow-up data and commands still depend on canonical Wish/SCRM upstream."
+        ]
+      },
       {
         "report": "dfp_wish/domain/customer_followup_admin/WADM-14-run-report.md",
         "checks": [
@@ -18065,6 +18199,39 @@
       "coverage_status": "planned"
     },
     "evidence": [
+      {
+        "report": "progress.md",
+        "commit": "425dc2a",
+        "push": "success",
+        "changed_paths": [
+          "dfp_wish/apps/wish-adm/src/app/(modules)/service-ledger/_components/service-ledger-panel.tsx",
+          "dfp_wish/apps/wish-adm/src/app/(modules)/service-ledger/_components/service-ledger-panel.test.tsx"
+        ],
+        "checks": [
+          {
+            "command": "npm test -- --run 'src/app/(modules)/service-ledger/_components/service-ledger-panel.test.tsx'",
+            "workdir": "dfp_wish/apps/wish-adm",
+            "exit": 0,
+            "summary": "15 focused service ledger UI tests passed; page entry now auto-loads and retains refresh control."
+          },
+          {
+            "command": "npx eslint 'src/app/(modules)/service-ledger/_components/service-ledger-panel.tsx'",
+            "workdir": "dfp_wish/apps/wish-adm",
+            "exit": 0,
+            "summary": "Changed service ledger panel passes ESLint."
+          },
+          {
+            "command": "git diff --check",
+            "workdir": "dfp_wish",
+            "exit": 0,
+            "summary": "Wish UI changes are whitespace-clean."
+          }
+        ],
+        "status": "partial; task remains planned pending canonical Wish service ledger endpoint and repository composition",
+        "open": [
+          "UI auto-load is implemented, but ledger data remains fail-closed until the canonical Wish upstream is available."
+        ]
+      },
       {
         "report": "dfp_wish/domain/health_service_ledger_admin/test-and-run-evidence",
         "checks": [
