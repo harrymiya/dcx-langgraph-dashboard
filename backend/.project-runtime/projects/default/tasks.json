@@ -13023,6 +13023,36 @@
       },
       "delivery_wave": "I1-健康服务纵切",
       "automated_result": {
+        "latest_invalid_cancel_reference_regression": {
+          "status": "partial; invalid references are rejected before adapter access",
+          "commit": "c876478",
+          "push": "success",
+          "changed_files": [
+            "jiankang_app_uniapp/tests/health/hlt-04-appointments.test.mjs"
+          ],
+          "commands": [
+            {
+              "command": "node --test tests/health/hlt-04-appointments.test.mjs",
+              "workdir": "jiankang_app_uniapp",
+              "exit": 0,
+              "summary": "18 tests passed; blank/oversized context, appointment reference and row version fail closed before adapter call."
+            },
+            {
+              "command": "node tests/health/hlt-04-appointments-uts-static-check.mjs",
+              "workdir": "jiankang_app_uniapp",
+              "exit": 0,
+              "summary": "Five appointment UTS page scripts parse and appointment repository passes strict type check."
+            },
+            {
+              "command": "git diff --check",
+              "workdir": "jiankang_app_uniapp",
+              "exit": 0
+            }
+          ],
+          "open": [
+            "This is synthetic contract validation only; canonical Wish APP BFF/API, DDD persistence and cross-client integration remain incomplete."
+          ]
+        },
         "latest_prototype_closure_slice": {
           "status": "partial; HLT-04 remains planned because canonical Wish BFF/API handlers are absent",
           "commit": "c055777",
