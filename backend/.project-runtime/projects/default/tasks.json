@@ -20472,6 +20472,34 @@
       },
       {
         "report": "progress.md",
+        "commit": "f70c22e",
+        "push": "success",
+        "changed_paths": [
+          "dfp_wish/domain/health_service_ledger_admin/projection.py",
+          "dfp_wish/domain/tests/health_service_ledger_admin/test_projection.py"
+        ],
+        "checks": [
+          {
+            "command": "uv run --frozen --project . --group test python -m pytest tests/health_service_ledger_admin/test_projection.py tests/health_service_ledger/test_api07_payment_entitlement.py tests/health_service_ledger/test_scr06_ledger_refund.py tests/service_cards/test_scr05_entitlement_lifecycle.py -q",
+            "workdir": "dfp_wish/domain",
+            "exit": 0,
+            "summary": "21 ledger/refund/card lifecycle tests passed; terminal refund states require authorized nonempty reviewer identity."
+          },
+          {
+            "command": "python3 -m compileall -q health_service_ledger_admin",
+            "workdir": "dfp_wish/domain",
+            "exit": 0
+          },
+          {
+            "command": "git diff --check",
+            "workdir": "dfp_wish",
+            "exit": 0
+          }
+        ],
+        "status": "partial; terminal refund reviewer projection guarded; canonical ledger persistence and trusted scope integration remain incomplete"
+      },
+      {
+        "report": "progress.md",
         "commit": "671f2e9",
         "push": "success",
         "changed_paths": [
