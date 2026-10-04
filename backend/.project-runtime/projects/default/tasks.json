@@ -7271,6 +7271,24 @@
       },
       {
         "report": "progress.md",
+        "commit": "b367876",
+        "push": "success",
+        "checks": [
+          {
+            "command": "node --test pages/commerce/activities/mem-10-contract.test.mjs pages/commerce/referral/mem-08-contract.test.mjs pages/commerce/points/mem-04-contract.test.mjs pages/commerce/wallet/mem-07-contract.test.mjs pages/commerce/gift-cards/mem-05-contract.test.mjs pages/commerce/member/plan/mem-02-contract.test.mjs pages/commerce/member/level/mem-01-contract.test.mjs pages/commerce/member/check-in/mem-06-contract.test.mjs tests/auth/navigation.test.mjs",
+            "workdir": "jiankang_app_uniapp",
+            "exit": 0,
+            "summary": "43 membership/marketing/wallet/auth tests passed; activities now expose participation actions with busy guard and server-confirmed refresh messaging."
+          },
+          {
+            "command": "git diff --check",
+            "workdir": "jiankang_app_uniapp",
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "report": "progress.md",
         "commit": "fd00ba2",
         "push": "success",
         "checks": [
