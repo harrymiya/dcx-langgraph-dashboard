@@ -21228,7 +21228,7 @@
         },
         "latest_sso_return_path_alignment": {
           "status": "partial; browser SSO preserves the requested registered module destination instead of silently routing to dashboard",
-          "commit": "2d656ac",
+          "commit": "2d656ac, 936f590",
           "push": "success",
           "changed_paths": [
             "dfp_wish/apps/wish-adm/src/adapters/auth.ts",
