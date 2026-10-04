@@ -13023,6 +13023,37 @@
       },
       "delivery_wave": "I1-健康服务纵切",
       "automated_result": {
+        "latest_reschedule_confirmed_state_gate": {
+          "status": "partial; client repository refuses reschedule unless original appointment is server-confirmed",
+          "commit": "2614f95",
+          "push": "success",
+          "changed_files": [
+            "jiankang_app_uniapp/features/health/appointments/appointment-repository.ts",
+            "jiankang_app_uniapp/tests/health/hlt-04-appointments.test.mjs"
+          ],
+          "commands": [
+            {
+              "command": "node --test tests/health/hlt-04-appointments.test.mjs",
+              "workdir": "jiankang_app_uniapp",
+              "exit": 0,
+              "summary": "24 HLT-04 tests passed; unconfirmed/non-active record states make no reschedule adapter call."
+            },
+            {
+              "command": "node tests/health/hlt-04-appointments-uts-static-check.mjs",
+              "workdir": "jiankang_app_uniapp",
+              "exit": 0,
+              "summary": "Appointment page scripts parse and repository strict type check passes."
+            },
+            {
+              "command": "git diff --check",
+              "workdir": "jiankang_app_uniapp",
+              "exit": 0
+            }
+          ],
+          "open": [
+            "Canonical Wish mutation handler remains authoritative and is not yet integrated with durable appointment state."
+          ]
+        },
         "latest_appointment_record_state_validation": {
           "status": "partial; unknown appointment, waitlist, or refund record enums are rejected",
           "commit": "2e74755",
