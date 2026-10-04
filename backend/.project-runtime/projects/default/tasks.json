@@ -19073,6 +19073,42 @@
         ]
       },
       {
+        "report": "progress.md",
+        "commit": "2dc999a",
+        "push": "success",
+        "changed_paths": [
+          "dfp_wish/apps/wish-adm/src/app/(modules)/follow-ups/_components/followups-panel.tsx",
+          "dfp_wish/apps/wish-adm/src/app/(modules)/follow-ups/_components/followups-panel.test.tsx"
+        ],
+        "checks": [
+          {
+            "command": "npm test -- --run 'src/app/(modules)/follow-ups/_components/followups-panel.test.tsx' 'src/app/(modules)/customers/_components/customers-panel.test.tsx' 'src/app/(modules)/dashboard/page.test.tsx'",
+            "workdir": "dfp_wish/apps/wish-adm",
+            "exit": 0,
+            "summary": "15 follow-up/customer/dashboard tests passed; status filter reloads automatically and stale results are ignored."
+          },
+          {
+            "command": "npx eslint 'src/app/(modules)/follow-ups/_components/followups-panel.tsx' 'src/app/(modules)/follow-ups/_components/followups-panel.test.tsx'",
+            "workdir": "dfp_wish/apps/wish-adm",
+            "exit": 0
+          },
+          {
+            "command": "npm run build",
+            "workdir": "dfp_wish/apps/wish-adm",
+            "exit": 0
+          },
+          {
+            "command": "git diff --check",
+            "workdir": "dfp_wish",
+            "exit": 0
+          }
+        ],
+        "status": "partial; task remains planned pending canonical Wish/SCRM queue/command endpoints and persistent repository",
+        "open": [
+          "Follow-up filters now update from server automatically; no local queue fixture or client-owned scope is used."
+        ]
+      },
+      {
         "report": "dfp_wish/domain/customer_followup_admin/WADM-14-run-report.md",
 
         "checks": [
