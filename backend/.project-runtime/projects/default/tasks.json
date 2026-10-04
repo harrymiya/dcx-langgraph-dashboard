@@ -20098,6 +20098,40 @@
     "evidence": [
       {
         "report": "progress.md",
+        "commit": "81f9dc3",
+        "push": "success",
+        "changed_paths": [
+          "dfp_wish/exts/wish_adm/api/auth_router.py",
+          "dfp_wish/exts/wish_adm/api/test_auth_oauth_callback.py"
+        ],
+        "checks": [
+          {
+            "command": "PYTHONPATH=deerflow/backend uv run --frozen --project deerflow/backend --group dev python -m pytest exts/wish_adm/api/test_auth_oauth_callback.py exts/wish_adm/api/test_auth_router.py exts/wish_adm/api/test_operator_auth.py exts/wish_adm/api/test_feishu_contact.py -q",
+            "workdir": "dfp_wish",
+            "exit": 0,
+            "summary": "38 OAuth/operator tests passed; an active identity with an unregistered role gets 401 and no admin session cookie."
+          },
+          {
+            "command": "PYTHONPATH=deerflow/backend uv run --frozen --project deerflow/backend --group dev python -m pytest exts/wish_adm/api/test_auth_oauth_callback.py exts/wish_adm/api/test_auth_router.py exts/wish_adm/api/test_operator_auth.py exts/wish_adm/api/test_feishu_contact.py exts/wish_adm/api/test_menu_tree.py -q",
+            "workdir": "dfp_wish",
+            "exit": 1,
+            "summary": "50 passed, 1 failed; existing test_login_user_carries_menus mock uses on_1 and receives 403 from fixed development identity guard."
+          },
+          {
+            "command": "python3 -m compileall -q exts/wish_adm/api/auth_router.py exts/wish_adm/api/test_auth_oauth_callback.py",
+            "workdir": "dfp_wish",
+            "exit": 0
+          },
+          {
+            "command": "git diff --check",
+            "workdir": "dfp_wish",
+            "exit": 0
+          }
+        ],
+        "status": "partial; unknown role now denied; non-production migration and deployment-level SSO verification still pending"
+      },
+      {
+        "report": "progress.md",
         "commit": "fd130a8",
         "push": "success",
         "changed_paths": [
