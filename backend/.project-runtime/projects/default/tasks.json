@@ -19194,6 +19194,34 @@
       },
       {
         "report": "progress.md",
+        "commit": "7907bde",
+        "push": "success",
+        "changed_paths": [
+          "dfp_wish/domain/customer_profile_admin/unified_subjects.py",
+          "dfp_wish/tests/customer_profile_admin/test_unified_subjects.py"
+        ],
+        "checks": [
+          {
+            "command": "PYTHONPATH=/home/agent/code/dfp_wish uv run --frozen --project . --group test python -m pytest ../tests/customer_profile_admin/test_unified_subjects.py tests/security/test_purpose_scope_checks.py tests/security/test_audit_redaction.py -q",
+            "workdir": "dfp_wish/domain",
+            "exit": 0,
+            "summary": "15 customer relationship/security tests passed; self-linked relationship is rejected."
+          },
+          {
+            "command": "python3 -m compileall -q customer_profile_admin",
+            "workdir": "dfp_wish/domain",
+            "exit": 0
+          },
+          {
+            "command": "git diff --check",
+            "workdir": "dfp_wish",
+            "exit": 0
+          }
+        ],
+        "status": "partial; relation self-edge rejected; authoritative relationship persistence and integration remain incomplete"
+      },
+      {
+        "report": "progress.md",
         "commit": "66f16cc",
         "push": "success",
         "changed_paths": [
