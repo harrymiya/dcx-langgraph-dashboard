@@ -11,11 +11,11 @@ function fixture() {
   ];
 }
 
-test("领取只选当前依赖就绪的 MVP 任务", () => {
+test("领取 MVP 和后续范围内当前依赖就绪的任务", () => {
   const result = claimNextTask(fixture(), { workerId: "agent-1", leaseSeconds: 900, now });
   assert.equal(result.task.id, "BASE");
   assert.equal(result.task.status, "in-progress");
-  assert.equal(result.readyCount, 0);
+  assert.equal(result.readyCount, 1);
 });
 
 test("租约过期后可回收原进行中任务", () => {
@@ -36,13 +36,13 @@ test("任务完成要求租约归属和全通过机器检查", () => {
   assert.throws(() => completeTask(claimed.tasks, { ...input, checks: [{ command: "bad", exit_code: 1, result: "failed" }] }), /未通过/);
 });
 
-test("失败可回写 blocked 状态，延后重试并释放租约", () => {
+test("失败可回写 blocked 状态，延后重试并释放租约，loop 继续领取其它范围任务", () => {
   const claimed = claimNextTask(fixture(), { workerId: "agent-1", leaseSeconds: 900, now });
   const result = blockTask(claimed.tasks, { taskId: "BASE", workerId: "agent-1", error: "check failed", report: "docs/reports/tasks/BASE.md", retryAfterSeconds: 3600, now });
   assert.equal(result.task.status, "blocked");
   assert.equal(result.task.lease_expires_at, undefined);
   assert.equal(result.task.retry_after, "2026-09-30T13:00:00.000Z");
-  assert.equal(claimNextTask(result.tasks, { workerId: "agent-2", leaseSeconds: 900, now }).task, null);
+  assert.equal(claimNextTask(result.tasks, { workerId: "agent-2", leaseSeconds: 900, now }).task.id, "LATER");
 });
 
 test("心跳只续租当前 worker 持有的任务", () => {

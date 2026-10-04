@@ -180,14 +180,14 @@ backend/graph.py  ──► LangGraph API (:8123)
 - `planned`：计划中
 - `in-progress`：进行中
 - `blocked`：阻塞
-- `code-ready`：代码就绪
+- `code-ready`：开发完成，关闭开发任务（之后由人复测验收）
 - `contract-ready`：合同就绪
 - `release-ready`：可发布
 - `unknown`：待同步
 
 `__start__` 和 `__end__` 是控制节点，不计入业务节点数量和状态统计。正常情况下，页面先读取 graph definition，再执行一次 run 获取状态；如果 run 状态同步失败，仍会保留已经读取到的图结构，并在页面顶部显示告警。
 
-当没有逐任务 evidence manifest 时，后端使用计划第 6.2.3 节和第 14 章的状态快照作为 `plan-snapshot` 展示投影；有 evidence manifest 时，以 manifest 作为严格证据源。代码就绪或合同就绪不等于正式可发布，正式发布仍需要真实环境、性能、发布和回滚门禁。
+`code-ready` 表示实现和相关自动化测试已完成，DAG 开发任务随即关闭；人之后负责复测和验收。它不表示业务验收或生产发布通过。普通任务不要求逐项证据包；正式发布仍遵守真实环境、性能、发布和回滚门禁。
 
 ## 校验与排障
 

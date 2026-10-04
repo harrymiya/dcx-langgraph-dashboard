@@ -20,7 +20,7 @@ export const STATUS_META: Record<
   planned: { label: "计划中", shortLabel: "计划", color: "#94a3b8", tone: "neutral" },
   "in-progress": { label: "进行中", shortLabel: "进行", color: "#f59e0b", tone: "warning" },
   blocked: { label: "阻塞", shortLabel: "阻塞", color: "#f87171", tone: "danger" },
-  "code-ready": { label: "代码就绪", shortLabel: "代码", color: "#60a5fa", tone: "info" },
+  "code-ready": { label: "开发完成", shortLabel: "关闭", color: "#60a5fa", tone: "info" },
   "contract-ready": { label: "合同就绪", shortLabel: "合同", color: "#a78bfa", tone: "violet" },
   "release-ready": { label: "可发布", shortLabel: "发布", color: "#34d399", tone: "success" },
   unknown: { label: "待同步", shortLabel: "待同步", color: "#64748b", tone: "neutral" },
