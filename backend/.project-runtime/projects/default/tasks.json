@@ -13023,6 +13023,36 @@
       },
       "delivery_wave": "I1-健康服务纵切",
       "automated_result": {
+        "latest_concurrent_cancel_replay_regression": {
+          "status": "partial; concurrent cancellation replays coalesce into a single adapter request",
+          "commit": "b6b8d54",
+          "push": "success",
+          "changed_files": [
+            "jiankang_app_uniapp/tests/health/hlt-04-appointments.test.mjs"
+          ],
+          "commands": [
+            {
+              "command": "node --test tests/health/hlt-04-appointments.test.mjs",
+              "workdir": "jiankang_app_uniapp",
+              "exit": 0,
+              "summary": "18 tests passed; simultaneous same-key cancellation calls issue one adapter request and preserve server refund failure state."
+            },
+            {
+              "command": "node tests/health/hlt-04-appointments-uts-static-check.mjs",
+              "workdir": "jiankang_app_uniapp",
+              "exit": 0,
+              "summary": "Five appointment UTS scripts parse and repository strict type check passes."
+            },
+            {
+              "command": "git diff --check",
+              "workdir": "jiankang_app_uniapp",
+              "exit": 0
+            }
+          ],
+          "open": [
+            "Synthetic contract test only; canonical Wish appointment and payment persistence remain unintegrated."
+          ]
+        },
         "latest_concurrent_waitlist_replay_regression": {
           "status": "partial; simultaneous duplicate clicks are idempotently coalesced by repository",
           "commit": "701d782",
