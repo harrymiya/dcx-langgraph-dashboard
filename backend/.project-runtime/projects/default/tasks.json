@@ -13329,6 +13329,37 @@
             "Canonical Wish appointment persistence and end-to-end client/Admin integration remain incomplete."
           ]
         },
+        "latest_empty_state_records_consistency": {
+          "status": "partial; empty appointment response containing rows fails closed as stale",
+          "commit": "4051690",
+          "push": "success",
+          "changed_files": [
+            "jiankang_app_uniapp/features/health/appointments/appointment-repository.ts",
+            "jiankang_app_uniapp/tests/health/hlt-04-appointments.test.mjs"
+          ],
+          "commands": [
+            {
+              "command": "node --test tests/health/hlt-04-appointments.test.mjs",
+              "workdir": "jiankang_app_uniapp",
+              "exit": 0,
+              "summary": "27 HLT-04 tests passed; contradictory empty state with records is rejected and no rows are exposed."
+            },
+            {
+              "command": "node tests/health/hlt-04-appointments-uts-static-check.mjs",
+              "workdir": "jiankang_app_uniapp",
+              "exit": 0,
+              "summary": "Appointment UTS page syntax and repository strict type validation passed."
+            },
+            {
+              "command": "git diff --check",
+              "workdir": "jiankang_app_uniapp",
+              "exit": 0
+            }
+          ],
+          "open": [
+            "Synthetic contract validation does not establish canonical Wish API/data persistence integration."
+          ]
+        },
         "latest_duplicate_appointment_reference_validation": {
           "status": "partial; duplicate appointment refs are rejected as stale and the entire list is cleared",
           "commit": "ebd709b",
