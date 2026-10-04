@@ -12750,7 +12750,40 @@
       ],
       "coverage_status": "planned"
     },
-    "evidence": []
+    "evidence": [
+      {
+        "report": "progress.md",
+        "checks": [
+          {
+            "command": "node --test tests/health/hlt-02-location.test.mjs",
+            "workdir": "jiankang_app_uniapp",
+            "exit": 0,
+            "summary": "6 location tests passed; unconfigured adapter, cross-site map, malformed/expired opaque token and no-disclosure behavior verified."
+          },
+          {
+            "command": "node tests/health/hlt-02-location-uts-static-check.mjs",
+            "workdir": "jiankang_app_uniapp",
+            "exit": 0,
+            "summary": "Location repository/pages strict syntax, route registration and type checks passed."
+          },
+          {
+            "command": "node --test tests/health/hlt-03-availability.test.mjs tests/health/hlt-04-appointments.test.mjs",
+            "workdir": "jiankang_app_uniapp",
+            "exit": 0,
+            "summary": "25 appointment regression tests passed; location changes preserve appointment/session boundaries."
+          },
+          {
+            "command": "git diff --check",
+            "workdir": "jiankang_app_uniapp",
+            "exit": 0
+          }
+        ],
+        "status": "partial; task remains planned pending canonical Wish APP BFF/API location endpoints and production persistence",
+        "open": [
+          "Default location adapter remains fail-closed; no map or room data is exposed without a published Wish response and opaque authorized token."
+        ]
+      }
+    ]
   },
   {
     "id": "HLT-03",
