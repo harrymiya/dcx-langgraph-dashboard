@@ -21226,6 +21226,42 @@
             "Configure production origins/redirect/cookie topology and perform isolated IdP smoke with approved secrets."
           ]
         },
+        "latest_no_implicit_operator_seed_deployment": {
+          "status": "partial; Compose and env example no longer default a new DDD deployment to the development seed operator identity",
+          "commit": "f0b7895",
+          "push": "success",
+          "changed_paths": [
+            "dfp_wish/docker-compose.yml",
+            "dfp_wish/.env.example",
+            "dfp_wish/exts/wish_adm/api/test_auth_oauth_callback.py"
+          ],
+          "checks": [
+            {
+              "command": "uv run --frozen --project deerflow/backend --group dev python -m pytest exts/wish_adm/api/test_auth_oauth_callback.py exts/wish_adm/api/test_auth_router.py exts/wish_adm/api/test_operator_auth.py exts/wish_adm/api/test_feishu_contact.py -q",
+              "workdir": "dfp_wish",
+              "exit": 0,
+              "summary": "56 focused SSO/operator tests passed; deployment test asserts seed env defaults empty."
+            },
+            {
+              "command": "docker compose config --quiet",
+              "workdir": "dfp_wish",
+              "exit": 0
+            },
+            {
+              "command": "python3 -m compileall -q exts/wish_adm/api/test_auth_oauth_callback.py",
+              "workdir": "dfp_wish",
+              "exit": 0
+            },
+            {
+              "command": "git diff --check",
+              "workdir": "dfp_wish",
+              "exit": 0
+            }
+          ],
+          "open": [
+            "Existing deployed operator records are unchanged; authorized migration and production SSO rollout remain outside this code-only slice."
+          ]
+        },
         "latest_production_seed_operator_guard": {
           "status": "partial; production OAuth and protected API authorization reject the fixed migration seed operator independently of subject configuration",
           "commit": "c579887, c207e71",
