@@ -18819,7 +18819,46 @@
         "/home/agent/code/jiankang_app_uniapp/docs/architecture/health-scrm-cross-project-architecture.md"
       ],
       "coverage_status": "planned"
-    }
+    },
+    "evidence": [
+      {
+        "report": "progress.md",
+        "commit": "8ecba7e",
+        "push": "success",
+        "changed_paths": [
+          "dfp_wish/apps/wish-adm/src/app/(modules)/access-audit/_components/access-audit-panel.tsx",
+          "dfp_wish/apps/wish-adm/src/app/(modules)/access-audit/_components/access-audit-panel.test.tsx"
+        ],
+        "checks": [
+          {
+            "command": "npm test -- --run 'src/app/(modules)/access-audit/_components/access-audit-panel.test.tsx' 'src/app/(modules)/dashboard/page.test.tsx' 'src/app/(modules)/appointments/page.test.tsx'",
+            "workdir": "dfp_wish/apps/wish-adm",
+            "exit": 0,
+            "summary": "10 access-audit/dashboard/appointment page tests passed; audit page auto-loads and retains pagination/retry."
+          },
+          {
+            "command": "npx eslint 'src/app/(modules)/access-audit/_components/access-audit-panel.tsx' 'src/app/(modules)/access-audit/_components/access-audit-panel.test.tsx'",
+            "workdir": "dfp_wish/apps/wish-adm",
+            "exit": 0
+          },
+          {
+            "command": "npm run build",
+            "workdir": "dfp_wish/apps/wish-adm",
+            "exit": 0,
+            "summary": "Wish Admin build passed."
+          },
+          {
+            "command": "git diff --check",
+            "workdir": "dfp_wish",
+            "exit": 0
+          }
+        ],
+        "status": "partial; task remains planned pending canonical authorization/audit upstream and database composition",
+        "open": [
+          "Audit page renders only server-projected summaries and fail-safe states; no local audit facts or health body are fabricated."
+        ]
+      }
+    ]
   },
   {
     "id": "WADM-17",
