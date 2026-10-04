@@ -13023,6 +13023,37 @@
       },
       "delivery_wave": "I1-健康服务纵切",
       "automated_result": {
+        "latest_payment_response_validation": {
+          "status": "partial; invalid payment status enums and unverified sources are hidden as stale",
+          "commit": "1013890",
+          "push": "success",
+          "changed_files": [
+            "jiankang_app_uniapp/features/health/appointments/appointment-repository.ts",
+            "jiankang_app_uniapp/tests/health/hlt-04-appointments.test.mjs"
+          ],
+          "commands": [
+            {
+              "command": "node --test tests/health/hlt-04-appointments.test.mjs",
+              "workdir": "jiankang_app_uniapp",
+              "exit": 0,
+              "summary": "19 HLT-04 tests passed; malformed payment enums and non-Wish/non-synthetic sources fail closed."
+            },
+            {
+              "command": "node tests/health/hlt-04-appointments-uts-static-check.mjs",
+              "workdir": "jiankang_app_uniapp",
+              "exit": 0,
+              "summary": "Five appointment UTS page scripts parse; repository strict type check passes."
+            },
+            {
+              "command": "git diff --check",
+              "workdir": "jiankang_app_uniapp",
+              "exit": 0
+            }
+          ],
+          "open": [
+            "Canonical Wish payment status endpoint and persistent payment integration remain incomplete."
+          ]
+        },
         "latest_concurrent_cancel_replay_regression": {
           "status": "partial; concurrent cancellation replays coalesce into a single adapter request",
           "commit": "b6b8d54",
