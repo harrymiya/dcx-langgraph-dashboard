@@ -17908,6 +17908,40 @@
         "open": [
           "UI auto-load is implemented, but service catalog data still depends on canonical Wish upstream and remote writes remain fail-closed."
         ]
+      },
+      {
+        "report": "progress.md",
+        "commit": "4553e5a",
+        "push": "success",
+        "changed_paths": [
+          "dfp_wish/domain/service_catalog_admin/inbound/remote/endpoint/service_catalog_admin_routes.py",
+          "dfp_wish/domain/tests/service_catalog_admin/test_service_catalog_admin_routes.py"
+        ],
+        "checks": [
+          {
+            "command": "PYTHONPATH=. uv run --frozen --project . --group test python -m pytest tests/service_catalog_admin/test_sqlalchemy_catalog_repository.py tests/service_catalog_admin/test_catalog_admin_service.py tests/service_catalog_admin/test_service_catalog_admin_routes.py tests/staff/test_operator_session_revocation_repository.py tests/staff/test_operator_routes.py -q",
+            "workdir": "dfp_wish/domain",
+            "exit": 0,
+            "summary": "27 WADM-04 repository/service/route tests passed; injectable trusted scope resolver remains fail-closed by default."
+          },
+          {
+            "command": "PYTHONPATH=. uv run --project . python -m compileall -q service_catalog_admin staff/infrastructure/dataobject alembic/versions/20261004_0001_operator_session_revocation.py routes.py",
+            "workdir": "dfp_wish/domain",
+            "exit": 0,
+            "summary": "Canonical service-catalog route and dependency modules compile."
+          },
+          {
+            "command": "git diff --check",
+            "workdir": "dfp_wish",
+            "exit": 0,
+            "summary": "Wish backend changes are whitespace-clean."
+          }
+        ],
+        "status": "partial; task remains planned pending formal IAM/operator scope resolver, DB-02 deployment baseline, readiness/resource persistence, and write composition",
+        "open": [
+          "Trusted scope is an injectable seam only; default production behavior denies access until the formal operator/site scope owner configures it.",
+          "Remote catalog writes remain disabled; no production DDL or migration was run."
+        ]
       }
     ]
   },
