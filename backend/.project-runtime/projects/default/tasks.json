@@ -19163,6 +19163,40 @@
       },
       {
         "report": "progress.md",
+        "commit": "66f16cc",
+        "push": "success",
+        "changed_paths": [
+          "dfp_wish/domain/customer_profile_admin/unified_subjects.py",
+          "dfp_wish/tests/customer_profile_admin/test_unified_subjects.py"
+        ],
+        "checks": [
+          {
+            "command": "uv run --frozen --project domain --group test python -m pytest domain/tests/customer_profile_admin/test_unified_subjects.py -q",
+            "workdir": "dfp_wish",
+            "exit": 0,
+            "summary": "8 customer-profile tests passed; whitespace/control-character/oversized relationship IDs are rejected."
+          },
+          {
+            "command": "uv run --frozen --project domain --group test python -m pytest domain/tests/security/test_purpose_scope_checks.py domain/tests/security/test_audit_redaction.py -q",
+            "workdir": "dfp_wish",
+            "exit": 0,
+            "summary": "7 purpose-scope and audit-redaction tests passed."
+          },
+          {
+            "command": "python3 -m compileall -q domain/customer_profile_admin",
+            "workdir": "dfp_wish",
+            "exit": 0
+          },
+          {
+            "command": "git diff --check",
+            "workdir": "dfp_wish",
+            "exit": 0
+          }
+        ],
+        "status": "partial; relation projection reference strings hardened; durable canonical customer integration remains incomplete"
+      },
+      {
+        "report": "progress.md",
         "commit": "c20e993",
         "push": "success",
         "changed_paths": [
