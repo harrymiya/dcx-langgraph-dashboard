@@ -18623,7 +18623,45 @@
         ]
       },
       {
+        "report": "progress.md",
+        "commit": "8163efc",
+        "push": "success",
+        "changed_paths": [
+          "dfp_wish/apps/wish-adm/src/app/(modules)/follow-ups/_components/followups-panel.tsx",
+          "dfp_wish/apps/wish-adm/src/app/(modules)/follow-ups/_components/followups-panel.test.tsx"
+        ],
+        "checks": [
+          {
+            "command": "npm test -- --run 'src/app/(modules)/follow-ups/_components/followups-panel.test.tsx' 'src/app/(modules)/access-audit/_components/access-audit-panel.test.tsx' 'src/app/(modules)/appointments/page.test.tsx'",
+            "workdir": "dfp_wish/apps/wish-adm",
+            "exit": 0,
+            "summary": "15 follow-up/access-audit/appointment page tests passed; follow-up reschedule now uses an inline due-time field and busy gate."
+          },
+          {
+            "command": "npx eslint 'src/app/(modules)/follow-ups/_components/followups-panel.tsx' 'src/app/(modules)/follow-ups/_components/followups-panel.test.tsx'",
+            "workdir": "dfp_wish/apps/wish-adm",
+            "exit": 0
+          },
+          {
+            "command": "npm run build",
+            "workdir": "dfp_wish/apps/wish-adm",
+            "exit": 0,
+            "summary": "Wish Admin build passed."
+          },
+          {
+            "command": "git diff --check",
+            "workdir": "dfp_wish",
+            "exit": 0
+          }
+        ],
+        "status": "partial; task remains planned pending canonical Wish follow-up queue/command API and repository composition",
+        "open": [
+          "Follow-up page is actionable and fail-safe; service data and commands remain server-owned and unavailable without canonical upstream."
+        ]
+      },
+      {
         "report": "dfp_wish/domain/customer_followup_admin/WADM-14-run-report.md",
+
         "checks": [
           {
             "command": "uv run --project domain pytest domain/tests/customer_followup_admin/test_followup_projection.py exts/wish_adm/api/test_followup_admin_router.py domain/tests/scrm/followups/test_scr04_followups.py domain/tests/scrm_task_queue/test_site_task_queue.py",
