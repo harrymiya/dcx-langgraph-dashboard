@@ -21228,7 +21228,7 @@
         },
         "latest_cookie_csrf_origin_guard": {
           "status": "partial; all cookie-authenticated unsafe admin requests now require a configured exact trusted Origin, beyond logout-only validation",
-          "commit": "d4b5215",
+          "commit": "d4b5215, ee30100",
           "push": "success",
           "changed_paths": [
             "dfp_wish/exts/wish_adm/api/_auth.py",
