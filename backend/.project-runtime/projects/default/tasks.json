@@ -13023,6 +13023,37 @@
       },
       "delivery_wave": "I1-健康服务纵切",
       "automated_result": {
+        "latest_mixed_domain_response_rejection": {
+          "status": "partial; any non-health record invalidates and clears the full appointment list response",
+          "commit": "db4b73c",
+          "push": "success",
+          "changed_files": [
+            "jiankang_app_uniapp/features/health/appointments/appointment-repository.ts",
+            "jiankang_app_uniapp/tests/health/hlt-04-appointments.test.mjs"
+          ],
+          "commands": [
+            {
+              "command": "node --test tests/health/hlt-04-appointments.test.mjs",
+              "workdir": "jiankang_app_uniapp",
+              "exit": 0,
+              "summary": "26 HLT-04 tests passed; mixed Commerce/non-health records are rejected as forbidden with no partial list exposure."
+            },
+            {
+              "command": "node tests/health/hlt-04-appointments-uts-static-check.mjs",
+              "workdir": "jiankang_app_uniapp",
+              "exit": 0,
+              "summary": "Appointment UTS scripts parse and repository strict type check passes."
+            },
+            {
+              "command": "git diff --check",
+              "workdir": "jiankang_app_uniapp",
+              "exit": 0
+            }
+          ],
+          "open": [
+            "Still synthetic contract coverage; canonical Wish appointment API and persistence integration remain outstanding."
+          ]
+        },
         "latest_terminal_cancel_state_gate": {
           "status": "partial; cancellation calls are rejected before adapter when appointment is terminal or unknown",
           "commit": "6f3023a",
