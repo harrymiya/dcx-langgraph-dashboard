@@ -18977,6 +18977,34 @@
       },
       {
         "report": "progress.md",
+        "commit": "76e20c3",
+        "push": "success",
+        "changed_paths": [
+          "dfp_wish/domain/appointment_availability_admin/application/availability_admin_service.py",
+          "dfp_wish/domain/tests/appointment_availability_admin/test_availability_admin_service.py"
+        ],
+        "checks": [
+          {
+            "command": "uv run --frozen --project . --group test python -m pytest tests/appointment_availability_admin/test_availability_admin_service.py tests/service_catalog_admin/test_catalog_admin_service.py tests/service_catalog_admin/test_sqlalchemy_catalog_repository.py -q",
+            "workdir": "dfp_wish/domain",
+            "exit": 0,
+            "summary": "20 availability/catalog service and repository tests passed; bool/float/string/negative capacity rejected without resource mutation."
+          },
+          {
+            "command": "python3 -m compileall -q appointment_availability_admin service_catalog_admin",
+            "workdir": "dfp_wish/domain",
+            "exit": 0
+          },
+          {
+            "command": "git diff --check",
+            "workdir": "dfp_wish",
+            "exit": 0
+          }
+        ],
+        "status": "partial; canonical domain capacity input is type-safe; deployed schema/resource persistence and trusted scope remain outstanding"
+      },
+      {
+        "report": "progress.md",
         "commit": "c47036c",
         "push": "success",
         "changed_paths": [
