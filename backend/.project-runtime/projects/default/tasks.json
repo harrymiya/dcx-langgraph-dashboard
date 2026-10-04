@@ -21162,6 +21162,23 @@
       "source_status": "delivery gap confirmed from current frontend/backend code",
       "delivery_wave": "I0-边界与基础",
       "automated_result": {
+        "latest_malformed_token_envelope_guard": {
+          "status": "partial; callback rejects malformed Feishu token response shapes without leaking details or issuing session",
+          "commit": "20c4000",
+          "push": "success",
+          "changed_files": [
+            "exts/wish_adm/api/auth_router.py",
+            "exts/wish_adm/api/test_auth_oauth_callback.py"
+          ],
+          "command": "PYTHONPATH=deerflow/backend uv run --frozen --project deerflow/backend --group dev python -m pytest exts/wish_adm/api/test_auth_oauth_callback.py exts/wish_adm/api/test_auth_router.py exts/wish_adm/api/test_operator_auth.py exts/wish_adm/api/test_feishu_contact.py -q",
+          "exit": 0,
+          "summary": "44 focused SSO/OAuth tests passed, including array payload, malformed nested data, and non-string access-token denial.",
+          "followup_command": "python3 -m compileall -q exts/wish_adm/api/auth_router.py exts/wish_adm/api/test_auth_oauth_callback.py && git diff --check",
+          "followup_exit": 0,
+          "open": [
+            "Provider checks are locally validated; production secrets, authorized migrations, trusted origins and real IdP/operator scope smoke remain pending."
+          ]
+        },
         "latest_sso_provider_hardening": {
           "status": "partial; WADM-17 remains planned pending deployment configuration and isolated provider smoke",
           "commit": "b4e127f",
