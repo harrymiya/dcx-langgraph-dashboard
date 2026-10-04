@@ -18953,6 +18953,42 @@
         ]
       },
       {
+        "report": "progress.md",
+        "commit": "47130c4",
+        "push": "success",
+        "changed_paths": [
+          "dfp_wish/apps/wish-adm/src/app/(modules)/service-records/_components/service-records-panel.tsx",
+          "dfp_wish/apps/wish-adm/src/app/(modules)/service-records/_components/service-records-panel.test.tsx"
+        ],
+        "checks": [
+          {
+            "command": "npm test -- --run 'src/app/(modules)/service-records/_components/service-records-panel.test.tsx' 'src/app/(modules)/service-ledger/_components/service-ledger-panel.test.tsx' 'src/app/(modules)/dashboard/page.test.tsx'",
+            "workdir": "dfp_wish/apps/wish-adm",
+            "exit": 0,
+            "summary": "18 service record/ledger/dashboard tests passed; late detail requests are ignored after a newer selection."
+          },
+          {
+            "command": "npx eslint 'src/app/(modules)/service-records/_components/service-records-panel.tsx' 'src/app/(modules)/service-records/_components/service-records-panel.test.tsx'",
+            "workdir": "dfp_wish/apps/wish-adm",
+            "exit": 0
+          },
+          {
+            "command": "npm run build",
+            "workdir": "dfp_wish/apps/wish-adm",
+            "exit": 0
+          },
+          {
+            "command": "git diff --check",
+            "workdir": "dfp_wish",
+            "exit": 0
+          }
+        ],
+        "status": "partial; task remains planned pending canonical Wish service-record API/repository/database",
+        "open": [
+          "Request-generation guard protects current selection; displayed records remain exclusively server-projected."
+        ]
+      },
+      {
         "report": "dfp_wish/domain/customer_followup_admin/WADM-14-run-report.md",
 
         "checks": [
