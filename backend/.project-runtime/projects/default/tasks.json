@@ -18777,6 +18777,42 @@
         ]
       },
       {
+        "report": "progress.md",
+        "commit": "53fe3a1",
+        "push": "success",
+        "changed_paths": [
+          "dfp_wish/apps/wish-adm/src/app/(modules)/service-ledger/_components/service-ledger-panel.tsx"
+        ],
+        "checks": [
+          {
+            "command": "npm test -- --run 'src/app/(modules)/service-ledger/_components/service-ledger-panel.test.tsx' 'src/app/(modules)/access-audit/_components/access-audit-panel.test.tsx' 'src/app/(modules)/follow-ups/_components/followups-panel.test.tsx'",
+            "workdir": "dfp_wish/apps/wish-adm",
+            "exit": 0,
+            "summary": "20 service-ledger/access-audit/follow-up page tests passed."
+          },
+          {
+            "command": "npx eslint 'src/app/(modules)/service-ledger/_components/service-ledger-panel.tsx' 'src/app/(modules)/service-ledger/_components/service-ledger-panel.test.tsx'",
+            "workdir": "dfp_wish/apps/wish-adm",
+            "exit": 0
+          },
+          {
+            "command": "npm run build",
+            "workdir": "dfp_wish/apps/wish-adm",
+            "exit": 0,
+            "summary": "Wish Admin build passed."
+          },
+          {
+            "command": "git diff --check",
+            "workdir": "dfp_wish",
+            "exit": 0
+          }
+        ],
+        "status": "partial; task remains planned pending canonical Wish service ledger endpoint and repository composition",
+        "open": [
+          "Ledger page is a read-only authorized review surface; no cashier, Commerce write, or local ledger fact is implemented."
+        ]
+      },
+      {
         "report": "dfp_wish/domain/health_service_ledger_admin/test-and-run-evidence",
         "checks": [
           {
