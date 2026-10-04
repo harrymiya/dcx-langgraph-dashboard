@@ -13023,6 +13023,37 @@
       },
       "delivery_wave": "I1-健康服务纵切",
       "automated_result": {
+        "latest_duplicate_availability_slot_validation": {
+          "status": "partial; repeated availability slot refs clear the response as stale",
+          "commit": "e5cf5a5",
+          "push": "success",
+          "changed_files": [
+            "jiankang_app_uniapp/features/health/appointments/availability-repository.ts",
+            "jiankang_app_uniapp/tests/health/hlt-03-availability.test.mjs"
+          ],
+          "commands": [
+            {
+              "command": "node --test tests/health/hlt-03-availability.test.mjs tests/health/hlt-04-appointments.test.mjs",
+              "workdir": "jiankang_app_uniapp",
+              "exit": 0,
+              "summary": "31 HLT-03/04 tests passed; duplicate slotRef response fails closed and exposes no slots/context."
+            },
+            {
+              "command": "node tests/health/hlt-03-availability-uts-static-check.mjs && node tests/health/hlt-04-appointments-uts-static-check.mjs",
+              "workdir": "jiankang_app_uniapp",
+              "exit": 0,
+              "summary": "Availability and appointment UTS pages parse; both repositories pass strict type checks."
+            },
+            {
+              "command": "git diff --check",
+              "workdir": "jiankang_app_uniapp",
+              "exit": 0
+            }
+          ],
+          "open": [
+            "Synthetic adapter contract test does not close canonical Wish availability persistence or cross-client integration."
+          ]
+        },
         "latest_appointment_interval_validation": {
           "status": "partial; malformed or non-positive appointment intervals fail closed across list/detail/mutation record validation",
           "commit": "b7f70fb",
