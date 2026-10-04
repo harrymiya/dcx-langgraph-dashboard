@@ -18108,6 +18108,42 @@
       },
       {
         "report": "progress.md",
+        "commit": "bdedecd",
+        "push": "success",
+        "changed_paths": [
+          "dfp_wish/apps/wish-adm/src/app/(modules)/appointments/_components/site-service-config/site-service-config-panel.tsx",
+          "dfp_wish/apps/wish-adm/src/app/(modules)/appointments/_components/site-service-config/site-service-config-panel.test.tsx"
+        ],
+        "checks": [
+          {
+            "command": "npm test -- --run 'src/app/(modules)/appointments/_components/site-service-config/site-service-config-panel.test.tsx' 'src/app/(modules)/appointments/_components/site-service-config/admin-api.test.ts' 'src/app/(modules)/appointments/page.test.tsx' 'src/app/(modules)/dashboard/page.test.tsx'",
+            "workdir": "dfp_wish/apps/wish-adm",
+            "exit": 0,
+            "summary": "17 service-catalog/appointment/dashboard tests passed; filters auto-refresh and show loading skeleton."
+          },
+          {
+            "command": "npx eslint 'src/app/(modules)/appointments/_components/site-service-config/site-service-config-panel.tsx' 'src/app/(modules)/appointments/_components/site-service-config/site-service-config-panel.test.tsx'",
+            "workdir": "dfp_wish/apps/wish-adm",
+            "exit": 0
+          },
+          {
+            "command": "npm run build",
+            "workdir": "dfp_wish/apps/wish-adm",
+            "exit": 0
+          },
+          {
+            "command": "git diff --check",
+            "workdir": "dfp_wish",
+            "exit": 0
+          }
+        ],
+        "status": "partial; service-catalog page interaction delivered, canonical readiness/resource persistence and trusted operator scope remain open",
+        "open": [
+          "No mock catalog data is displayed; remote resources and writes remain dependent on canonical Wish upstream."
+        ]
+      },
+      {
+        "report": "progress.md",
         "commit": "c47036c",
         "push": "success",
         "changed_paths": [
