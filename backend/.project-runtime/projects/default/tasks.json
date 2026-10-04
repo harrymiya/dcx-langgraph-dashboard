@@ -20390,6 +20390,39 @@
     "evidence": [
       {
         "report": "progress.md",
+        "commit": "6cf26cb",
+        "push": "success",
+        "changed_paths": [
+          "dfp_wish/apps/wish-adm/src/app/(modules)/access-audit/_components/admin-api.ts",
+          "dfp_wish/apps/wish-adm/src/app/(modules)/access-audit/_components/admin-api.test.ts"
+        ],
+        "checks": [
+          {
+            "command": "npm test -- --run 'src/app/(modules)/access-audit/_components/admin-api.test.ts' 'src/app/(modules)/access-audit/_components/access-audit-panel.test.tsx'",
+            "workdir": "dfp_wish/apps/wish-adm",
+            "exit": 0,
+            "summary": "12 audit API/panel tests passed; event tuple identities do not collide on separator-containing references."
+          },
+          {
+            "command": "npx eslint 'src/app/(modules)/access-audit/_components/admin-api.ts' 'src/app/(modules)/access-audit/_components/admin-api.test.ts'",
+            "workdir": "dfp_wish/apps/wish-adm",
+            "exit": 0
+          },
+          {
+            "command": "npm run build",
+            "workdir": "dfp_wish/apps/wish-adm",
+            "exit": 0
+          },
+          {
+            "command": "git diff --check",
+            "workdir": "dfp_wish",
+            "exit": 0
+          }
+        ],
+        "status": "partial; client-side event identity collision removed; canonical audit upstream persistence remains incomplete"
+      },
+      {
+        "report": "progress.md",
         "commit": "5bee089",
         "push": "success",
         "changed_paths": [
