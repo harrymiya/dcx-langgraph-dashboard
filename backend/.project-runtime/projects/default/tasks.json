@@ -17568,6 +17568,50 @@
     },
     "evidence": [
       {
+        "report": "progress.md",
+        "commit": "8fe0211",
+        "push": "success",
+        "changed_paths": [
+          "dfp_wish/apps/wish-adm/src/app/(modules)/dashboard/page.tsx",
+          "dfp_wish/apps/wish-adm/src/app/(modules)/dashboard/page.test.tsx"
+        ],
+        "checks": [
+          {
+            "command": "npm test -- --run 'src/app/(modules)/dashboard/page.test.tsx' 'src/app/(modules)/appointments/_components/site-service-config/site-service-config-panel.test.tsx' 'src/app/(modules)/customers/_components/customers-panel.test.tsx'",
+            "workdir": "dfp_wish/apps/wish-adm",
+            "exit": 0,
+            "summary": "17 admin page tests passed; dashboard exposes six Wish workspace links and existing operations without mock stats."
+          },
+          {
+            "command": "npx eslint 'src/app/(modules)/dashboard/page.tsx' 'src/app/(modules)/dashboard/page.test.tsx'",
+            "workdir": "dfp_wish/apps/wish-adm",
+            "exit": 0,
+            "summary": "Dashboard page and test pass targeted ESLint."
+          },
+          {
+            "command": "npm run build",
+            "workdir": "dfp_wish/apps/wish-adm",
+            "exit": 0,
+            "summary": "Wish Admin production build passed; dashboard and six workspace routes are emitted."
+          },
+          {
+            "command": "npm run typecheck",
+            "workdir": "dfp_wish/apps/wish-adm",
+            "exit": 2,
+            "summary": "Existing unrelated errors remain in follow-ups/service-ledger test tuple fixtures and uuid.test.ts."
+          },
+          {
+            "command": "git diff --check",
+            "workdir": "dfp_wish",
+            "exit": 0
+          }
+        ],
+        "status": "partial; admin dashboard page delivery complete, canonical six-domain backend closures remain planned",
+        "open": [
+          "Dashboard navigation is real and actionable; it does not claim mock statistics or production domain completion."
+        ]
+      },
+      {
         "report": "apps/wish-adm/src/app/(modules)/_shared/admin-api-contracts.test.ts",
         "checks": [
           {
