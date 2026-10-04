@@ -21504,6 +21504,42 @@
             "Trusted production origins, approved migration execution, revocation secret deployment, canonical IAM role/site scope and real isolated IdP smoke remain incomplete."
           ]
         },
+        "latest_catalog_selector_normalization": {
+          "status": "partial; WADM-04 catalog BFF trims bounded selector values and rejects whitespace-only site/service/qualification filters before proxying",
+          "commit": "f103f5e",
+          "push": "success",
+          "changed_paths": [
+            "dfp_wish/exts/wish_adm/api/service_catalog_admin_router.py",
+            "dfp_wish/exts/wish_adm/api/test_service_catalog_admin_router.py"
+          ],
+          "checks": [
+            {
+              "command": "uv run --frozen --project deerflow/backend --group dev python -m pytest exts/wish_adm/api/test_service_catalog_admin_router.py -q",
+              "workdir": "dfp_wish",
+              "exit": 0,
+              "summary": "10 catalog BFF tests passed; blank optional selectors reject before remote call and padded selectors are normalized."
+            },
+            {
+              "command": "uv run --frozen --project . --group test python -m pytest tests/service_catalog_admin/test_catalog_admin_service.py tests/appointment_availability_admin/test_availability_admin_service.py tests/service_catalog/test_ops07_readiness.py tests/appointment_availability/test_ops04_resource_qualification.py -q",
+              "workdir": "dfp_wish/domain",
+              "exit": 0,
+              "summary": "22 catalog/readiness/resource qualification domain tests passed."
+            },
+            {
+              "command": "python3 -m compileall -q exts/wish_adm/api/service_catalog_admin_router.py exts/wish_adm/api/test_service_catalog_admin_router.py",
+              "workdir": "dfp_wish",
+              "exit": 0
+            },
+            {
+              "command": "git diff --check",
+              "workdir": "dfp_wish",
+              "exit": 0
+            }
+          ],
+          "open": [
+            "Trusted production operator/site resolver and canonical resource/readiness persistence integration remain incomplete; no authoritative write scope is inferred from the selector."
+          ]
+        },
         "latest_cookie_csrf_origin_guard": {
           "status": "partial; all cookie-authenticated unsafe admin requests now require a configured exact trusted Origin, beyond logout-only validation",
           "commit": "d4b5215, ee30100",
