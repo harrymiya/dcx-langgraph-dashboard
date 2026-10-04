@@ -21226,6 +21226,36 @@
             "Configure production origins/redirect/cookie topology and perform isolated IdP smoke with approved secrets."
           ]
         },
+        "latest_sso_session_hydration_fail_closed": {
+          "status": "partial; rejected network/malformed/inactive /me responses clear cached identity and resolve to unauthenticated state",
+          "commit": "315c931",
+          "push": "success",
+          "changed_paths": [
+            "dfp_wish/apps/wish-adm/src/adapters/auth.ts",
+            "dfp_wish/apps/wish-adm/src/adapters/auth.test.ts"
+          ],
+          "checks": [
+            {
+              "command": "npm test -- --run src/adapters/auth.test.ts",
+              "workdir": "dfp_wish/apps/wish-adm",
+              "exit": 0,
+              "summary": "6 adapter tests passed; rejected fetch, malformed JSON, and inactive operator responses all clear cached identity and fail closed."
+            },
+            {
+              "command": "npx eslint src/adapters/auth.ts src/adapters/auth.test.ts",
+              "workdir": "dfp_wish/apps/wish-adm",
+              "exit": 0
+            },
+            {
+              "command": "git diff --check",
+              "workdir": "dfp_wish/apps/wish-adm",
+              "exit": 0
+            }
+          ],
+          "open": [
+            "Production IdP integration and trusted IAM/operator site-scope deployment checks remain incomplete."
+          ]
+        },
         "latest_sso_return_path_alignment": {
           "status": "partial; browser SSO preserves the requested registered module destination instead of silently routing to dashboard",
           "commit": "2d656ac, 936f590",
