@@ -17648,6 +17648,48 @@
         ]
       },
       {
+        "report": "progress.md",
+        "commit": "6d721fe",
+        "push": "success",
+        "changed_paths": [
+          "dfp_wish/exts/wish_adm/services/menu_data.py",
+          "dfp_wish/exts/wish_adm/api/test_menu_tree.py"
+        ],
+        "checks": [
+          {
+            "command": "PYTHONPATH=deerflow/backend uv run --frozen --project deerflow/backend --group dev python -m pytest exts/wish_adm/api/test_menu_tree.py::test_admin_sees_full_tree exts/wish_adm/api/test_menu_tree.py::test_service_catalog_menu_is_visible_to_admin_and_manager_only exts/wish_adm/api/test_menu_tree.py::test_tree_structure_has_required_fields exts/wish_adm/api/test_menu_tree.py::test_store_ops_filtered_and_empty_group_dropped exts/wish_adm/api/test_menu_tree.py::test_consultant_minimal -q",
+            "workdir": "dfp_wish",
+            "exit": 0,
+            "summary": "5 server-side role menu/appointment destination tests passed."
+          },
+          {
+            "command": "npm test -- --run 'src/components/shell/nav.test.ts' 'src/app/(modules)/dashboard/page.test.tsx' 'src/app/(modules)/appointments/page.test.tsx'",
+            "workdir": "dfp_wish/apps/wish-adm",
+            "exit": 0,
+            "summary": "13 navigation/dashboard/appointment UI tests passed."
+          },
+          {
+            "command": "npx eslint 'src/components/shell/nav.ts' 'src/components/shell/nav.test.ts'",
+            "workdir": "dfp_wish/apps/wish-adm",
+            "exit": 0
+          },
+          {
+            "command": "npm run build",
+            "workdir": "dfp_wish/apps/wish-adm",
+            "exit": 0
+          },
+          {
+            "command": "git diff --check",
+            "workdir": "dfp_wish",
+            "exit": 0
+          }
+        ],
+        "status": "partial; admin menu target corrected, role gates unchanged; canonical appointment API/DDD/database remain planned",
+        "open": [
+          "Menu target now opens the appointment operations page; service catalog remains a declared subroute."
+        ]
+      },
+      {
         "report": "apps/wish-adm/src/app/(modules)/_shared/admin-api-contracts.test.ts",
         "checks": [
           {
