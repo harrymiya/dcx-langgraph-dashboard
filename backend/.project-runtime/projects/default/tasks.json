@@ -17942,6 +17942,40 @@
           "Trusted scope is an injectable seam only; default production behavior denies access until the formal operator/site scope owner configures it.",
           "Remote catalog writes remain disabled; no production DDL or migration was run."
         ]
+      },
+      {
+        "report": "progress.md",
+        "commit": "c47036c",
+        "push": "success",
+        "changed_paths": [
+          "dfp_wish/domain/appointment_availability/infrastructure/sqlalchemy_resource_status_repository.py",
+          "dfp_wish/domain/service_catalog/infrastructure/sqlalchemy_readiness_repository.py",
+          "dfp_wish/domain/tests/service_catalog_admin/test_fail_closed_persistence_adapters.py"
+        ],
+        "checks": [
+          {
+            "command": "PYTHONPATH=. uv run --frozen --project . --group test python -m pytest tests/service_catalog_admin/test_fail_closed_persistence_adapters.py tests/service_catalog_admin/test_sqlalchemy_catalog_repository.py tests/service_catalog_admin/test_catalog_admin_service.py tests/service_catalog_admin/test_service_catalog_admin_routes.py -q",
+            "workdir": "dfp_wish/domain",
+            "exit": 0,
+            "summary": "15 WADM-04 persistence/repository/service/route tests passed; readiness/resource adapters fail closed until canonical owner composition."
+          },
+          {
+            "command": "PYTHONPATH=. uv run --project . python -m compileall -q service_catalog_admin service_catalog/infrastructure appointment_availability/infrastructure routes.py",
+            "workdir": "dfp_wish/domain",
+            "exit": 0,
+            "summary": "WADM-04 adapters compile."
+          },
+          {
+            "command": "git diff --check",
+            "workdir": "dfp_wish",
+            "exit": 0
+          }
+        ],
+        "status": "partial; task remains planned pending canonical DB-04 model/repository owner composition and formal IAM scope resolver",
+        "open": [
+          "Readiness/resource persistence intentionally denies access until owner-approved canonical models and UoW composition are registered.",
+          "Remote catalog writes remain disabled; no production DDL or migration was run."
+        ]
       }
     ]
   },
