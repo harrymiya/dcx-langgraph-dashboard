@@ -19339,6 +19339,43 @@
           "Apply migration 20261004_0001_operator_session_revocation through the authorized non-production workflow.",
           "Run isolated gateway-to-DDD revocation and Feishu provider smoke with secret rotation/failure checks."
         ]
+      },
+      {
+        "report": "progress.md",
+        "commit": "df36b9e",
+        "push": "success",
+        "changed_paths": [
+          "dfp_wish/apps/wish-adm/src/app/(auth)/login/login-form.tsx",
+          "dfp_wish/apps/wish-adm/src/app/(auth)/login/login-form.test.tsx"
+        ],
+        "checks": [
+          {
+            "command": "npm test -- --run 'src/app/(auth)/login/login-form.test.tsx' 'src/app/(modules)/appointments/page.test.tsx' 'src/app/(modules)/dashboard/page.test.tsx'",
+            "workdir": "dfp_wish/apps/wish-adm",
+            "exit": 0,
+            "summary": "4 login/appointment/dashboard tests passed; appointment return target remains allowlisted."
+          },
+          {
+            "command": "npx eslint 'src/app/(auth)/login/login-form.tsx' 'src/app/(auth)/login/login-form.test.tsx'",
+            "workdir": "dfp_wish/apps/wish-adm",
+            "exit": 0
+          },
+          {
+            "command": "npm run build",
+            "workdir": "dfp_wish/apps/wish-adm",
+            "exit": 0,
+            "summary": "Wish Admin build passed."
+          },
+          {
+            "command": "git diff --check",
+            "workdir": "dfp_wish",
+            "exit": 0
+          }
+        ],
+        "status": "partial; SSO stays planned pending session revocation secret, authorized migration, and isolated production-topology smoke",
+        "open": [
+          "This change only aligns the UI return-path allowlist; it does not satisfy production organization SSO deployment acceptance."
+        ]
       }
     ]
   },
