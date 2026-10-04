@@ -18977,6 +18977,34 @@
       },
       {
         "report": "progress.md",
+        "commit": "be83490",
+        "push": "success",
+        "changed_paths": [
+          "dfp_wish/domain/service_catalog_admin/inbound/remote/endpoint/service_catalog_admin_routes.py",
+          "dfp_wish/domain/tests/service_catalog_admin/test_service_catalog_admin_routes.py"
+        ],
+        "checks": [
+          {
+            "command": "PYTHONPATH=. uv run --frozen --project . --group test python -m pytest tests/service_catalog_admin/test_service_catalog_admin_routes.py tests/service_catalog_admin/test_catalog_admin_service.py tests/service_catalog_admin/test_sqlalchemy_catalog_repository.py tests/appointment_availability_admin/test_availability_admin_service.py -q",
+            "workdir": "dfp_wish/domain",
+            "exit": 0,
+            "summary": "25 catalog/availability tests passed; blank service_id returns 422 before repository lookup and padded valid IDs are trimmed."
+          },
+          {
+            "command": "python3 -m compileall -q service_catalog_admin appointment_availability_admin",
+            "workdir": "dfp_wish/domain",
+            "exit": 0
+          },
+          {
+            "command": "git diff --check",
+            "workdir": "dfp_wish",
+            "exit": 0
+          }
+        ],
+        "status": "partial; version filter input validated; persistent readiness/resources and trusted scope remain incomplete"
+      },
+      {
+        "report": "progress.md",
         "commit": "76e20c3",
         "push": "success",
         "changed_paths": [
