@@ -19071,6 +19071,39 @@
     "evidence": [
       {
         "report": "progress.md",
+        "commit": "807167d",
+        "push": "success",
+        "changed_paths": [
+          "dfp_wish/apps/wish-adm/src/app/(modules)/follow-ups/_components/followups-panel.tsx",
+          "dfp_wish/apps/wish-adm/src/app/(modules)/follow-ups/_components/followups-panel.test.tsx"
+        ],
+        "checks": [
+          {
+            "command": "npm test -- --run 'src/app/(modules)/follow-ups/_components/followups-panel.test.tsx' 'src/app/(modules)/customers/_components/customers-panel.test.tsx'",
+            "workdir": "dfp_wish/apps/wish-adm",
+            "exit": 0,
+            "summary": "13 follow-up/customer tests passed; synchronous command ref gate prevents rapid duplicate submissions."
+          },
+          {
+            "command": "npx eslint 'src/app/(modules)/follow-ups/_components/followups-panel.tsx' 'src/app/(modules)/follow-ups/_components/followups-panel.test.tsx'",
+            "workdir": "dfp_wish/apps/wish-adm",
+            "exit": 0
+          },
+          {
+            "command": "npm run build",
+            "workdir": "dfp_wish/apps/wish-adm",
+            "exit": 0
+          },
+          {
+            "command": "git diff --check",
+            "workdir": "dfp_wish",
+            "exit": 0
+          }
+        ],
+        "status": "partial; client duplicate-submit protection added; server idempotency and canonical persistence remain required"
+      },
+      {
+        "report": "progress.md",
         "commit": "425dc2a",
         "push": "success",
         "changed_paths": [
