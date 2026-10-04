@@ -19299,6 +19299,39 @@
       },
       {
         "report": "progress.md",
+        "commit": "1fc7545",
+        "push": "success",
+        "changed_paths": [
+          "dfp_wish/apps/wish-adm/src/app/(modules)/customers/_components/admin-api.ts",
+          "dfp_wish/apps/wish-adm/src/app/(modules)/customers/_components/admin-api.test.ts"
+        ],
+        "checks": [
+          {
+            "command": "npm test -- --run 'src/app/(modules)/customers/_components/admin-api.test.ts' 'src/app/(modules)/customers/_components/customers-panel.test.tsx'",
+            "workdir": "dfp_wish/apps/wish-adm",
+            "exit": 0,
+            "summary": "12 customer API/panel tests passed; composite subject identities avoid delimiter collisions."
+          },
+          {
+            "command": "npx eslint 'src/app/(modules)/customers/_components/admin-api.ts' 'src/app/(modules)/customers/_components/admin-api.test.ts'",
+            "workdir": "dfp_wish/apps/wish-adm",
+            "exit": 0
+          },
+          {
+            "command": "npm run build",
+            "workdir": "dfp_wish/apps/wish-adm",
+            "exit": 0
+          },
+          {
+            "command": "git diff --check",
+            "workdir": "dfp_wish",
+            "exit": 0
+          }
+        ],
+        "status": "partial; customer pagination identity made unambiguous; canonical profile/relationship persistence remains incomplete"
+      },
+      {
+        "report": "progress.md",
         "commit": "7f325ba",
         "push": "success",
         "changed_paths": [
