@@ -21225,6 +21225,36 @@
             "Configure production origins/redirect/cookie topology and perform isolated IdP smoke with approved secrets."
           ]
         },
+        "latest_oauth_operator_lookup_envelope_guard": {
+          "status": "partial; OAuth callback validates IAM envelope/data shapes and fails closed with sanitized 401 before session issuance",
+          "commit": "a5a0156",
+          "push": "success",
+          "changed_paths": [
+            "dfp_wish/exts/wish_adm/api/auth_router.py",
+            "dfp_wish/exts/wish_adm/api/test_auth_oauth_callback.py"
+          ],
+          "checks": [
+            {
+              "command": "uv run --frozen --project deerflow/backend --group dev python -m pytest exts/wish_adm/api/test_auth_oauth_callback.py exts/wish_adm/api/test_auth_router.py exts/wish_adm/api/test_operator_auth.py exts/wish_adm/api/test_feishu_contact.py -q",
+              "workdir": "dfp_wish",
+              "exit": 0,
+              "summary": "64 focused auth tests passed; six malformed operator lookup payload shapes are rejected without session cookies or provider details."
+            },
+            {
+              "command": "python3 -m compileall -q exts/wish_adm/api/auth_router.py exts/wish_adm/api/test_auth_oauth_callback.py",
+              "workdir": "dfp_wish",
+              "exit": 0
+            },
+            {
+              "command": "git diff --check",
+              "workdir": "dfp_wish",
+              "exit": 0
+            }
+          ],
+          "open": [
+            "Trusted production origins, authorized migrations, deployed revocation secret, canonical IAM tenant/site scope and isolated IdP smoke remain incomplete."
+          ]
+        },
         "latest_uncached_operator_lookup_outages": {
           "status": "partial; DDD lookup transport exceptions and non-success envelopes fail closed without caching, allowing immediate recovery after transient IAM outages",
           "commit": "e966242",
