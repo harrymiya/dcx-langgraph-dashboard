@@ -19857,6 +19857,40 @@
       },
       {
         "report": "progress.md",
+        "commit": "4b6b824",
+        "push": "success",
+        "changed_paths": [
+          "dfp_wish/domain/service_record_admin/correction_service.py",
+          "dfp_wish/domain/tests/service_record_admin/test_correction_service.py"
+        ],
+        "checks": [
+          {
+            "command": "uv run --frozen --project domain --group test python -m pytest domain/tests/service_record_admin/test_correction_service.py domain/tests/service_record_admin/test_admin_projection.py domain/tests/scrm/privacy/test_scr02_projection.py domain/tests/scrm/service_records/test_scr03_service_records.py -q",
+            "workdir": "dfp_wish",
+            "exit": 0,
+            "summary": "32 correction/projection/privacy/domain tests passed; bool, float, string, zero and negative expected versions are rejected before repository access."
+          },
+          {
+            "command": "uv run --frozen --project deerflow/backend --group dev python -m pytest exts/wish_adm/api/test_service_record_admin_router.py -q",
+            "workdir": "dfp_wish",
+            "exit": 0,
+            "summary": "6 service-record admin router tests passed."
+          },
+          {
+            "command": "python3 -m compileall -q domain/service_record_admin",
+            "workdir": "dfp_wish",
+            "exit": 0
+          },
+          {
+            "command": "git diff --check",
+            "workdir": "dfp_wish",
+            "exit": 0
+          }
+        ],
+        "status": "partial; expected_version input type hardened; canonical correction repository/UoW integration remains incomplete"
+      },
+      {
+        "report": "progress.md",
         "commit": "554a184",
         "push": "success",
         "changed_paths": [
