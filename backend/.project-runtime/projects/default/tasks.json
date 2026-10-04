@@ -18618,6 +18618,39 @@
       },
       {
         "report": "progress.md",
+        "commit": "3bbaf42",
+        "push": "success",
+        "changed_paths": [
+          "dfp_wish/apps/wish-adm/src/app/(modules)/appointments/_components/site-service-config/site-service-config-panel.tsx",
+          "dfp_wish/apps/wish-adm/src/app/(modules)/appointments/_components/site-service-config/site-service-config-panel.test.tsx"
+        ],
+        "checks": [
+          {
+            "command": "npm test -- --run 'src/app/(modules)/appointments/_components/site-service-config/site-service-config-panel.test.tsx' 'src/app/(modules)/appointments/page.test.tsx'",
+            "workdir": "dfp_wish/apps/wish-adm",
+            "exit": 0,
+            "summary": "11 service catalog/appointment UI tests passed; invalid resource capacities are blocked before mutation."
+          },
+          {
+            "command": "npx eslint 'src/app/(modules)/appointments/_components/site-service-config/site-service-config-panel.tsx' 'src/app/(modules)/appointments/_components/site-service-config/site-service-config-panel.test.tsx'",
+            "workdir": "dfp_wish/apps/wish-adm",
+            "exit": 0
+          },
+          {
+            "command": "npm run build",
+            "workdir": "dfp_wish/apps/wish-adm",
+            "exit": 0
+          },
+          {
+            "command": "git diff --check",
+            "workdir": "dfp_wish",
+            "exit": 0
+          }
+        ],
+        "status": "partial; UI capacity input guard added; canonical Wish resource mutation and persistence remain incomplete"
+      },
+      {
+        "report": "progress.md",
         "commit": "89acf10",
         "push": "success",
         "changed_paths": [
