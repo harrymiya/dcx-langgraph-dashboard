@@ -18317,6 +18317,41 @@
         ]
       },
       {
+        "report": "progress.md",
+        "commit": "f8a2228",
+        "push": "success",
+        "changed_paths": [
+          "dfp_wish/apps/wish-adm/src/app/(modules)/customers/_components/customers-panel.tsx"
+        ],
+        "checks": [
+          {
+            "command": "npm test -- --run 'src/app/(modules)/customers/_components/customers-panel.test.tsx' 'src/app/(modules)/appointments/page.test.tsx' 'src/app/(modules)/dashboard/page.test.tsx'",
+            "workdir": "dfp_wish/apps/wish-adm",
+            "exit": 0,
+            "summary": "9 customers/appointment/dashboard page tests passed."
+          },
+          {
+            "command": "npx eslint 'src/app/(modules)/customers/_components/customers-panel.tsx' 'src/app/(modules)/customers/_components/customers-panel.test.tsx'",
+            "workdir": "dfp_wish/apps/wish-adm",
+            "exit": 0
+          },
+          {
+            "command": "npm run build",
+            "workdir": "dfp_wish/apps/wish-adm",
+            "exit": 0
+          },
+          {
+            "command": "git diff --check",
+            "workdir": "dfp_wish",
+            "exit": 0
+          }
+        ],
+        "status": "partial; task remains planned pending canonical Wish customer/relationship upstream and repository/database composition",
+        "open": [
+          "Subject filter now reloads automatically and stale relationship responses are discarded; data remains server-projected and fail-closed."
+        ]
+      },
+      {
         "report": "dfp_wish/domain/customer_profile_admin/WADM-11-run-report.md",
         "checks": [
           {
