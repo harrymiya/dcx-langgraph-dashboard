@@ -20294,6 +20294,40 @@
     "evidence": [
       {
         "report": "progress.md",
+        "commit": "5bee089",
+        "push": "success",
+        "changed_paths": [
+          "dfp_wish/domain/authorization_audit_admin/audit_projection.py",
+          "dfp_wish/domain/tests/authorization_audit_admin/test_audit_projection.py"
+        ],
+        "checks": [
+          {
+            "command": "uv run --frozen --project domain --group test python -m pytest domain/tests/authorization_audit_admin/test_audit_projection.py domain/tests/security/test_purpose_scope_checks.py domain/tests/security/test_audit_redaction.py -q",
+            "workdir": "dfp_wish",
+            "exit": 0,
+            "summary": "14 audit projection/scope/redaction tests passed; duplicate event_ref/version pairs are rejected."
+          },
+          {
+            "command": "PYTHONPATH=deerflow/backend uv run --frozen --project deerflow/backend --group dev python -m pytest exts/wish_adm/api/test_access_audit_admin_router.py exts/wish_adm/test_access_audit_admin_bootstrap.py -q",
+            "workdir": "dfp_wish",
+            "exit": 0,
+            "summary": "4 access-audit router/bootstrap tests passed."
+          },
+          {
+            "command": "python3 -m compileall -q domain/authorization_audit_admin",
+            "workdir": "dfp_wish",
+            "exit": 0
+          },
+          {
+            "command": "git diff --check",
+            "workdir": "dfp_wish",
+            "exit": 0
+          }
+        ],
+        "status": "partial; audit identity uniqueness hardened; canonical audit persistence and production scope integration remain incomplete"
+      },
+      {
+        "report": "progress.md",
         "commit": "bbd6126",
         "push": "success",
         "changed_paths": [
