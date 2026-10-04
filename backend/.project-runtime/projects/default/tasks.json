@@ -6061,6 +6061,24 @@
             "exit": 0
           }
         ]
+      },
+      {
+        "report": "progress.md",
+        "commit": "32f11a8",
+        "push": "success",
+        "checks": [
+          {
+            "command": "node --test pages/commerce/member/plan/mem-02-contract.test.mjs pages/commerce/member/level/mem-01-contract.test.mjs pages/commerce/member/check-in/mem-06-contract.test.mjs pages/commerce/search/com-02-contract.test.mjs pages/commerce/product/com-03-contract.test.mjs tests/auth/navigation.test.mjs",
+            "workdir": "jiankang_app_uniapp",
+            "exit": 0,
+            "summary": "32 membership/commerce/auth contract tests passed; membership center links level/check-in and QR uses MAPP short reference when available."
+          },
+          {
+            "command": "git diff --check",
+            "workdir": "jiankang_app_uniapp",
+            "exit": 0
+          }
+        ]
       }
     ],
     "verified_at": "2026-10-01T20:08:44-07:00"
@@ -6207,6 +6225,24 @@
           },
           {
             "command": "python3 scripts/validate_plan_coverage.py --source-root /home/agent/code/jiankang_app_uniapp",
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "report": "progress.md",
+        "commit": "32f11a8",
+        "push": "success",
+        "checks": [
+          {
+            "command": "node --test pages/commerce/member/plan/mem-02-contract.test.mjs pages/commerce/member/level/mem-01-contract.test.mjs pages/commerce/member/check-in/mem-06-contract.test.mjs pages/commerce/search/com-02-contract.test.mjs pages/commerce/product/com-03-contract.test.mjs tests/auth/navigation.test.mjs",
+            "workdir": "jiankang_app_uniapp",
+            "exit": 0,
+            "summary": "32 membership/commerce/auth contract tests passed; membership center links level/check-in and QR uses MAPP short reference when available."
+          },
+          {
+            "command": "git diff --check",
+            "workdir": "jiankang_app_uniapp",
             "exit": 0
           }
         ]
@@ -6793,6 +6829,24 @@
           },
           {
             "command": "python3 scripts/validate_plan_coverage.py --source-root /home/agent/code/jiankang_app_uniapp",
+            "exit": 0
+          }
+        ]
+      },
+      {
+        "report": "progress.md",
+        "commit": "32f11a8",
+        "push": "success",
+        "checks": [
+          {
+            "command": "node --test pages/commerce/member/plan/mem-02-contract.test.mjs pages/commerce/member/level/mem-01-contract.test.mjs pages/commerce/member/check-in/mem-06-contract.test.mjs pages/commerce/search/com-02-contract.test.mjs pages/commerce/product/com-03-contract.test.mjs tests/auth/navigation.test.mjs",
+            "workdir": "jiankang_app_uniapp",
+            "exit": 0,
+            "summary": "32 membership/commerce/auth contract tests passed; membership center links level/check-in and QR uses MAPP short reference when available."
+          },
+          {
+            "command": "git diff --check",
+            "workdir": "jiankang_app_uniapp",
             "exit": 0
           }
         ]
