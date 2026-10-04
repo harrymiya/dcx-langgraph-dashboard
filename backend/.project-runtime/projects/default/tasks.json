@@ -18813,6 +18813,49 @@
         ]
       },
       {
+        "report": "progress.md",
+        "commit": "469607c",
+        "push": "success",
+        "changed_paths": [
+          "dfp_wish/exts/wish_adm/bootstrap.py",
+          "dfp_wish/exts/wish_adm/test_bootstrap_service_catalog.py"
+        ],
+        "checks": [
+          {
+            "command": "PYTHONPATH=deerflow/backend uv run --frozen --project deerflow/backend --group dev python -m pytest exts/wish_adm/test_bootstrap_service_catalog.py exts/wish_adm/api/test_followup_admin_router.py -q",
+            "workdir": "dfp_wish",
+            "exit": 0,
+            "summary": "6 bootstrap/admin router tests passed; service-ledger router is now registered."
+          },
+          {
+            "command": "uv run --frozen --project . --group test python -m pytest tests/health_service_ledger/test_api07_payment_entitlement.py tests/health_service_ledger/test_scr06_ledger_refund.py tests/service_cards/test_scr05_entitlement_lifecycle.py tests/security/test_purpose_scope_checks.py tests/security/test_audit_redaction.py -q",
+            "workdir": "dfp_wish/domain",
+            "exit": 0,
+            "summary": "15 health ledger/service card/security tests passed."
+          },
+          {
+            "command": "npm test -- --run 'src/app/(modules)/service-ledger/_components/admin-api.test.ts' 'src/app/(modules)/service-ledger/_components/service-ledger-panel.test.tsx'",
+            "workdir": "dfp_wish/apps/wish-adm",
+            "exit": 0,
+            "summary": "8 service-ledger UI/client tests passed."
+          },
+          {
+            "command": "python3 -m compileall -q exts/wish_adm/bootstrap.py exts/wish_adm/api/service_ledger_admin_router.py",
+            "workdir": "dfp_wish",
+            "exit": 0
+          },
+          {
+            "command": "git diff --check",
+            "workdir": "dfp_wish",
+            "exit": 0
+          }
+        ],
+        "status": "partial; task remains planned pending canonical health ledger upstream/repository and production database composition",
+        "open": [
+          "Admin service-ledger page and router are connected, but the canonical Wish ledger endpoint still fail-closes when unavailable."
+        ]
+      },
+      {
         "report": "dfp_wish/domain/health_service_ledger_admin/test-and-run-evidence",
         "checks": [
           {
