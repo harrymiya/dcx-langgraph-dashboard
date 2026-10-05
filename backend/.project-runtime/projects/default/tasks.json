@@ -21881,6 +21881,35 @@
             "summary": "Diff check passed."
           }
         ]
+      },
+      {
+        "report": "progress.md",
+        "changed_paths": [
+          "dfp_wish/apps/wish-adm/src/app/(modules)/follow-ups/_components/followups-panel.test.tsx"
+        ],
+        "status": "partial; added assertions for disabling queue actions during pending commands; Wish persistence integration remains incomplete",
+        "commit": "d26941f",
+        "push": "success",
+        "checks": [
+          {
+            "command": "npm test -- --run src/app/(modules)/follow-ups/_components/followups-panel.test.tsx src/app/(modules)/follow-ups/_components/admin-api.test.ts",
+            "workdir": "dfp_wish/apps/wish-adm",
+            "exit": 0,
+            "summary": "13 focused UI/API tests passed."
+          },
+          {
+            "command": "npx eslint src/app/(modules)/follow-ups/_components/followups-panel.test.tsx",
+            "workdir": "dfp_wish/apps/wish-adm",
+            "exit": 0,
+            "summary": "Scoped lint passed."
+          },
+          {
+            "command": "git diff --check",
+            "workdir": "dfp_wish",
+            "exit": 0,
+            "summary": "Diff check passed."
+          }
+        ]
       }
     ],
     "verified_at": "2026-10-05",
