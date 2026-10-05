@@ -21816,6 +21816,71 @@
         "status": "partial; on authentication or permission loss, follow-up editor and unsent result inputs are now cleared with queue snapshot; no privileged/stale customer task details remain in view; this slice committed and pushed",
         "commit": "f831516",
         "push": "success"
+      },
+      {
+        "report": "progress.md",
+        "changed_paths": [
+          "dfp_wish/apps/wish-adm/src/app/(modules)/follow-ups/_components/followups-panel.tsx",
+          "dfp_wish/apps/wish-adm/src/app/(modules)/follow-ups/_components/followups-panel.test.tsx"
+        ],
+        "checks": [
+          {
+            "command": "npm test -- --run src/app/(modules)/follow-ups/_components/followups-panel.test.tsx src/app/(modules)/follow-ups/_components/admin-api.test.ts",
+            "workdir": "dfp_wish/apps/wish-adm",
+            "exit": 0,
+            "summary": "13 focused follow-up tests pass; action locking guards are asserted."
+          },
+          {
+            "command": "npx eslint src/app/(modules)/follow-ups/_components/followups-panel.tsx src/app/(modules)/follow-ups/_components/followups-panel.test.tsx",
+            "workdir": "dfp_wish/apps/wish-adm",
+            "exit": 0,
+            "summary": "Scoped ESLint passed."
+          },
+          {
+            "command": "npx tsc --noEmit --pretty false (filter changed files)",
+            "workdir": "dfp_wish/apps/wish-adm",
+            "exit": 0,
+            "summary": "No TypeScript diagnostics in touched follow-up files."
+          },
+          {
+            "command": "git diff --check",
+            "workdir": "dfp_wish",
+            "exit": 0,
+            "summary": "Diff whitespace check passed."
+          }
+        ],
+        "status": "partial; refresh/filter/select controls cannot race with a mutating follow-up command; server remains authoritative",
+        "commit": "not committed",
+        "push": "not pushed"
+      },
+      {
+        "report": "progress.md",
+        "changed_paths": [
+          "dfp_wish/apps/wish-adm/src/app/(modules)/follow-ups/_components/followups-panel.tsx"
+        ],
+        "status": "partial; queue filters, refresh, retry, and result actions are disabled while a command is pending; authoritative Wish persistence remains incomplete",
+        "commit": "99d01b6",
+        "push": "success",
+        "checks": [
+          {
+            "command": "npm test -- --run src/app/(modules)/follow-ups/_components/followups-panel.test.tsx src/app/(modules)/follow-ups/_components/admin-api.test.ts",
+            "workdir": "dfp_wish/apps/wish-adm",
+            "exit": 0,
+            "summary": "13 focused UI/API tests passed."
+          },
+          {
+            "command": "npx eslint src/app/(modules)/follow-ups/_components/followups-panel.tsx src/app/(modules)/follow-ups/_components/followups-panel.test.tsx",
+            "workdir": "dfp_wish/apps/wish-adm",
+            "exit": 0,
+            "summary": "Scoped lint passed."
+          },
+          {
+            "command": "git diff --check",
+            "workdir": "dfp_wish",
+            "exit": 0,
+            "summary": "Diff check passed."
+          }
+        ]
       }
     ],
     "verified_at": "2026-10-05",
@@ -21824,29 +21889,29 @@
         "command": "npm test -- --run src/app/(modules)/follow-ups/_components/followups-panel.test.tsx src/app/(modules)/follow-ups/_components/admin-api.test.ts",
         "workdir": "dfp_wish/apps/wish-adm",
         "exit": 0,
-        "summary": "13 focused UI/API tests passed for server-authoritative completion flow and stale snapshot handling."
+        "summary": "13 focused follow-up tests pass; action locking guards are asserted."
       },
       {
         "command": "npx eslint src/app/(modules)/follow-ups/_components/followups-panel.tsx src/app/(modules)/follow-ups/_components/followups-panel.test.tsx",
         "workdir": "dfp_wish/apps/wish-adm",
         "exit": 0,
-        "summary": "Scoped lint passed."
+        "summary": "Scoped ESLint passed."
       },
       {
         "command": "npx tsc --noEmit --pretty false (filter changed files)",
         "workdir": "dfp_wish/apps/wish-adm",
         "exit": 0,
-        "summary": "No diagnostics in changed follow-up files."
+        "summary": "No TypeScript diagnostics in touched follow-up files."
       },
       {
         "command": "git diff --check",
         "workdir": "dfp_wish",
         "exit": 0,
-        "summary": "Diff check passed."
+        "summary": "Diff whitespace check passed."
       }
     ],
     "autonomous_result": {
-      "status": "partial; on authentication or permission loss, follow-up editor and unsent result inputs are now cleared with queue snapshot; no privileged/stale customer task details remain in view",
+      "status": "partial; refresh/filter/select controls cannot race with a mutating follow-up command; server remains authoritative",
       "changed_paths": [
         "dfp_wish/apps/wish-adm/src/app/(modules)/follow-ups/_components/followups-panel.tsx",
         "dfp_wish/apps/wish-adm/src/app/(modules)/follow-ups/_components/followups-panel.test.tsx"
@@ -21855,8 +21920,8 @@
       "commit": null,
       "push": "not pushed",
       "open": [
-        "Server-side authorization remains authoritative and must be validated in Wish endpoints.",
-        "Canonical follow-up persistence, audit, and cross-tier integration remain incomplete."
+        "Canonical Wish command/queue persistence and full cross-tier integration remain necessary for production completeness.",
+        "No changes were made to Wish server scope or durable write behavior."
       ]
     }
   },
