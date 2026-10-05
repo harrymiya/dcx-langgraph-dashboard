@@ -21534,6 +21534,56 @@
             "Trusted production origins, approved migration execution, revocation secret deployment, canonical IAM role/site scope and real isolated IdP smoke remain incomplete."
           ]
         },
+        "latest_mysql_schema_and_isolated_seed": {
+          "status": "partial; added versioned WADM-04 site-service/readiness schema and inserted synthetic DB-07 catalog/site rows into disposable MySQL 8.4 only; canonical production DB remains untouched and Admin readiness/resource repositories are not yet composed",
+          "commit": "f5eb707",
+          "push": "success",
+          "changed_paths": [
+            "dfp_wish/domain/alembic/versions/wadm04_catalog_persistence.py",
+            "dfp_wish/domain/alembic/tests/test_wadm04_catalog_persistence.py",
+            "dfp_wish/domain/seeds/health_service_catalog/apply_isolated_catalog.py",
+            "dfp_wish/domain/seeds/health_service_catalog/tests/test_isolated_catalog_database.py",
+            "dfp_wish/sql/001_wish_canonical_schema.sql",
+            "dfp_wish/sql/002_backend_alembic_full_schema.sql",
+            "dfp_wish/sql/003_wadm04_catalog_persistence.sql",
+            "dfp_wish/sql/SCHEMA_INVENTORY.md"
+          ],
+          "checks": [
+            {
+              "command": "WISH_ISOLATED_MYSQL_DATABASE=wadm04_isolated_final WISH_ISOLATED_MYSQL_DSN='mysql+aiomysql://root:<ephemeral-local-only>@127.0.0.1:33317/' PYTHONPATH=.:.. uv run --frozen --project . --group test python -m pytest seeds/health_service_catalog/tests/test_isolated_catalog_database.py -q",
+              "workdir": "dfp_wish/domain",
+              "exit": 0,
+              "summary": "8 isolated MySQL integration/guard tests passed against ephemeral MySQL 8.4."
+            },
+            {
+              "command": "PYTHONPATH=.:.. uv run --frozen --project . python -m domain.seeds.health_service_catalog.apply_isolated_catalog --confirm-isolated-target",
+              "workdir": "dfp_wish/domain",
+              "exit": 0,
+              "summary": "Disposable DB contained 1 tenant, 2 sites, 9 service items, 9 versions and 72 unapproved readiness checks; site-b had no Phoenix catalog, resource/lock rows remained absent."
+            },
+            {
+              "command": "uv run --frozen --project . --group test python -m pytest alembic/tests/test_wadm04_catalog_persistence.py seeds/health_service_catalog/tests/test_seed_loader.py seeds/health_service_catalog/tests/test_isolated_catalog_database.py -q",
+              "workdir": "dfp_wish/domain",
+              "exit": 0,
+              "summary": "18 passed, 1 optional live-MySQL integration skipped without explicit DSN."
+            },
+            {
+              "command": "python3 -m compileall -q alembic/versions/wadm04_catalog_persistence.py alembic/tests/test_wadm04_catalog_persistence.py seeds/health_service_catalog/apply_isolated_catalog.py seeds/health_service_catalog/tests/test_seed_loader.py seeds/health_service_catalog/tests/test_isolated_catalog_database.py",
+              "workdir": "dfp_wish/domain",
+              "exit": 0
+            },
+            {
+              "command": "git diff --check",
+              "workdir": "dfp_wish",
+              "exit": 0
+            }
+          ],
+          "safety": "Only isolated disposable MySQL schema wadm04_isolated_final received synthetic inserts; configured dfp_wish connection failed read-only authentication probe; no production or existing application database DDL/DML executed.",
+          "open": [
+            "Canonical baseline owner approval and migration graph integration are pending; no upgrade against existing/deployed schema was run.",
+            "WADM-04 BFF writes remain gated; readiness/resource SQLAlchemy repositories and trusted operator/site scope composition remain incomplete."
+          ]
+        },
         "latest_catalog_selector_normalization": {
           "status": "partial; WADM-04 catalog BFF trims bounded selector values and rejects whitespace-only site/service/qualification filters before proxying",
           "commit": "f103f5e",
