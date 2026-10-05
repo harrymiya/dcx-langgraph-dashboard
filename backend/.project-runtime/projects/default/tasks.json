@@ -21910,6 +21910,42 @@
             "summary": "Diff check passed."
           }
         ]
+      },
+      {
+        "report": "progress.md",
+        "changed_paths": [
+          "dfp_wish/apps/wish-adm/src/app/(modules)/follow-ups/_components/followups-panel.tsx",
+          "dfp_wish/apps/wish-adm/src/app/(modules)/follow-ups/_components/followups-panel.test.tsx"
+        ],
+        "checks": [
+          {
+            "command": "npm test -- --run src/app/(modules)/follow-ups/_components/followups-panel.test.tsx src/app/(modules)/follow-ups/_components/admin-api.test.ts",
+            "workdir": "dfp_wish/apps/wish-adm",
+            "exit": 0,
+            "summary": "13 follow-up UI/API tests passed; manually triggered queue refresh now preserves selected record and draft input state on transient failure."
+          },
+          {
+            "command": "npx eslint src/app/(modules)/follow-ups/_components/followups-panel.tsx src/app/(modules)/follow-ups/_components/followups-panel.test.tsx",
+            "workdir": "dfp_wish/apps/wish-adm",
+            "exit": 0,
+            "summary": "Scoped lint passed."
+          },
+          {
+            "command": "npx tsc --noEmit --pretty false (filter changed follow-up files)",
+            "workdir": "dfp_wish/apps/wish-adm",
+            "exit": 0,
+            "summary": "No changed-file type diagnostics."
+          },
+          {
+            "command": "git diff --check",
+            "workdir": "dfp_wish",
+            "exit": 0,
+            "summary": "Diff check passed."
+          }
+        ],
+        "status": "partial; manual refresh preserves follow-up editor draft while command-accepted refresh uses its existing controlled close-on-success path; committed and pushed",
+        "commit": "d23bf05",
+        "push": "success"
       }
     ],
     "verified_at": "2026-10-05",
@@ -21918,29 +21954,29 @@
         "command": "npm test -- --run src/app/(modules)/follow-ups/_components/followups-panel.test.tsx src/app/(modules)/follow-ups/_components/admin-api.test.ts",
         "workdir": "dfp_wish/apps/wish-adm",
         "exit": 0,
-        "summary": "13 focused follow-up tests pass; action locking guards are asserted."
+        "summary": "13 follow-up UI/API tests passed; manually triggered queue refresh now preserves selected record and draft input state on transient failure."
       },
       {
         "command": "npx eslint src/app/(modules)/follow-ups/_components/followups-panel.tsx src/app/(modules)/follow-ups/_components/followups-panel.test.tsx",
         "workdir": "dfp_wish/apps/wish-adm",
         "exit": 0,
-        "summary": "Scoped ESLint passed."
+        "summary": "Scoped lint passed."
       },
       {
-        "command": "npx tsc --noEmit --pretty false (filter changed files)",
+        "command": "npx tsc --noEmit --pretty false (filter changed follow-up files)",
         "workdir": "dfp_wish/apps/wish-adm",
         "exit": 0,
-        "summary": "No TypeScript diagnostics in touched follow-up files."
+        "summary": "No changed-file type diagnostics."
       },
       {
         "command": "git diff --check",
         "workdir": "dfp_wish",
         "exit": 0,
-        "summary": "Diff whitespace check passed."
+        "summary": "Diff check passed."
       }
     ],
     "autonomous_result": {
-      "status": "partial; refresh/filter/select controls cannot race with a mutating follow-up command; server remains authoritative",
+      "status": "partial; manual refresh preserves follow-up editor draft while command-accepted refresh uses its existing controlled close-on-success path",
       "changed_paths": [
         "dfp_wish/apps/wish-adm/src/app/(modules)/follow-ups/_components/followups-panel.tsx",
         "dfp_wish/apps/wish-adm/src/app/(modules)/follow-ups/_components/followups-panel.test.tsx"
@@ -21949,8 +21985,8 @@
       "commit": null,
       "push": "not pushed",
       "open": [
-        "Canonical Wish command/queue persistence and full cross-tier integration remain necessary for production completeness.",
-        "No changes were made to Wish server scope or durable write behavior."
+        "The task action and resulting queue state still come only from Wish SCRM API and persistent backend.",
+        "Full WADM-14 vertical integration remains incomplete; UI improvement does not certify task completion."
       ]
     }
   },
